@@ -239,118 +239,197 @@ function App() {
   };
 
   if (!sessionStarted) {
+    const currentLevelIndex = CURRICULUM.findIndex(l => l.id === currentLevel.id);
+    
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex items-center justify-center p-4">
-        <div className="max-w-2xl w-full bg-gray-800 rounded-2xl shadow-2xl p-8">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 p-4 md:p-8">
+        <div className="max-w-6xl mx-auto">
+          {/* Header */}
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-white mb-2">🎵 Ear Training</h1>
-            <p className="text-gray-300">Progressive musical ear development</p>
+            <h1 className="text-5xl font-bold text-white mb-2">🎵 Ear Training</h1>
+            <p className="text-gray-300 text-lg">Master musical intervals through progressive practice</p>
+            {completedLevels.length > 0 && (
+              <div className="mt-3 inline-flex items-center gap-2 bg-yellow-500 bg-opacity-20 px-4 py-2 rounded-full">
+                <Trophy className="w-5 h-5 text-yellow-400" />
+                <span className="text-yellow-300 font-semibold">{completedLevels.length} levels completed</span>
+              </div>
+            )}
           </div>
 
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold text-white mb-3">Choose a Level:</h3>
-            <div className="grid grid-cols-1 gap-2 max-h-96 overflow-y-auto">
-              {CURRICULUM.map((level, index) => (
-                <button
-                  key={level.id}
-                  onClick={() => setSelectedLevelId(level.id)}
-                  className={`text-left p-4 rounded-lg transition-all ${
-                    currentLevel.id === level.id
-                      ? 'bg-purple-600 text-white'
-                      : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="font-semibold">
-                      {index + 1}. {level.name}
-                    </span>
-                    {completedLevels.includes(level.id) && (
-                      <Trophy className="w-4 h-4 text-yellow-400" />
-                    )}
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* Left: Learning Path */}
+            <div className="bg-gray-800 rounded-2xl shadow-2xl p-6">
+              <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
+                <BarChart3 className="w-6 h-6 text-purple-400" />
+                Learning Path
+              </h2>
+              
+              <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2">
+                {CURRICULUM.map((level, index) => {
+                  const isCompleted = completedLevels.includes(level.id);
+                  const isCurrent = currentLevel.id === level.id;
+                  const isLocked = index > 0 && !completedLevels.includes(CURRICULUM[index - 1].id) && !isCurrent;
+                  
+                  return (
+                    <div key={level.id} className="relative">
+                      {/* Connection line */}
+                      {index < CURRICULUM.length - 1 && (
+                        <div className={`absolute left-6 top-16 w-0.5 h-8 ${
+                          isCompleted ? 'bg-green-500' : 'bg-gray-600'
+                        }`} />
+                      )}
+                      
+                      <button
+                        onClick={() => !isLocked && setSelectedLevelId(level.id)}
+                        disabled={isLocked}
+                        className={`w-full text-left p-4 rounded-xl transition-all relative ${
+                          isCurrent
+                            ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg scale-105'
+                            : isCompleted
+                            ? 'bg-green-900 bg-opacity-40 text-white hover:bg-opacity-60'
+                            : isLocked
+                            ? 'bg-gray-700 bg-opacity-50 text-gray-500 cursor-not-allowed'
+                            : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                        }`}
+                      >
+                        <div className="flex items-start gap-3">
+                          {/* Level indicator */}
+                          <div className={`flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg ${
+                            isCurrent
+                              ? 'bg-white text-purple-600'
+                              : isCompleted
+                              ? 'bg-green-500 text-white'
+                              : isLocked
+                              ? 'bg-gray-600 text-gray-400'
+                              : 'bg-purple-500 text-white'
+                          }`}>
+                            {isCompleted ? '✓' : index + 1}
+                          </div>
+                          
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between mb-1">
+                              <h3 className="font-semibold text-base">{level.name}</h3>
+                              {isLocked && <span className="text-xs">🔒</span>}
+                            </div>
+                            <p className={`text-sm ${isCurrent ? 'text-purple-100' : 'opacity-80'}`}>
+                              {level.description}
+                            </p>
+                            {!isLocked && (
+                              <div className="mt-2 flex flex-wrap gap-1">
+                                {level.items.slice(0, 3).map(item => (
+                                  <span key={item} className={`text-xs px-2 py-0.5 rounded-full ${
+                                    isCurrent ? 'bg-white bg-opacity-20' : 'bg-purple-500 bg-opacity-30'
+                                  }`}>
+                                    {getDisplayName(item)}
+                                  </span>
+                                ))}
+                                {level.items.length > 3 && (
+                                  <span className={`text-xs px-2 py-0.5 rounded-full ${
+                                    isCurrent ? 'bg-white bg-opacity-20' : 'bg-purple-500 bg-opacity-30'
+                                  }`}>
+                                    +{level.items.length - 3}
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Right: Selected Level Details */}
+            <div className="bg-gray-800 rounded-2xl shadow-2xl p-6">
+              <div className="mb-6">
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="text-3xl font-bold text-white">{currentLevel.name}</h2>
+                  <div className="text-sm text-gray-400">
+                    Level {currentLevelIndex + 1}/{CURRICULUM.length}
                   </div>
-                  <p className="text-sm opacity-80">{level.description}</p>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="bg-gray-700 rounded-xl p-6 mb-6">
-            <h2 className="text-2xl font-bold text-white mb-2">{currentLevel.name}</h2>
-            <p className="text-gray-300 mb-4">{currentLevel.description}</p>
-            
-            <div className="flex items-center gap-4 text-sm text-gray-400 mb-4">
-              <span className="flex items-center gap-1">
-                <Trophy className="w-4 h-4" />
-                Level {CURRICULUM.findIndex(l => l.id === currentLevel.id) + 1} of {CURRICULUM.length}
-              </span>
-              <span>•</span>
-              <span>Target: {currentLevel.unlockRequirement}% accuracy</span>
-            </div>
-            
-            <div className="bg-purple-900 bg-opacity-30 rounded-lg p-3 mb-4">
-              <p className="text-purple-200 text-sm">
-                <strong>{MAX_QUESTIONS} questions</strong> across <strong>3 random keys</strong>
-              </p>
-              <p className="text-purple-300 text-xs mt-1">
-                {QUESTIONS_PER_KEY} questions per key • All content is diatonic (in-scale)
-              </p>
-            </div>
-
-            <div className="mb-4">
-              <h3 className="text-sm font-semibold text-white mb-2">Sound:</h3>
-              <div className="flex gap-2">
-                {(['piano', 'sine', 'sawtooth'] as SynthType[]).map(type => (
-                  <button
-                    key={type}
-                    onClick={() => setSynthType(type)}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                      synthType === type
-                        ? 'bg-purple-600 text-white'
-                        : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
-                    }`}
-                  >
-                    {type.charAt(0).toUpperCase() + type.slice(1)}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <h3 className="text-sm font-semibold text-white mb-2">You'll practice:</h3>
-              <div className="flex flex-wrap gap-2">
-                {currentLevel.items.map(item => (
-                  <span
-                    key={item}
-                    className="px-3 py-1 bg-purple-600 text-white rounded-full text-sm"
-                  >
-                    {getDisplayName(item)}
-                  </span>
-                ))}
-              </div>
-              {currentLevel.scaleDegrees && (
-                <p className="text-purple-300 text-xs mt-2">
-                  Focus: {currentLevel.scaleDegrees.map(d => {
-                    const degreeNames = ['I (Root)', 'ii', 'iii', 'IV', 'V (Dominant)', 'vi', 'vii°'];
-                    return degreeNames[d];
-                  }).join(', ')}
+                </div>
+                <p className="text-gray-300 text-lg mb-4">{currentLevel.description}</p>
+                
+                {/* Progress bar */}
+                <div className="bg-gray-700 rounded-full h-2 mb-2">
+                  <div 
+                    className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full transition-all"
+                    style={{ width: `${(completedLevels.length / CURRICULUM.length) * 100}%` }}
+                  />
+                </div>
+                <p className="text-xs text-gray-400 text-right">
+                  {completedLevels.length} of {CURRICULUM.length} levels completed
                 </p>
-              )}
+              </div>
+
+              {/* Session Info */}
+              <div className="bg-purple-900 bg-opacity-30 rounded-xl p-4 mb-6 border border-purple-500 border-opacity-30">
+                <h3 className="text-white font-semibold mb-2 flex items-center gap-2">
+                  📊 Session Format
+                </h3>
+                <div className="space-y-1 text-sm text-purple-200">
+                  <p>• <strong>{MAX_QUESTIONS} questions</strong> per session</p>
+                  <p>• <strong>3 random keys</strong> ({QUESTIONS_PER_KEY} questions each)</p>
+                  <p>• All content is <strong>diatonic</strong> (in-scale)</p>
+                  <p>• Target: <strong>{currentLevel.unlockRequirement}% accuracy</strong> to unlock next level</p>
+                </div>
+              </div>
+
+              {/* What you'll practice */}
+              <div className="mb-6">
+                <h3 className="text-white font-semibold mb-3">🎯 What You'll Practice</h3>
+                <div className="flex flex-wrap gap-2">
+                  {currentLevel.items.map(item => (
+                    <span
+                      key={item}
+                      className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg text-sm font-medium"
+                    >
+                      {getDisplayName(item)}
+                    </span>
+                  ))}
+                </div>
+                {currentLevel.scaleDegrees && (
+                  <div className="mt-3 text-sm text-purple-300 bg-purple-900 bg-opacity-20 p-3 rounded-lg">
+                    <strong>Focus:</strong> {currentLevel.scaleDegrees.map(d => {
+                      const degreeNames = ['I (Root)', 'ii', 'iii', 'IV', 'V (Dominant)', 'vi', 'vii°'];
+                      return degreeNames[d];
+                    }).join(', ')}
+                  </div>
+                )}
+              </div>
+
+              {/* Sound Settings */}
+              <div className="mb-6">
+                <h3 className="text-white font-semibold mb-3">🎹 Sound</h3>
+                <div className="flex gap-2">
+                  {(['piano', 'sine', 'sawtooth'] as SynthType[]).map(type => (
+                    <button
+                      key={type}
+                      onClick={() => setSynthType(type)}
+                      className={`flex-1 px-4 py-3 rounded-lg text-sm font-medium transition-all ${
+                        synthType === type
+                          ? 'bg-purple-600 text-white shadow-lg'
+                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                      }`}
+                    >
+                      {type.charAt(0).toUpperCase() + type.slice(1)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Start Button */}
+              <button
+                onClick={() => setSessionStarted(true)}
+                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-5 rounded-xl font-bold text-xl hover:from-purple-700 hover:to-pink-700 transition-all flex items-center justify-center gap-3 shadow-lg hover:shadow-xl transform hover:scale-105"
+              >
+                <Play className="w-7 h-7" />
+                Start Training
+              </button>
             </div>
           </div>
-
-          <button
-            onClick={() => setSessionStarted(true)}
-            className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-4 rounded-xl font-semibold text-lg hover:from-purple-700 hover:to-pink-700 transition-all flex items-center justify-center gap-2"
-          >
-            <Play className="w-6 h-6" />
-            Start Training Session
-          </button>
-
-          {completedLevels.length > 0 && (
-            <div className="mt-6 text-center text-gray-400 text-sm">
-              Completed levels: {completedLevels.length}
-            </div>
-          )}
         </div>
       </div>
     );
