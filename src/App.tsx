@@ -27,6 +27,7 @@ function App() {
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [debugMode, setDebugMode] = useState(false);
   const [expandedSegments, setExpandedSegments] = useState<string[]>(['pitch']); // Start with first segment expanded
+  const [lastKeyChangeQuestion, setLastKeyChangeQuestion] = useState<number>(-1); // Track when we last changed keys
 
   const currentLevel = selectedLevelId 
     ? CURRICULUM.find(l => l.id === selectedLevelId) || getCurrentLevel(completedLevels)
@@ -117,18 +118,21 @@ function App() {
       if (sessionStarted && !currentQuestion && stats.totalQuestions < MAX_QUESTIONS && scaleRoots.length > 0 && !isPlayingScale) {
         // Check if we need to switch keys
         const questionInBlock = stats.totalQuestions % QUESTIONS_PER_KEY;
-        if (questionInBlock === 0 && stats.totalQuestions > 0) {
+        // Only change key if we're at a boundary AND we haven't already changed for this question number
+        if (questionInBlock === 0 && stats.totalQuestions > 0 && lastKeyChangeQuestion !== stats.totalQuestions) {
           // New key block - switch scale
           const blockIndex = Math.floor(stats.totalQuestions / QUESTIONS_PER_KEY);
           if (blockIndex < scaleRoots.length) {
             const newRoot = scaleRoots[blockIndex];
-            setCurrentScaleRoot(newRoot);
+            setLastKeyChangeQuestion(stats.totalQuestions); // Mark that we changed keys for this question
+            setCurrentScaleRoot(newRoot); // Update UI immediately
             setIsPlayingScale(true);
             // Play scale reference automatically and wait for it to finish
             const { duration } = await audioEngine.playMajorScaleReference(newRoot, 4);
-            // Wait for scale to finish, then generate question
+            // Wait for scale to finish
             await new Promise(resolve => setTimeout(resolve, duration * 1000 + 500));
             setIsPlayingScale(false);
+            return; // Don't generate question yet - wait for state update
           }
         }
         generateQuestion();
@@ -138,7 +142,7 @@ function App() {
     };
     
     handleQuestionGeneration();
-  }, [sessionStarted, currentQuestion, stats.totalQuestions, scaleRoots, generateQuestion, isPlayingScale]);
+  }, [sessionStarted, currentQuestion, stats.totalQuestions, scaleRoots, generateQuestion, isPlayingScale, currentScaleRoot, lastKeyChangeQuestion]);
 
   // Initialize scale roots when session starts
   useEffect(() => {
@@ -161,7 +165,7 @@ function App() {
     };
     
     initializeSession();
-  }, [sessionStarted]);
+  }, [sessionStarted, scaleRoots.length]);
 
   useEffect(() => {
     audioEngine.setSynthType(synthType);
@@ -298,13 +302,14 @@ function App() {
   };
 
   const handleStartNewSession = () => {
-    analytics.reset();
-    setSessionStarted(false);
+    analytics.clearAnswers();
+    setSessionStarted(true);
     setShowStats(false);
     setCurrentQuestion(null);
     setScaleRoots([]);
     setCurrentScaleRoot('C');
     setIsPlayingScale(false);
+    setLastKeyChangeQuestion(-1);
   };
 
   const getAnswerOptions = (): string[] => {
@@ -714,12 +719,49 @@ function App() {
             </div>
           )}
 
-          <button
-            onClick={handleStartNewSession}
-            className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-4 rounded-xl font-semibold text-lg hover:from-purple-700 hover:to-pink-700 transition-all"
-          >
-            Start New Session
-          </button>
+          <div className="flex gap-4">
+            <button
+              onClick={() => {
+                // Reset all session state
+                analytics.clearAnswers();
+                setShowStats(false);
+                setSessionStarted(false);
+                setCurrentQuestion(null);
+                setScaleRoots([]);
+                setCurrentScaleRoot('C');
+                setIsPlayingScale(false);
+                setLastKeyChangeQuestion(-1);
+                setSelectedAnswer(null);
+                setShowFeedback(false);
+              }}
+              className="flex-1 bg-gray-700 hover:bg-gray-600 text-white py-4 rounded-xl font-semibold text-lg transition-all"
+            >
+              ← Back to Lessons
+            </button>
+            <button
+              onClick={handleStartNewSession}
+              className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white py-4 rounded-xl font-semibold text-lg hover:from-purple-700 hover:to-pink-700 transition-all"
+            >
+              Practice Again
+            </button>
+          </div>
+          
+          {/* Next Lesson Button - only show if level was unlocked and there's a next lesson */}
+          {stats.accuracy >= currentLevel.unlockRequirement && (() => {
+            const currentLevelIndex = CURRICULUM.findIndex(l => l.id === currentLevel.id);
+            const nextLevel = CURRICULUM[currentLevelIndex + 1];
+            return nextLevel && (
+              <button
+                onClick={() => {
+                  setSelectedLevelId(nextLevel.id);
+                  handleStartNewSession();
+                }}
+                className="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white py-4 rounded-xl font-semibold text-lg hover:from-green-700 hover:to-emerald-700 transition-all flex items-center justify-center gap-2"
+              >
+                Next Lesson: {nextLevel.name} →
+              </button>
+            );
+          })()}
         </div>
       </div>
     );
@@ -852,21 +894,81 @@ function App() {
           })}
         </div>
 
-        {showFeedback && (
-          <div className="flex gap-3">
-            <button
-              onClick={handleNext}
-              className="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-xl font-semibold transition-all"
-            >
-              Next Question
-            </button>
-            <button
-              onClick={handleEndSession}
-              className="flex-1 bg-gray-700 hover:bg-gray-600 text-white py-3 rounded-xl font-semibold transition-all"
-            >
-              End Session
-            </button>
-          </div>
+        {showFeedback && currentQuestion && (
+          <>
+            {/* Detailed Feedback Panel */}
+            <div className={`mb-4 p-4 rounded-xl ${
+              selectedAnswer === currentQuestion.correctAnswer 
+                ? 'bg-green-900/30 border-2 border-green-500' 
+                : 'bg-red-900/30 border-2 border-red-500'
+            }`}>
+              <div className="text-center mb-3">
+                <div className={`text-2xl font-bold mb-1 ${
+                  selectedAnswer === currentQuestion.correctAnswer ? 'text-green-400' : 'text-red-400'
+                }`}>
+                  {selectedAnswer === currentQuestion.correctAnswer ? '✓ Correct!' : '✗ Incorrect'}
+                </div>
+                {selectedAnswer !== currentQuestion.correctAnswer && (
+                  <div className="text-white text-sm">
+                    You answered: <span className="font-semibold text-red-300">{getDisplayName(selectedAnswer!)}</span>
+                  </div>
+                )}
+              </div>
+              
+              <div className="bg-gray-800/50 rounded-lg p-3 space-y-2">
+                <div className="text-center text-white">
+                  <div className="text-lg font-semibold text-purple-300 mb-2">What You Heard:</div>
+                  <div className="text-xl font-bold text-white mb-1">
+                    {getDisplayName(currentQuestion.correctAnswer)}
+                  </div>
+                  
+                  {/* Interval-specific details */}
+                  {currentQuestion.intervalDirection && currentQuestion.intervalPresentation && (
+                    <div className="flex items-center justify-center gap-2 text-sm text-gray-300 mt-2">
+                      <span className="bg-purple-600/30 px-3 py-1 rounded-full">
+                        {currentQuestion.intervalDirection === 'ascending' ? '↑ Ascending' : '↓ Descending'}
+                      </span>
+                      <span className="bg-blue-600/30 px-3 py-1 rounded-full">
+                        {currentQuestion.intervalPresentation === 'harmonic' ? '♫ Harmonic' : '→ Melodic'}
+                      </span>
+                    </div>
+                  )}
+                  
+                  {/* Scale degree context */}
+                  {currentQuestion.context && (
+                    <div className="text-xs text-gray-400 mt-2">
+                      Context: {currentQuestion.context.replace(/_/g, ' ')}
+                    </div>
+                  )}
+                  
+                  {/* Root note and played notes */}
+                  <div className="text-xs text-gray-400 mt-2">
+                    Root: <span className="text-purple-300 font-mono">{currentQuestion.rootNote}</span>
+                    {currentQuestion.playedNotes.length > 0 && (
+                      <span className="ml-2">
+                        Notes: <span className="text-purple-300 font-mono">{currentQuestion.playedNotes.join(', ')}</span>
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={handleNext}
+                className="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-xl font-semibold transition-all"
+              >
+                Next Question
+              </button>
+              <button
+                onClick={handleEndSession}
+                className="flex-1 bg-gray-700 hover:bg-gray-600 text-white py-3 rounded-xl font-semibold transition-all"
+              >
+                End Session
+              </button>
+            </div>
+          </>
         )}
       </div>
     </div>

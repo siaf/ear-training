@@ -8,6 +8,10 @@ export class AnalyticsEngine {
     this.answers.push(answer);
   }
 
+  clearAnswers() {
+    this.answers = [];
+  }
+
   getSessionStats(): SessionStats {
     const totalQuestions = this.answers.length;
     const correctAnswers = this.answers.filter(a => a.isCorrect).length;
