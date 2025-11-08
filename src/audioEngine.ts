@@ -151,6 +151,13 @@ class AudioEngine {
     if (!this.initialized) {
       await Tone.start();
       this.initialized = true;
+      console.log('🎵 Audio context initialized');
+    }
+    
+    // Always ensure context is running (iOS can suspend it)
+    if (Tone.context.state !== 'running') {
+      await Tone.context.resume();
+      console.log('🎵 Audio context resumed');
     }
   }
 

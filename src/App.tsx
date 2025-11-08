@@ -422,7 +422,11 @@ function App() {
 
               {/* Start Button */}
               <button
-                onClick={() => setSessionStarted(true)}
+                onClick={async () => {
+                  // Initialize audio context on user interaction (required for iOS)
+                  await audioEngine.initialize();
+                  setSessionStarted(true);
+                }}
                 className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-5 rounded-xl font-bold text-xl hover:from-purple-700 hover:to-pink-700 transition-all flex items-center justify-center gap-3 shadow-lg hover:shadow-xl transform hover:scale-105"
               >
                 <Play className="w-7 h-7" />
