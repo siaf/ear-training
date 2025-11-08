@@ -1,12 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Volume2, BarChart3, Trophy, Play } from 'lucide-react';
-import { audioEngine, INTERVALS, TRIADS, SEVENTH_CHORDS, MODES } from './audioEngine';
+import { audioEngine, INTERVALS, TRIADS, SEVENTH_CHORDS, MODES, SynthType } from './audioEngine';
 import { CURRICULUM, getCurrentLevel, canUnlockNextLevel, getDisplayName } from './curriculum';
 import { AnalyticsEngine } from './analytics';
-import { Question, Answer, QuestionType } from './types';
+import { Question, Answer } from './types';
+import { filterDiatonicItems } from './scaleContext';
+
+const MAX_QUESTIONS = 24;
+const QUESTIONS_PER_KEY = 8;
 
 function App() {
   const [completedLevels, setCompletedLevels] = useState<string[]>([]);
+  const [selectedLevelId, setSelectedLevelId] = useState<string | null>(null);
   const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [showFeedback, setShowFeedback] = useState(false);
@@ -14,19 +19,30 @@ function App() {
   const [sessionStarted, setSessionStarted] = useState(false);
   const [showStats, setShowStats] = useState(false);
   const [questionStartTime, setQuestionStartTime] = useState<number>(0);
+  const [synthType, setSynthType] = useState<SynthType>('piano');
+  const [currentScaleRoot, setCurrentScaleRoot] = useState<string>('C');
+  const [scaleRoots, setScaleRoots] = useState<string[]>([]);
+  const [isPlayingScale, setIsPlayingScale] = useState(false);
 
-  const currentLevel = getCurrentLevel(completedLevels);
+  const currentLevel = selectedLevelId 
+    ? CURRICULUM.find(l => l.id === selectedLevelId) || getCurrentLevel(completedLevels)
+    : getCurrentLevel(completedLevels);
   const stats = analytics.getSessionStats();
 
-  useEffect(() => {
-    if (sessionStarted && !currentQuestion) {
-      generateQuestion();
-    }
-  }, [sessionStarted, currentQuestion]);
-
-  const generateQuestion = async () => {
-    const randomItem = currentLevel.items[Math.floor(Math.random() * currentLevel.items.length)];
-    const rootNote = audioEngine.getRandomRootNote();
+  // Define generateQuestion first so it can be used in useEffects
+  const generateQuestion = useCallback(async () => {
+    // Get diatonic items within the current scale
+    const diatonicItems = filterDiatonicItems(
+      currentLevel.items,
+      currentLevel.type,
+      currentScaleRoot,
+      currentLevel.scaleDegrees
+    );
+    
+    // Pick a random diatonic item
+    const randomDiatonic = diatonicItems[Math.floor(Math.random() * diatonicItems.length)];
+    const rootNote = randomDiatonic.root;
+    const itemType = randomDiatonic.type;
     
     let playedNotes: string[] = [];
     
@@ -34,16 +50,16 @@ function App() {
     try {
       switch (currentLevel.type) {
         case 'interval':
-          playedNotes = await audioEngine.playInterval(rootNote, randomItem as keyof typeof INTERVALS);
+          playedNotes = await audioEngine.playInterval(rootNote, itemType as keyof typeof INTERVALS);
           break;
         case 'triad':
-          playedNotes = await audioEngine.playTriad(rootNote, randomItem as keyof typeof TRIADS);
+          playedNotes = await audioEngine.playTriad(rootNote, itemType as keyof typeof TRIADS);
           break;
         case 'seventh_chord':
-          playedNotes = await audioEngine.playSeventhChord(rootNote, randomItem as keyof typeof SEVENTH_CHORDS);
+          playedNotes = await audioEngine.playSeventhChord(rootNote, itemType as keyof typeof SEVENTH_CHORDS);
           break;
         case 'mode':
-          playedNotes = await audioEngine.playMode(rootNote, randomItem as keyof typeof MODES);
+          playedNotes = await audioEngine.playMode(rootNote, itemType as keyof typeof MODES);
           break;
       }
     } catch (error) {
@@ -53,7 +69,7 @@ function App() {
     const question: Question = {
       id: `q_${Date.now()}`,
       type: currentLevel.type,
-      correctAnswer: randomItem,
+      correctAnswer: itemType,
       rootNote,
       playedNotes,
       timestamp: Date.now(),
@@ -63,7 +79,62 @@ function App() {
     setSelectedAnswer(null);
     setShowFeedback(false);
     setQuestionStartTime(Date.now());
-  };
+  }, [currentLevel, currentScaleRoot]);
+
+  useEffect(() => {
+    const handleQuestionGeneration = async () => {
+      if (sessionStarted && !currentQuestion && stats.totalQuestions < MAX_QUESTIONS && scaleRoots.length > 0 && !isPlayingScale) {
+        // Check if we need to switch keys
+        const questionInBlock = stats.totalQuestions % QUESTIONS_PER_KEY;
+        if (questionInBlock === 0 && stats.totalQuestions > 0) {
+          // New key block - switch scale
+          const blockIndex = Math.floor(stats.totalQuestions / QUESTIONS_PER_KEY);
+          if (blockIndex < scaleRoots.length) {
+            const newRoot = scaleRoots[blockIndex];
+            setCurrentScaleRoot(newRoot);
+            setIsPlayingScale(true);
+            // Play scale reference automatically and wait for it to finish
+            const { duration } = await audioEngine.playMajorScaleReference(newRoot, 4);
+            // Wait for scale to finish, then generate question
+            await new Promise(resolve => setTimeout(resolve, duration * 1000 + 500));
+            setIsPlayingScale(false);
+          }
+        }
+        generateQuestion();
+      } else if (sessionStarted && stats.totalQuestions >= MAX_QUESTIONS) {
+        handleEndSession();
+      }
+    };
+    
+    handleQuestionGeneration();
+  }, [sessionStarted, currentQuestion, stats.totalQuestions, scaleRoots, generateQuestion, isPlayingScale]);
+
+  // Initialize scale roots when session starts
+  useEffect(() => {
+    const initializeSession = async () => {
+      if (sessionStarted && scaleRoots.length === 0) {
+        setIsPlayingScale(true);
+        // Generate 3 random keys for the session
+        const roots = [];
+        for (let i = 0; i < 3; i++) {
+          roots.push(audioEngine.getRandomRootNote());
+        }
+        setScaleRoots(roots);
+        setCurrentScaleRoot(roots[0]);
+        // Play initial scale reference and wait before first question
+        const { duration } = await audioEngine.playMajorScaleReference(roots[0], 4);
+        await new Promise(resolve => setTimeout(resolve, duration * 1000 + 500));
+        setIsPlayingScale(false);
+        // First question will be generated by the other useEffect
+      }
+    };
+    
+    initializeSession();
+  }, [sessionStarted]);
+
+  useEffect(() => {
+    audioEngine.setSynthType(synthType);
+  }, [synthType]);
 
   const replaySound = async () => {
     if (!currentQuestion) return;
@@ -109,10 +180,14 @@ function App() {
     const isCorrect = answer === currentQuestion.correctAnswer;
     const responseTime = Date.now() - questionStartTime;
 
+    // Create full description with root note and type
+    const fullDescription = `${currentQuestion.rootNote} ${getDisplayName(currentQuestion.correctAnswer)}`;
+
     const answerRecord: Answer = {
       questionId: currentQuestion.id,
       userAnswer: answer,
       correctAnswer: currentQuestion.correctAnswer,
+      fullDescription,
       isCorrect,
       timestamp: Date.now(),
       responseTime,
@@ -145,6 +220,9 @@ function App() {
     setSessionStarted(false);
     setShowStats(false);
     setCurrentQuestion(null);
+    setScaleRoots([]);
+    setCurrentScaleRoot('C');
+    setIsPlayingScale(false);
   };
 
   const getAnswerOptions = (): string[] => {
@@ -160,11 +238,38 @@ function App() {
             <p className="text-gray-300">Progressive musical ear development</p>
           </div>
 
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold text-white mb-3">Choose a Level:</h3>
+            <div className="grid grid-cols-1 gap-2 max-h-96 overflow-y-auto">
+              {CURRICULUM.map((level, index) => (
+                <button
+                  key={level.id}
+                  onClick={() => setSelectedLevelId(level.id)}
+                  className={`text-left p-4 rounded-lg transition-all ${
+                    currentLevel.id === level.id
+                      ? 'bg-purple-600 text-white'
+                      : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-semibold">
+                      {index + 1}. {level.name}
+                    </span>
+                    {completedLevels.includes(level.id) && (
+                      <Trophy className="w-4 h-4 text-yellow-400" />
+                    )}
+                  </div>
+                  <p className="text-sm opacity-80">{level.description}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="bg-gray-700 rounded-xl p-6 mb-6">
             <h2 className="text-2xl font-bold text-white mb-2">{currentLevel.name}</h2>
             <p className="text-gray-300 mb-4">{currentLevel.description}</p>
             
-            <div className="flex items-center gap-4 text-sm text-gray-400">
+            <div className="flex items-center gap-4 text-sm text-gray-400 mb-4">
               <span className="flex items-center gap-1">
                 <Trophy className="w-4 h-4" />
                 Level {CURRICULUM.findIndex(l => l.id === currentLevel.id) + 1} of {CURRICULUM.length}
@@ -172,19 +277,55 @@ function App() {
               <span>•</span>
               <span>Target: {currentLevel.unlockRequirement}% accuracy</span>
             </div>
-          </div>
+            
+            <div className="bg-purple-900 bg-opacity-30 rounded-lg p-3 mb-4">
+              <p className="text-purple-200 text-sm">
+                <strong>{MAX_QUESTIONS} questions</strong> across <strong>3 random keys</strong>
+              </p>
+              <p className="text-purple-300 text-xs mt-1">
+                {QUESTIONS_PER_KEY} questions per key • All content is diatonic (in-scale)
+              </p>
+            </div>
 
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold text-white mb-3">You'll practice:</h3>
-            <div className="flex flex-wrap gap-2">
-              {currentLevel.items.map(item => (
-                <span
-                  key={item}
-                  className="px-3 py-1 bg-purple-600 text-white rounded-full text-sm"
-                >
-                  {getDisplayName(item, currentLevel.type)}
-                </span>
-              ))}
+            <div className="mb-4">
+              <h3 className="text-sm font-semibold text-white mb-2">Sound:</h3>
+              <div className="flex gap-2">
+                {(['piano', 'sine', 'sawtooth'] as SynthType[]).map(type => (
+                  <button
+                    key={type}
+                    onClick={() => setSynthType(type)}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                      synthType === type
+                        ? 'bg-purple-600 text-white'
+                        : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+                    }`}
+                  >
+                    {type.charAt(0).toUpperCase() + type.slice(1)}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-sm font-semibold text-white mb-2">You'll practice:</h3>
+              <div className="flex flex-wrap gap-2">
+                {currentLevel.items.map(item => (
+                  <span
+                    key={item}
+                    className="px-3 py-1 bg-purple-600 text-white rounded-full text-sm"
+                  >
+                    {getDisplayName(item)}
+                  </span>
+                ))}
+              </div>
+              {currentLevel.scaleDegrees && (
+                <p className="text-purple-300 text-xs mt-2">
+                  Focus: {currentLevel.scaleDegrees.map(d => {
+                    const degreeNames = ['I (Root)', 'ii', 'iii', 'IV', 'V (Dominant)', 'vi', 'vii°'];
+                    return degreeNames[d];
+                  }).join(', ')}
+                </p>
+              )}
             </div>
           </div>
 
@@ -257,18 +398,21 @@ function App() {
 
           {stats.weaknesses.length > 0 && (
             <div className="bg-gray-700 rounded-xl p-6 mb-6">
-              <h3 className="text-lg font-semibold text-white mb-4">Detailed Breakdown</h3>
+              <h3 className="text-lg font-semibold text-white mb-4">Detailed Breakdown by Note</h3>
+              <p className="text-gray-400 text-sm mb-4">
+                See exactly which notes/keys you got right or wrong
+              </p>
               <div className="space-y-2">
                 {stats.weaknesses.map(weakness => (
                   <div key={weakness.item} className="flex items-center justify-between bg-gray-600 rounded-lg p-3">
                     <span className="text-white font-medium">
-                      {getDisplayName(weakness.item, currentLevel.type)}
+                      {weakness.item}
                     </span>
                     <div className="flex items-center gap-4">
                       <span className="text-gray-400 text-sm">
                         {weakness.correct}/{weakness.attempts}
                       </span>
-                      <span className={`font-semibold ${
+                      <span className={`font-semibold min-w-[45px] text-right ${
                         weakness.accuracy >= 80 ? 'text-green-400' :
                         weakness.accuracy >= 60 ? 'text-yellow-400' :
                         'text-red-400'
@@ -299,12 +443,21 @@ function App() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h2 className="text-2xl font-bold text-white">{currentLevel.name}</h2>
-            <p className="text-gray-400 text-sm">Question {stats.totalQuestions + 1}</p>
+            <p className="text-gray-400 text-sm">Question {stats.totalQuestions + 1} of {MAX_QUESTIONS}</p>
           </div>
           <div className="text-right">
             <div className="text-2xl font-bold text-purple-400">{stats.accuracy.toFixed(0)}%</div>
             <div className="text-sm text-gray-400">{stats.correctAnswers}/{stats.totalQuestions}</div>
           </div>
+        </div>
+
+        <div className="bg-purple-900 bg-opacity-50 rounded-lg p-3 mb-6 text-center">
+          <p className="text-purple-200 text-sm font-medium">
+            Current Key: <span className="text-white font-bold text-lg">{currentScaleRoot} Major</span>
+          </p>
+          <p className="text-purple-300 text-xs mt-1">
+            Questions {Math.floor(stats.totalQuestions / QUESTIONS_PER_KEY) * QUESTIONS_PER_KEY + 1}-{Math.min((Math.floor(stats.totalQuestions / QUESTIONS_PER_KEY) + 1) * QUESTIONS_PER_KEY, MAX_QUESTIONS)} in this key
+          </p>
         </div>
 
         <div className="bg-gray-700 rounded-xl p-8 mb-6 text-center">
@@ -319,7 +472,24 @@ function App() {
             <Volume2 className="w-12 h-12" />
           </button>
           
-          <p className="text-gray-400 text-sm">Click to replay</p>
+          <p className="text-gray-400 text-sm mb-4">Click to replay</p>
+
+          <div className="flex gap-2 justify-center mt-6 pt-6 border-t border-gray-600">
+            <button
+              onClick={() => audioEngine.playMajorScaleReference(currentScaleRoot, 4)}
+              className="px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded-lg text-sm transition-all"
+              title={`Play ${currentScaleRoot} major scale (up and down)`}
+            >
+              🎹 {currentScaleRoot} Scale
+            </button>
+            <button
+              onClick={() => audioEngine.playTonicTriadReference(currentScaleRoot)}
+              className="px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded-lg text-sm transition-all"
+              title={`Play ${currentScaleRoot} major I-V-I progression`}
+            >
+              🎵 I-V-I
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-2 gap-3 mb-6">
@@ -344,7 +514,7 @@ function App() {
                     : 'bg-gray-700 text-white hover:bg-gray-600'
                 } ${showFeedback ? 'cursor-not-allowed' : 'cursor-pointer'}`}
               >
-                {getDisplayName(option, currentLevel.type)}
+                {getDisplayName(option)}
               </button>
             );
           })}

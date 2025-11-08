@@ -36,6 +36,7 @@ export interface Answer {
   questionId: string;
   userAnswer: string;
   correctAnswer: string;
+  fullDescription: string; // e.g., "C minor", "F# major_7"
   isCorrect: boolean;
   timestamp: number;
   responseTime: number;
@@ -62,6 +63,7 @@ export interface CurriculumLevel {
   items: string[];
   unlockRequirement: number; // accuracy percentage to unlock next level
   description: string;
+  scaleDegrees?: number[]; // Optional: restrict to specific scale degrees (0-6 for I-VII)
 }
 
 export interface UserProgress {

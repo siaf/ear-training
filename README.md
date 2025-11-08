@@ -21,6 +21,16 @@ A progressive ear training application designed to develop musical listening ski
 - **Seventh Chords**: Major 7, minor 7, dominant 7, half-diminished, diminished, and more
 - **Modes**: All seven modes of the major scale
 
+### 🎹 Sound Options
+- **Piano**: High-quality Salamander Grand Piano samples (default)
+- **Sine Wave**: Pure tone for focused listening
+- **Sawtooth**: Bright, buzzy tone for variety
+
+### 🎵 Tonality Reference
+- **C Major Scale**: Play the full major scale to establish tonality
+- **C Major Chord**: Play the tonic triad (I-III-V) for harmonic context
+- Available during every question to help orient your ear
+
 ### 🔮 Future Enhancements
 - **Contextual Learning**: Practice with drum loops, bass lines, and drone notes
 - **Multiple Root Notes**: Train across all 12 keys
@@ -81,9 +91,25 @@ The app tracks every question by the **actual sound played**, not just whether y
 ## Technology Stack
 
 - **React + TypeScript**: Modern, type-safe UI development
-- **Tone.js**: Professional-grade Web Audio synthesis
+- **Tone.js**: Professional-grade Web Audio synthesis and sampling
+- **Salamander Grand Piano**: Free, high-quality piano samples
 - **Tailwind CSS**: Beautiful, responsive styling
 - **Vite**: Lightning-fast development and builds
+
+## Using Your Own Samples
+
+The app currently uses the free Salamander Grand Piano samples hosted on the Tone.js CDN. To use your own samples:
+
+1. Place your audio files (mp3, wav, or ogg) in the `public` folder
+2. Update the `createSynth` method in `src/audioEngine.ts`:
+   ```typescript
+   urls: {
+     C4: "your-sample-C4.mp3",
+     // ... add more notes
+   },
+   baseUrl: "/", // or your CDN URL
+   ```
+3. The Sampler will automatically pitch-shift to fill in missing notes
 
 ## Project Structure
 

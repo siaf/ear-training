@@ -23,11 +23,11 @@ export class AnalyticsEngine {
   }
 
   private calculateWeaknesses(): WeaknessReport[] {
-    // Group answers by the correct answer (the actual item tested)
+    // Group answers by the full description (root note + type)
     const itemStats = new Map<string, { attempts: number; correct: number }>();
 
     this.answers.forEach(answer => {
-      const item = answer.correctAnswer;
+      const item = answer.fullDescription;
       const stats = itemStats.get(item) || { attempts: 0, correct: 0 };
       
       stats.attempts++;

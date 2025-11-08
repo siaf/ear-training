@@ -4,51 +4,55 @@ import { CurriculumLevel } from './types';
 export const CURRICULUM: CurriculumLevel[] = [
   {
     id: 'level_1',
-    name: 'Major vs Minor Thirds',
+    name: 'Tonic Major vs Minor Thirds',
     type: 'interval',
     items: ['minor_3rd', 'major_3rd'],
+    scaleDegrees: [0], // Only from root (I)
     unlockRequirement: 80,
-    description: 'Learn to distinguish between major and minor thirds - the foundation of chord quality',
+    description: 'Learn major and minor thirds from the root note - the foundation of chord quality',
   },
   {
     id: 'level_2',
-    name: 'Basic Intervals',
+    name: 'Dominant Major vs Minor Thirds',
     type: 'interval',
-    items: ['minor_2nd', 'major_2nd', 'minor_3rd', 'major_3rd', 'perfect_4th', 'perfect_5th'],
-    unlockRequirement: 75,
-    description: 'Master the most common intervals used in melodies',
+    items: ['minor_3rd', 'major_3rd'],
+    scaleDegrees: [4], // Only from dominant (V)
+    unlockRequirement: 80,
+    description: 'Practice major and minor thirds from the 5th scale degree (dominant)',
   },
   {
     id: 'level_3',
-    name: 'Major vs Minor Triads',
-    type: 'triad',
-    items: ['major', 'minor'],
-    unlockRequirement: 80,
-    description: 'Apply your third knowledge to full chords',
+    name: 'All Thirds in Scale',
+    type: 'interval',
+    items: ['minor_3rd', 'major_3rd'],
+    unlockRequirement: 75,
+    description: 'Identify major and minor thirds from any scale degree',
   },
   {
     id: 'level_4',
-    name: 'Extended Intervals',
-    type: 'interval',
-    items: ['minor_6th', 'major_6th', 'minor_7th', 'major_7th', 'octave'],
-    unlockRequirement: 75,
-    description: 'Learn larger intervals for more complex melodies',
+    name: 'Tonic Triads (I and vi)',
+    type: 'triad',
+    items: ['major', 'minor'],
+    scaleDegrees: [0, 5], // I (major) and vi (minor)
+    unlockRequirement: 80,
+    description: 'Learn to hear the tonic major chord and its relative minor',
   },
   {
     id: 'level_5',
-    name: 'Perfect Fifth',
-    type: 'interval',
-    items: ['perfect_5th'],
+    name: 'Dominant Triads (V)',
+    type: 'triad',
+    items: ['major'],
+    scaleDegrees: [4], // V (major)
     unlockRequirement: 85,
-    description: 'Master the perfect fifth - crucial for understanding chord progressions',
+    description: 'Master the dominant chord - the most important chord after the tonic',
   },
   {
     id: 'level_6',
-    name: 'All Triads',
+    name: 'All Diatonic Triads',
     type: 'triad',
-    items: ['major', 'minor', 'diminished', 'augmented'],
+    items: ['major', 'minor', 'diminished'],
     unlockRequirement: 75,
-    description: 'Complete your triad knowledge with diminished and augmented chords',
+    description: 'Identify all triads that naturally occur in the major scale',
   },
   {
     id: 'level_7',
@@ -96,7 +100,7 @@ export function canUnlockNextLevel(currentLevelId: string, accuracy: number): bo
   return accuracy >= currentLevel.unlockRequirement;
 }
 
-export function getDisplayName(item: string, type: string): string {
+export function getDisplayName(item: string): string {
   // Convert snake_case to Title Case
   return item
     .split('_')
