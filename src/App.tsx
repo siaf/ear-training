@@ -387,7 +387,7 @@ function App() {
                       {/* Segment Levels */}
                       {isExpanded && (
                         <div className="p-2 space-y-2">
-                          {segmentLevels.map((level, levelIndex) => {
+                          {segmentLevels.map((level) => {
                             const globalIndex = CURRICULUM.findIndex(l => l.id === level.id);
                             const isCompleted = completedLevels.includes(level.id);
                             const isCurrent = currentLevel.id === level.id;
