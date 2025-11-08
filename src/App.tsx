@@ -23,6 +23,8 @@ function App() {
   const [currentScaleRoot, setCurrentScaleRoot] = useState<string>('C');
   const [scaleRoots, setScaleRoots] = useState<string[]>([]);
   const [isPlayingScale, setIsPlayingScale] = useState(false);
+  const [droneEnabled, setDroneEnabled] = useState(false);
+  const [playbackSpeed, setPlaybackSpeed] = useState(1);
 
   const currentLevel = selectedLevelId 
     ? CURRICULUM.find(l => l.id === selectedLevelId) || getCurrentLevel(completedLevels)
@@ -135,6 +137,13 @@ function App() {
   useEffect(() => {
     audioEngine.setSynthType(synthType);
   }, [synthType]);
+
+  // Update drone when scale root changes
+  useEffect(() => {
+    if (droneEnabled && sessionStarted) {
+      audioEngine.switchDroneNote(currentScaleRoot);
+    }
+  }, [currentScaleRoot, droneEnabled, sessionStarted]);
 
   const replaySound = async () => {
     if (!currentQuestion) return;
@@ -474,21 +483,65 @@ function App() {
           
           <p className="text-gray-400 text-sm mb-4">Click to replay</p>
 
-          <div className="flex gap-2 justify-center mt-6 pt-6 border-t border-gray-600">
-            <button
-              onClick={() => audioEngine.playMajorScaleReference(currentScaleRoot, 4)}
-              className="px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded-lg text-sm transition-all"
-              title={`Play ${currentScaleRoot} major scale (up and down)`}
-            >
-              🎹 {currentScaleRoot} Scale
-            </button>
-            <button
-              onClick={() => audioEngine.playTonicTriadReference(currentScaleRoot)}
-              className="px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded-lg text-sm transition-all"
-              title={`Play ${currentScaleRoot} major I-V-I progression`}
-            >
-              🎵 I-V-I
-            </button>
+          <div className="mt-6 pt-6 border-t border-gray-600">
+            <div className="flex gap-2 justify-center mb-3">
+              <button
+                onClick={() => audioEngine.playMajorScaleReference(currentScaleRoot, 4)}
+                className="px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded-lg text-sm transition-all"
+                title={`Play ${currentScaleRoot} major scale (up and down)`}
+              >
+                🎹 {currentScaleRoot} Scale
+              </button>
+              <button
+                onClick={() => audioEngine.playTonicTriadReference(currentScaleRoot)}
+                className="px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded-lg text-sm transition-all"
+                title={`Play ${currentScaleRoot} major I-V-I progression`}
+              >
+                🎵 I-V-I
+              </button>
+              <button
+                onClick={() => {
+                  const newState = !droneEnabled;
+                  setDroneEnabled(newState);
+                  audioEngine.toggleDrone(currentScaleRoot, newState);
+                }}
+                className={`px-4 py-2 rounded-lg text-sm transition-all ${
+                  droneEnabled
+                    ? 'bg-purple-600 text-white'
+                    : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+                }`}
+                title="Toggle drone (continuous root note)"
+              >
+                🎶 Drone {droneEnabled ? 'ON' : 'OFF'}
+              </button>
+            </div>
+            
+            <div className="flex items-center justify-center gap-3">
+              <span className="text-gray-400 text-xs">Speed:</span>
+              <button
+                onClick={() => {
+                  const newSpeed = Math.max(0.5, playbackSpeed - 0.25);
+                  setPlaybackSpeed(newSpeed);
+                  audioEngine.setPlaybackSpeed(newSpeed);
+                }}
+                className="px-3 py-1 bg-gray-600 hover:bg-gray-500 text-white rounded text-xs"
+              >
+                − Slower
+              </button>
+              <span className="text-white text-sm font-mono min-w-[45px] text-center">
+                {playbackSpeed.toFixed(2)}x
+              </span>
+              <button
+                onClick={() => {
+                  const newSpeed = Math.min(2, playbackSpeed + 0.25);
+                  setPlaybackSpeed(newSpeed);
+                  audioEngine.setPlaybackSpeed(newSpeed);
+                }}
+                className="px-3 py-1 bg-gray-600 hover:bg-gray-500 text-white rounded text-xs"
+              >
+                + Faster
+              </button>
+            </div>
           </div>
         </div>
 

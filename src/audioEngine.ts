@@ -56,9 +56,26 @@ class AudioEngine {
   private initialized: boolean = false;
   private currentSynthType: SynthType = 'sine';
   private pianoSampler: Tone.Sampler | null = null;
+  private droneSynth: Tone.Synth | null = null;
+  private droneActive: boolean = false;
+  private playbackSpeed: number = 1; // 1 = normal, 0.5 = slow, 2 = fast
+  private isPlaying: boolean = false;
 
   constructor() {
     this.synth = this.createSynth('sine');
+    // Create a separate synth for the drone with a warm pad sound
+    this.droneSynth = new Tone.Synth({
+      oscillator: {
+        type: 'sine',
+      },
+      envelope: {
+        attack: 0.5,
+        decay: 0,
+        sustain: 1,
+        release: 1,
+      },
+      volume: -12, // Quieter than main synth
+    }).toDestination();
   }
 
   private createSynth(type: SynthType): Tone.PolySynth | Tone.Sampler {
@@ -137,6 +154,18 @@ class AudioEngine {
     }
   }
 
+  // Stop all currently playing sounds
+  stopAll() {
+    this.synth.releaseAll();
+    this.isPlaying = false;
+    Tone.Transport.cancel(); // Cancel all scheduled events
+    console.log('🛑 Stopped all playback');
+  }
+
+  getIsPlaying(): boolean {
+    return this.isPlaying;
+  }
+
   private getNoteFromSemitones(rootNote: string, semitones: number): string {
     const rootIndex = NOTES.indexOf(rootNote);
     if (rootIndex === -1) return 'C';
@@ -163,8 +192,9 @@ class AudioEngine {
     console.log(`🎵 Playing ${intervalType}:`, [root, second]);
     
     const now = Tone.now();
+    const delay = this.getAdjustedTime(0.5);
     this.synth.triggerAttackRelease(root, '1n', now);
-    this.synth.triggerAttackRelease(second, '1n', now + 0.5);
+    this.synth.triggerAttackRelease(second, '1n', now + delay);
     
     return [root, second];
   }
@@ -221,8 +251,9 @@ class AudioEngine {
     
     // Play scale ascending
     const now = Tone.now();
+    const noteDelay = this.getAdjustedTime(0.3);
     notes.forEach((note, index) => {
-      this.synth.triggerAttackRelease(note, '8n', now + index * 0.3);
+      this.synth.triggerAttackRelease(note, '8n', now + index * noteDelay);
     });
     
     return notes;
@@ -236,6 +267,14 @@ class AudioEngine {
   // Tonality reference: play major scale up and down
   async playMajorScaleReference(rootNote: string = 'C', octave: number = 4): Promise<{ notes: string[]; duration: number }> {
     await this.initialize();
+    
+    if (this.isPlaying) {
+      console.log('⚠️ Already playing, stopping previous playback');
+      this.stopAll();
+      return { notes: [], duration: 0 };
+    }
+    
+    this.isPlaying = true;
     
     const scale = MODES.ionian; // Major scale
     
@@ -261,7 +300,7 @@ class AudioEngine {
     console.log(`🎹 Playing ${rootNote} Major Scale (up & down):`, allNotes);
     
     // Play scale ascending and descending
-    const noteDelay = 0.25;
+    const noteDelay = this.getAdjustedTime(0.25);
     const now = Tone.now();
     allNotes.forEach((note, index) => {
       this.synth.triggerAttackRelease(note, '8n', now + index * noteDelay);
@@ -269,12 +308,25 @@ class AudioEngine {
     
     const duration = allNotes.length * noteDelay;
     
+    // Reset isPlaying after duration
+    setTimeout(() => {
+      this.isPlaying = false;
+    }, duration * 1000 + 100);
+    
     return { notes: allNotes, duration };
   }
 
   // Tonality reference: play I-V-I progression
   async playTonicTriadReference(rootNote: string = 'C') {
     await this.initialize();
+    
+    if (this.isPlaying) {
+      console.log('⚠️ Already playing, stopping previous playback');
+      this.stopAll();
+      return [];
+    }
+    
+    this.isPlaying = true;
     
     const now = Tone.now();
     const octave = 4;
@@ -300,11 +352,19 @@ class AudioEngine {
     
     console.log(`🎵 Playing ${rootNote} I-V-I progression:`, { I: iChord, V: vChord });
     
+    const delay1 = this.getAdjustedTime(0.6);
+    const delay2 = this.getAdjustedTime(1.2);
     this.synth.triggerAttackRelease(iChord, '4n', now);
-    this.synth.triggerAttackRelease(vChord, '4n', now + 0.6);
+    this.synth.triggerAttackRelease(vChord, '4n', now + delay1);
     
     // I chord again
-    this.synth.triggerAttackRelease(iChord, '2n', now + 1.2);
+    this.synth.triggerAttackRelease(iChord, '2n', now + delay2);
+    
+    // Reset isPlaying after total duration (last chord duration is '2n' = 2 beats at 120bpm = 1 second)
+    const totalDuration = delay2 + 1;
+    setTimeout(() => {
+      this.isPlaying = false;
+    }, totalDuration * 1000 + 100);
     
     return [...iChord, ...vChord, ...iChord];
   }
@@ -327,6 +387,58 @@ class AudioEngine {
     const scale = MODES.ionian;
     
     return scale.indexOf(interval);
+  }
+
+  // Drone control
+  async toggleDrone(rootNote: string, enable: boolean) {
+    await this.initialize();
+    
+    if (enable && !this.droneActive) {
+      const droneNote = `${rootNote}3`; // Lower octave for drone
+      const now = Tone.now();
+      this.droneSynth?.triggerAttack(droneNote, now + 0.1); // Small delay to avoid timing conflicts
+      this.droneActive = true;
+      console.log(`🎶 Drone ON: ${droneNote}`);
+    } else if (!enable && this.droneActive) {
+      const now = Tone.now();
+      this.droneSynth?.triggerRelease(now + 0.05);
+      this.droneActive = false;
+      console.log('🎶 Drone OFF');
+    }
+  }
+
+  // Switch drone to new root note
+  async switchDroneNote(newRootNote: string) {
+    if (this.droneActive) {
+      const now = Tone.now();
+      // Release old note
+      this.droneSynth?.triggerRelease(now);
+      // Wait a bit then start new note
+      setTimeout(() => {
+        const droneNote = `${newRootNote}3`;
+        this.droneSynth?.triggerAttack(droneNote, Tone.now() + 0.1);
+        console.log(`🎶 Drone switched to: ${droneNote}`);
+      }, 150);
+    }
+  }
+
+  isDroneActive(): boolean {
+    return this.droneActive;
+  }
+
+  // Playback speed control
+  setPlaybackSpeed(speed: number) {
+    this.playbackSpeed = Math.max(0.25, Math.min(3, speed)); // Clamp between 0.25x and 3x
+    console.log(`⏱️ Playback speed: ${this.playbackSpeed}x`);
+  }
+
+  getPlaybackSpeed(): number {
+    return this.playbackSpeed;
+  }
+
+  // Helper to get adjusted timing based on speed
+  private getAdjustedTime(baseTime: number): number {
+    return baseTime / this.playbackSpeed;
   }
 }
 
