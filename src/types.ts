@@ -93,6 +93,16 @@ export interface CurriculumLevel {
   description: string;
   scaleDegrees?: number[]; // Optional: restrict to specific scale degrees (0-6 for I-VII)
   context?: ScaleDegreeContext; // For scale degree questions
+  segmentId: string; // Which segment/section this level belongs to
+}
+
+export interface CurriculumSegment {
+  id: string;
+  name: string;
+  description: string;
+  icon: string; // Emoji or icon identifier
+  color: string; // Tailwind color class (e.g., 'purple', 'blue', 'green')
+  levels: CurriculumLevel[];
 }
 
 export interface UserProgress {

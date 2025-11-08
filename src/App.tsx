@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Volume2, BarChart3, Trophy, Play } from 'lucide-react';
+import { Volume2, BarChart3, Trophy, Play, ChevronDown, ChevronRight } from 'lucide-react';
 import { audioEngine, INTERVALS, TRIADS, SEVENTH_CHORDS, MODES, SynthType } from './audioEngine';
-import { CURRICULUM, getCurrentLevel, canUnlockNextLevel, getDisplayName } from './curriculum';
+import { CURRICULUM, CURRICULUM_SEGMENTS, getCurrentLevel, canUnlockNextLevel, getDisplayName } from './curriculum';
 import { AnalyticsEngine } from './analytics';
 import { Question, Answer } from './types';
 import { filterDiatonicItems } from './scaleContext';
@@ -26,6 +26,7 @@ function App() {
   const [droneEnabled, setDroneEnabled] = useState(false);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [debugMode, setDebugMode] = useState(false);
+  const [expandedSegments, setExpandedSegments] = useState<string[]>(['foundations']); // Start with first segment expanded
 
   const currentLevel = selectedLevelId 
     ? CURRICULUM.find(l => l.id === selectedLevelId) || getCurrentLevel(completedLevels)
@@ -335,77 +336,87 @@ function App() {
                 Learning Path
               </h2>
               
-              <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2">
-                {CURRICULUM.map((level, index) => {
-                  const isCompleted = completedLevels.includes(level.id);
-                  const isCurrent = currentLevel.id === level.id;
-                  const isLocked = !debugMode && index > 0 && !completedLevels.includes(CURRICULUM[index - 1].id) && !isCurrent;
+              <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
+                {CURRICULUM_SEGMENTS.map((segment) => {
+                  const isExpanded = expandedSegments.includes(segment.id);
+                  const segmentLevels = segment.levels;
+                  const completedInSegment = segmentLevels.filter(l => completedLevels.includes(l.id)).length;
                   
                   return (
-                    <div key={level.id} className="relative">
-                      {/* Connection line */}
-                      {index < CURRICULUM.length - 1 && (
-                        <div className={`absolute left-6 top-16 w-0.5 h-8 ${
-                          isCompleted ? 'bg-green-500' : 'bg-gray-600'
-                        }`} />
-                      )}
-                      
+                    <div key={segment.id} className="border border-gray-600 rounded-xl overflow-hidden">
+                      {/* Segment Header */}
                       <button
-                        onClick={() => !isLocked && setSelectedLevelId(level.id)}
-                        disabled={isLocked}
-                        className={`w-full text-left p-4 rounded-xl transition-all relative ${
-                          isCurrent
-                            ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg scale-105'
-                            : isCompleted
-                            ? 'bg-green-900 bg-opacity-40 text-white hover:bg-opacity-60'
-                            : isLocked
-                            ? 'bg-gray-700 bg-opacity-50 text-gray-500 cursor-not-allowed'
-                            : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                        }`}
+                        onClick={() => setExpandedSegments(prev => 
+                          prev.includes(segment.id) 
+                            ? prev.filter(id => id !== segment.id)
+                            : [...prev, segment.id]
+                        )}
+                        className={`w-full p-4 flex items-center justify-between bg-${segment.color}-900 bg-opacity-30 hover:bg-opacity-40 transition-all`}
                       >
-                        <div className="flex items-start gap-3">
-                          {/* Level indicator */}
-                          <div className={`flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg ${
-                            isCurrent
-                              ? 'bg-white text-purple-600'
-                              : isCompleted
-                              ? 'bg-green-500 text-white'
-                              : isLocked
-                              ? 'bg-gray-600 text-gray-400'
-                              : 'bg-purple-500 text-white'
-                          }`}>
-                            {isCompleted ? '✓' : index + 1}
-                          </div>
-                          
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between mb-1">
-                              <h3 className="font-semibold text-base">{level.name}</h3>
-                              {isLocked && <span className="text-xs">🔒</span>}
-                            </div>
-                            <p className={`text-sm ${isCurrent ? 'text-purple-100' : 'opacity-80'}`}>
-                              {level.description}
-                            </p>
-                            {!isLocked && (
-                              <div className="mt-2 flex flex-wrap gap-1">
-                                {level.items.slice(0, 3).map(item => (
-                                  <span key={item} className={`text-xs px-2 py-0.5 rounded-full ${
-                                    isCurrent ? 'bg-white bg-opacity-20' : 'bg-purple-500 bg-opacity-30'
-                                  }`}>
-                                    {getDisplayName(item)}
-                                  </span>
-                                ))}
-                                {level.items.length > 3 && (
-                                  <span className={`text-xs px-2 py-0.5 rounded-full ${
-                                    isCurrent ? 'bg-white bg-opacity-20' : 'bg-purple-500 bg-opacity-30'
-                                  }`}>
-                                    +{level.items.length - 3}
-                                  </span>
-                                )}
-                              </div>
-                            )}
+                        <div className="flex items-center gap-3">
+                          <span className="text-2xl">{segment.icon}</span>
+                          <div className="text-left">
+                            <h3 className="font-bold text-white">{segment.name}</h3>
+                            <p className="text-xs text-gray-300">{segment.description}</p>
                           </div>
                         </div>
+                        <div className="flex items-center gap-3">
+                          <span className="text-xs text-gray-400">
+                            {completedInSegment}/{segmentLevels.length}
+                          </span>
+                          {isExpanded ? <ChevronDown className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
+                        </div>
                       </button>
+                      
+                      {/* Segment Levels */}
+                      {isExpanded && (
+                        <div className="p-2 space-y-2">
+                          {segmentLevels.map((level, levelIndex) => {
+                            const globalIndex = CURRICULUM.findIndex(l => l.id === level.id);
+                            const isCompleted = completedLevels.includes(level.id);
+                            const isCurrent = currentLevel.id === level.id;
+                            const isLocked = !debugMode && globalIndex > 0 && !completedLevels.includes(CURRICULUM[globalIndex - 1].id) && !isCurrent;
+                  
+                            return (
+                              <button
+                                key={level.id}
+                                onClick={() => !isLocked && setSelectedLevelId(level.id)}
+                                disabled={isLocked}
+                                className={`w-full text-left p-3 rounded-lg transition-all ${
+                                  isCurrent
+                                    ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-md'
+                                    : isCompleted
+                                    ? 'bg-green-900 bg-opacity-40 text-white hover:bg-opacity-60'
+                                    : isLocked
+                                    ? 'bg-gray-700 bg-opacity-50 text-gray-500 cursor-not-allowed'
+                                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                                }`}
+                              >
+                                <div className="flex items-center gap-3">
+                                  {/* Level indicator */}
+                                  <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
+                                    isCurrent
+                                      ? 'bg-white text-purple-600'
+                                      : isCompleted
+                                      ? 'bg-green-500 text-white'
+                                      : isLocked
+                                      ? 'bg-gray-600 text-gray-400'
+                                      : 'bg-purple-500 text-white'
+                                  }`}>
+                                    {isCompleted ? '✓' : globalIndex + 1}
+                                  </div>
+                                  
+                                  <div className="flex-1 min-w-0">
+                                    <h3 className="font-semibold text-sm">{level.name}</h3>
+                                    <p className="text-xs opacity-75 truncate">{level.description}</p>
+                                  </div>
+                                  {isLocked && <span className="text-xs">🔒</span>}
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
                   );
                 })}
