@@ -1,4 +1,5 @@
-import { Answer, SessionStats, WeaknessReport, ScaleDegreeWeakness, ConfusionPair } from './types';
+import { Answer, SessionStats, WeaknessReport, ScaleDegreeWeakness, ConfusionPair, IntervalWeakness } from './types';
+import { getDisplayName } from './curriculum';
 
 export class AnalyticsEngine {
   private answers: Answer[] = [];
@@ -14,6 +15,7 @@ export class AnalyticsEngine {
 
     const weaknesses = this.calculateWeaknesses();
     const scaleDegreeWeaknesses = this.calculateScaleDegreeWeaknesses();
+    const intervalWeaknesses = this.calculateIntervalWeaknesses();
     const confusionMatrix = this.calculateConfusionMatrix();
 
     return {
@@ -22,6 +24,7 @@ export class AnalyticsEngine {
       accuracy,
       weaknesses,
       scaleDegreeWeaknesses,
+      intervalWeaknesses,
       confusionMatrix,
     };
   }
@@ -103,12 +106,75 @@ export class AnalyticsEngine {
     return reports;
   }
 
+  private calculateIntervalWeaknesses(): IntervalWeakness[] {
+    const intervalStats = new Map<string, { 
+      attempts: number; 
+      correct: number; 
+      interval: string;
+      direction?: string;
+      presentation?: string;
+    }>();
+
+    this.answers.forEach(answer => {
+      if (answer.questionType === 'interval' && answer.intervalDirection && answer.intervalPresentation) {
+        const key = `${answer.itemType}_${answer.intervalDirection}_${answer.intervalPresentation}`;
+        const stats = intervalStats.get(key) || { 
+          attempts: 0, 
+          correct: 0,
+          interval: answer.itemType,
+          direction: answer.intervalDirection,
+          presentation: answer.intervalPresentation,
+        };
+        
+        stats.attempts++;
+        if (answer.isCorrect) {
+          stats.correct++;
+        }
+        
+        intervalStats.set(key, stats);
+      }
+    });
+
+    const reports: IntervalWeakness[] = [];
+    intervalStats.forEach((stats) => {
+      const accuracy = (stats.correct / stats.attempts) * 100;
+      const intervalName = getDisplayName(stats.interval);
+      const directionStr = stats.direction ? ` (${stats.direction.charAt(0).toUpperCase() + stats.direction.slice(1)})` : '';
+      const presentationStr = stats.presentation ? ` [${stats.presentation.charAt(0).toUpperCase() + stats.presentation.slice(1)}]` : '';
+      const context = `${intervalName}${directionStr}${presentationStr}`;
+      
+      reports.push({
+        interval: stats.interval,
+        direction: stats.direction as any,
+        presentation: stats.presentation as any,
+        attempts: stats.attempts,
+        correct: stats.correct,
+        accuracy,
+        context,
+      });
+    });
+
+    reports.sort((a, b) => a.accuracy - b.accuracy);
+    return reports;
+  }
+
   private calculateConfusionMatrix(): ConfusionPair[] {
     const confusions = new Map<string, number>();
 
     this.answers.forEach(answer => {
       if (!answer.isCorrect) {
-        const key = `${answer.userAnswer}|${answer.correctAnswer}`;
+        // For intervals with direction/presentation, include that in the confusion
+        let mistookKey = getDisplayName(answer.userAnswer);
+        let actuallyWasKey = getDisplayName(answer.correctAnswer);
+        
+        if (answer.questionType === 'interval' && answer.intervalDirection && answer.intervalPresentation) {
+          const dirStr = answer.intervalDirection === 'ascending' ? '↑' : '↓';
+          const presStr = answer.intervalPresentation === 'harmonic' ? '♫' : '→';
+          mistookKey = `${mistookKey} ${dirStr}${presStr}`;
+          actuallyWasKey = `${actuallyWasKey} ${dirStr}${presStr}`;
+        }
+        
+        const key = `${mistookKey}|${actuallyWasKey}`;
         confusions.set(key, (confusions.get(key) || 0) + 1);
       }
     });
@@ -154,11 +220,34 @@ export class AnalyticsEngine {
       insights.push('💪 This level is challenging. Take your time and focus on one item at a time.');
     }
 
-    // Identify specific weaknesses
-    const weakItems = stats.weaknesses.filter(w => w.attempts >= 2 && w.accuracy < 60);
-    if (weakItems.length > 0) {
-      const itemNames = weakItems.slice(0, 3).map(w => w.item).join(', ');
-      insights.push(`🎯 Focus on: ${itemNames}`);
+    // Interval weaknesses (most specific) - prioritize for interval lessons
+    if (stats.intervalWeaknesses && stats.intervalWeaknesses.length > 0) {
+      const weakIntervals = stats.intervalWeaknesses.filter(w => w.attempts >= 2 && w.accuracy < 70);
+      if (weakIntervals.length > 0) {
+        const intervalContext = weakIntervals.slice(0, 1).map(w => w.context).join(', ');
+        insights.push(`🎯 Focus on: ${intervalContext}`);
+      }
+      
+      // Show strong areas for intervals
+      const strongIntervals = stats.intervalWeaknesses.filter(w => w.attempts >= 2 && w.accuracy >= 85);
+      if (strongIntervals.length > 0) {
+        const intervalContext = strongIntervals.slice(0, 1).map(w => w.context).join(', ');
+        insights.push(`✨ You're strong at: ${intervalContext}`);
+      }
+    } else {
+      // For non-interval lessons, show item-level weaknesses
+      const weakItems = stats.weaknesses.filter(w => w.attempts >= 2 && w.accuracy < 60);
+      if (weakItems.length > 0) {
+        const itemNames = weakItems.slice(0, 3).map(w => w.item).join(', ');
+        insights.push(`🎯 Focus on: ${itemNames}`);
+      }
+      
+      // Identify strong areas for non-interval lessons
+      const strongItems = stats.weaknesses.filter(w => w.attempts >= 2 && w.accuracy >= 90);
+      if (strongItems.length > 0) {
+        const itemNames = strongItems.slice(0, 2).map(w => w.item).join(', ');
+        insights.push(`✨ You're strong at: ${itemNames}`);
+      }
     }
 
     // Scale degree weaknesses
@@ -170,19 +259,18 @@ export class AnalyticsEngine {
       }
     }
 
-    // Common confusions
+    // Common confusions (only show if meaningful - not when testing only 2 items)
     if (stats.confusionMatrix && stats.confusionMatrix.length > 0) {
       const topConfusion = stats.confusionMatrix[0];
-      if (topConfusion.count >= 2) {
+      // Only show if there are more than 2 unique items being tested
+      const uniqueItems = new Set(this.answers.map(a => a.itemType));
+      // For interval lessons with direction/presentation, need at least 3 interval types
+      const isIntervalLesson = this.answers.some(a => a.intervalDirection && a.intervalPresentation);
+      const shouldShowConfusion = isIntervalLesson ? uniqueItems.size > 2 : uniqueItems.size > 2;
+      
+      if (topConfusion.count >= 2 && shouldShowConfusion) {
         insights.push(`⚠️ Often confuse ${topConfusion.actuallyWas} with ${topConfusion.mistook}`);
       }
-    }
-
-    // Identify strong areas
-    const strongItems = stats.weaknesses.filter(w => w.attempts >= 2 && w.accuracy >= 90);
-    if (strongItems.length > 0) {
-      const itemNames = strongItems.slice(0, 2).map(w => w.item).join(', ');
-      insights.push(`✨ You're strong at: ${itemNames}`);
     }
 
     return insights;

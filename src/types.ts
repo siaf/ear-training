@@ -29,6 +29,9 @@ export type ScaleDegreeContext =
 
 export type QuestionType = 'interval' | 'triad' | 'seventh_chord' | 'mode' | 'scale_degree';
 
+export type IntervalDirection = 'ascending' | 'descending';
+export type IntervalPresentation = 'harmonic' | 'melodic';
+
 export interface Question {
   id: string;
   type: QuestionType;
@@ -37,6 +40,8 @@ export interface Question {
   playedNotes: string[];
   timestamp: number;
   context?: ScaleDegreeContext; // For scale degree questions
+  intervalDirection?: IntervalDirection; // For interval questions
+  intervalPresentation?: IntervalPresentation; // For interval questions
 }
 
 export interface Answer {
@@ -52,6 +57,8 @@ export interface Answer {
   scaleDegree?: number; // 0-6 for which scale degree this was played from
   rootNote: string; // The root note of the scale context
   questionType: QuestionType; // interval, triad, scale_degree, etc.
+  intervalDirection?: IntervalDirection; // For interval questions
+  intervalPresentation?: IntervalPresentation; // For interval questions
 }
 
 export interface SessionStats {
@@ -60,6 +67,7 @@ export interface SessionStats {
   accuracy: number;
   weaknesses: WeaknessReport[];
   scaleDegreeWeaknesses?: ScaleDegreeWeakness[];
+  intervalWeaknesses?: IntervalWeakness[];
   confusionMatrix?: ConfusionPair[];
 }
 
@@ -78,6 +86,16 @@ export interface ScaleDegreeWeakness {
   context: string; // e.g., "intervals from V", "triads on ii"
 }
 
+export interface IntervalWeakness {
+  interval: string; // e.g., "major_3rd"
+  direction?: IntervalDirection;
+  presentation?: IntervalPresentation;
+  attempts: number;
+  correct: number;
+  accuracy: number;
+  context: string; // e.g., "Ascending Major 3rd (Melodic)"
+}
+
 export interface ConfusionPair {
   mistook: string; // What they thought it was
   actuallyWas: string; // What it actually was
@@ -94,6 +112,8 @@ export interface CurriculumLevel {
   scaleDegrees?: number[]; // Optional: restrict to specific scale degrees (0-6 for I-VII)
   context?: ScaleDegreeContext; // For scale degree questions
   segmentId: string; // Which segment/section this level belongs to
+  intervalDirection?: IntervalDirection; // For interval lessons
+  intervalPresentation?: IntervalPresentation; // For interval lessons (harmonic vs melodic)
 }
 
 export interface CurriculumSegment {

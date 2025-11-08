@@ -26,7 +26,7 @@ function App() {
   const [droneEnabled, setDroneEnabled] = useState(false);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [debugMode, setDebugMode] = useState(false);
-  const [expandedSegments, setExpandedSegments] = useState<string[]>(['foundations']); // Start with first segment expanded
+  const [expandedSegments, setExpandedSegments] = useState<string[]>(['pitch']); // Start with first segment expanded
 
   const currentLevel = selectedLevelId 
     ? CURRICULUM.find(l => l.id === selectedLevelId) || getCurrentLevel(completedLevels)
@@ -72,7 +72,12 @@ function App() {
       try {
         switch (currentLevel.type) {
           case 'interval':
-            playedNotes = await audioEngine.playInterval(rootNote, itemType as keyof typeof INTERVALS);
+            playedNotes = await audioEngine.playInterval(
+              rootNote, 
+              itemType as keyof typeof INTERVALS,
+              currentLevel.intervalDirection || 'ascending',
+              currentLevel.intervalPresentation || 'melodic'
+            );
             break;
           case 'triad':
             playedNotes = await audioEngine.playTriad(rootNote, itemType as keyof typeof TRIADS);
@@ -97,6 +102,8 @@ function App() {
       playedNotes,
       timestamp: Date.now(),
       context: currentLevel.context,
+      intervalDirection: currentLevel.intervalDirection,
+      intervalPresentation: currentLevel.intervalPresentation,
     };
 
     setCurrentQuestion(question);
@@ -198,7 +205,9 @@ function App() {
         case 'interval':
           await audioEngine.playInterval(
             currentQuestion.rootNote,
-            currentQuestion.correctAnswer as keyof typeof INTERVALS
+            currentQuestion.correctAnswer as keyof typeof INTERVALS,
+            currentQuestion.intervalDirection || 'ascending',
+            currentQuestion.intervalPresentation || 'melodic'
           );
           break;
         case 'triad':
@@ -262,6 +271,8 @@ function App() {
       scaleDegree,
       rootNote: currentScaleRoot,
       questionType: currentQuestion.type,
+      intervalDirection: currentQuestion.intervalDirection,
+      intervalPresentation: currentQuestion.intervalPresentation,
     };
 
     analytics.addAnswer(answerRecord);
@@ -607,6 +618,37 @@ function App() {
             </div>
           )}
 
+          {/* Interval Weaknesses */}
+          {stats.intervalWeaknesses && stats.intervalWeaknesses.length > 0 && (
+            <div className="bg-gray-700 rounded-xl p-6 mb-6">
+              <h3 className="text-lg font-semibold text-white mb-4">🎵 Interval Performance</h3>
+              <p className="text-gray-400 text-sm mb-4">
+                Your accuracy on intervals by direction and presentation
+              </p>
+              <div className="space-y-2">
+                {stats.intervalWeaknesses.slice(0, 8).map((weakness, idx) => (
+                  <div key={idx} className="flex items-center justify-between bg-gray-600 rounded-lg p-3">
+                    <div>
+                      <span className="text-white font-medium">
+                        {weakness.context}
+                      </span>
+                      <div className="text-xs text-gray-400 mt-1">
+                        {weakness.correct}/{weakness.attempts} correct
+                      </div>
+                    </div>
+                    <span className={`font-semibold text-lg min-w-[50px] text-right ${
+                      weakness.accuracy >= 80 ? 'text-green-400' :
+                      weakness.accuracy >= 60 ? 'text-yellow-400' :
+                      'text-red-400'
+                    }`}>
+                      {weakness.accuracy.toFixed(0)}%
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Scale Degree Weaknesses */}
           {stats.scaleDegreeWeaknesses && stats.scaleDegreeWeaknesses.length > 0 && (
             <div className="bg-gray-700 rounded-xl p-6 mb-6">
@@ -638,8 +680,8 @@ function App() {
             </div>
           )}
 
-          {/* Item-level breakdown - grouped by type */}
-          {stats.weaknesses.length > 0 && (
+          {/* Item-level breakdown - only show for non-interval lessons or when helpful */}
+          {stats.weaknesses.length > 0 && !stats.intervalWeaknesses && (
             <div className="bg-gray-700 rounded-xl p-6 mb-6">
               <h3 className="text-lg font-semibold text-white mb-4">🎯 Performance by Item</h3>
               <p className="text-gray-400 text-sm mb-4">

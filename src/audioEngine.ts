@@ -177,31 +177,62 @@ class AudioEngine {
     const rootIndex = NOTES.indexOf(rootNote);
     if (rootIndex === -1) return 'C';
     
-    const targetIndex = (rootIndex + semitones) % 12;
+    // Handle negative semitones correctly
+    const targetIndex = ((rootIndex + semitones) % 12 + 12) % 12;
     
     return NOTES[targetIndex];
   }
 
-  async playInterval(rootNote: string, intervalType: keyof typeof INTERVALS) {
+  async playInterval(
+    rootNote: string, 
+    intervalType: keyof typeof INTERVALS,
+    direction: 'ascending' | 'descending' = 'ascending',
+    presentation: 'harmonic' | 'melodic' = 'melodic'
+  ) {
     await this.initialize();
     
     const semitones = INTERVALS[intervalType];
     const octave = 4;
     const root = `${rootNote}${octave}`;
     
-    // Handle octave wrapping for the second note
-    const secondNoteName = this.getNoteFromSemitones(rootNote, semitones);
-    const noteIndex = NOTES.indexOf(secondNoteName);
-    const rootIndex = NOTES.indexOf(rootNote);
-    const secondOctave = noteIndex < rootIndex ? octave + 1 : octave;
+    // Calculate second note based on direction
+    let secondNoteName: string;
+    let secondOctave: number;
+    
+    if (direction === 'ascending') {
+      secondNoteName = this.getNoteFromSemitones(rootNote, semitones);
+      const noteIndex = NOTES.indexOf(secondNoteName);
+      const rootIndex = NOTES.indexOf(rootNote);
+      secondOctave = noteIndex < rootIndex ? octave + 1 : octave;
+    } else {
+      // Descending - go down by the interval
+      secondNoteName = this.getNoteFromSemitones(rootNote, -semitones);
+      const noteIndex = NOTES.indexOf(secondNoteName);
+      const rootIndex = NOTES.indexOf(rootNote);
+      secondOctave = noteIndex > rootIndex ? octave - 1 : octave;
+    }
+    
     const second = `${secondNoteName}${secondOctave}`;
     
-    console.log(`🎵 Playing ${intervalType}:`, [root, second]);
+    console.log(`🎵 Playing ${intervalType} (${direction}, ${presentation}):`, [root, second]);
     
     const now = Tone.now();
-    const delay = this.getAdjustedTime(0.5);
-    this.synth.triggerAttackRelease(root, '1n', now);
-    this.synth.triggerAttackRelease(second, '1n', now + delay);
+    
+    if (presentation === 'harmonic') {
+      // Play both notes together
+      this.synth.triggerAttackRelease(root, '2n', now);
+      this.synth.triggerAttackRelease(second, '2n', now);
+    } else {
+      // Play melodically with delay
+      const delay = this.getAdjustedTime(0.5);
+      if (direction === 'ascending') {
+        this.synth.triggerAttackRelease(root, '1n', now);
+        this.synth.triggerAttackRelease(second, '1n', now + delay);
+      } else {
+        this.synth.triggerAttackRelease(root, '1n', now);
+        this.synth.triggerAttackRelease(second, '1n', now + delay);
+      }
+    }
     
     return [root, second];
   }
