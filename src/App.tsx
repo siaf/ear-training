@@ -25,6 +25,7 @@ function App() {
   const [isPlayingScale, setIsPlayingScale] = useState(false);
   const [droneEnabled, setDroneEnabled] = useState(false);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
+  const [debugMode, setDebugMode] = useState(false);
 
   const currentLevel = selectedLevelId 
     ? CURRICULUM.find(l => l.id === selectedLevelId) || getCurrentLevel(completedLevels)
@@ -33,39 +34,58 @@ function App() {
 
   // Define generateQuestion first so it can be used in useEffects
   const generateQuestion = useCallback(async () => {
-    // Get diatonic items within the current scale
-    const diatonicItems = filterDiatonicItems(
-      currentLevel.items,
-      currentLevel.type,
-      currentScaleRoot,
-      currentLevel.scaleDegrees
-    );
-    
-    // Pick a random diatonic item
-    const randomDiatonic = diatonicItems[Math.floor(Math.random() * diatonicItems.length)];
-    const rootNote = randomDiatonic.root;
-    const itemType = randomDiatonic.type;
-    
     let playedNotes: string[] = [];
-    
-    // Play the sound based on question type
-    try {
-      switch (currentLevel.type) {
-        case 'interval':
-          playedNotes = await audioEngine.playInterval(rootNote, itemType as keyof typeof INTERVALS);
-          break;
-        case 'triad':
-          playedNotes = await audioEngine.playTriad(rootNote, itemType as keyof typeof TRIADS);
-          break;
-        case 'seventh_chord':
-          playedNotes = await audioEngine.playSeventhChord(rootNote, itemType as keyof typeof SEVENTH_CHORDS);
-          break;
-        case 'mode':
-          playedNotes = await audioEngine.playMode(rootNote, itemType as keyof typeof MODES);
-          break;
+    let itemType: string;
+    let rootNote: string;
+
+    // Scale degree questions work differently - pick random degree
+    if (currentLevel.type === 'scale_degree') {
+      const randomDegree = currentLevel.items[Math.floor(Math.random() * currentLevel.items.length)];
+      itemType = randomDegree;
+      rootNote = currentScaleRoot;
+      
+      try {
+        playedNotes = await audioEngine.playScaleDegree(
+          currentScaleRoot,
+          parseInt(randomDegree) - 1, // Convert 1-7 to 0-6
+          currentLevel.context!
+        );
+      } catch (error) {
+        console.error('Error playing scale degree:', error);
       }
-    } catch (error) {
-      console.error('Error playing audio:', error);
+    } else {
+      // Get diatonic items within the current scale
+      const diatonicItems = filterDiatonicItems(
+        currentLevel.items,
+        currentLevel.type,
+        currentScaleRoot,
+        currentLevel.scaleDegrees
+      );
+      
+      // Pick a random diatonic item
+      const randomDiatonic = diatonicItems[Math.floor(Math.random() * diatonicItems.length)];
+      rootNote = randomDiatonic.root;
+      itemType = randomDiatonic.type;
+      
+      // Play the sound based on question type
+      try {
+        switch (currentLevel.type) {
+          case 'interval':
+            playedNotes = await audioEngine.playInterval(rootNote, itemType as keyof typeof INTERVALS);
+            break;
+          case 'triad':
+            playedNotes = await audioEngine.playTriad(rootNote, itemType as keyof typeof TRIADS);
+            break;
+          case 'seventh_chord':
+            playedNotes = await audioEngine.playSeventhChord(rootNote, itemType as keyof typeof SEVENTH_CHORDS);
+            break;
+          case 'mode':
+            playedNotes = await audioEngine.playMode(rootNote, itemType as keyof typeof MODES);
+            break;
+        }
+      } catch (error) {
+        console.error('Error playing audio:', error);
+      }
     }
 
     const question: Question = {
@@ -75,6 +95,7 @@ function App() {
       rootNote,
       playedNotes,
       timestamp: Date.now(),
+      context: currentLevel.context,
     };
 
     setCurrentQuestion(question);
@@ -138,6 +159,22 @@ function App() {
     audioEngine.setSynthType(synthType);
   }, [synthType]);
 
+  // Debug mode keyboard shortcut (Ctrl/Cmd + K)
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        setDebugMode(prev => {
+          console.log(`🐛 Debug mode ${!prev ? 'ENABLED' : 'DISABLED'} - All levels unlocked`);
+          return !prev;
+        });
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, []);
+
   // Update drone when scale root changes
   useEffect(() => {
     if (droneEnabled && sessionStarted) {
@@ -150,6 +187,13 @@ function App() {
 
     try {
       switch (currentQuestion.type) {
+        case 'scale_degree':
+          await audioEngine.playScaleDegree(
+            currentQuestion.rootNote,
+            parseInt(currentQuestion.correctAnswer) - 1,
+            currentQuestion.context!
+          );
+          break;
         case 'interval':
           await audioEngine.playInterval(
             currentQuestion.rootNote,
@@ -176,7 +220,7 @@ function App() {
           break;
       }
     } catch (error) {
-      console.error('Error replaying audio:', error);
+      console.error('Error replaying sound:', error);
     }
   };
 
@@ -192,6 +236,18 @@ function App() {
     // Create full description with root note and type
     const fullDescription = `${currentQuestion.rootNote} ${getDisplayName(currentQuestion.correctAnswer)}`;
 
+    // Calculate scale degree if applicable (for interval/triad/chord questions)
+    let scaleDegree: number | undefined;
+    if (currentQuestion.type !== 'scale_degree' && currentQuestion.type !== 'mode') {
+      // Get the scale degree of the root note of this question
+      const rootIndex = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'].indexOf(currentQuestion.rootNote);
+      const scaleRootIndex = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'].indexOf(currentScaleRoot);
+      const interval = (rootIndex - scaleRootIndex + 12) % 12;
+      const majorScale = [0, 2, 4, 5, 7, 9, 11];
+      scaleDegree = majorScale.indexOf(interval);
+      if (scaleDegree === -1) scaleDegree = undefined; // Not in scale
+    }
+
     const answerRecord: Answer = {
       questionId: currentQuestion.id,
       userAnswer: answer,
@@ -200,6 +256,11 @@ function App() {
       isCorrect,
       timestamp: Date.now(),
       responseTime,
+      // Enhanced tracking
+      itemType: currentQuestion.correctAnswer,
+      scaleDegree,
+      rootNote: currentScaleRoot,
+      questionType: currentQuestion.type,
     };
 
     analytics.addAnswer(answerRecord);
@@ -248,11 +309,21 @@ function App() {
           <div className="text-center mb-8">
             <h1 className="text-5xl font-bold text-white mb-2">🎵 Ear Training</h1>
             <p className="text-gray-300 text-lg">Master musical intervals through progressive practice</p>
-            {completedLevels.length > 0 && (
-              <div className="mt-3 inline-flex items-center gap-2 bg-yellow-500 bg-opacity-20 px-4 py-2 rounded-full">
-                <Trophy className="w-5 h-5 text-yellow-400" />
-                <span className="text-yellow-300 font-semibold">{completedLevels.length} levels completed</span>
-              </div>
+            <div className="flex items-center justify-center gap-3 mt-3">
+              {completedLevels.length > 0 && (
+                <div className="inline-flex items-center gap-2 bg-yellow-500 bg-opacity-20 px-4 py-2 rounded-full">
+                  <Trophy className="w-5 h-5 text-yellow-400" />
+                  <span className="text-yellow-300 font-semibold">{completedLevels.length} levels completed</span>
+                </div>
+              )}
+              {debugMode && (
+                <div className="inline-flex items-center gap-2 bg-red-500 bg-opacity-20 px-4 py-2 rounded-full border border-red-500 border-opacity-50">
+                  <span className="text-red-300 font-semibold">🐛 Debug Mode</span>
+                </div>
+              )}
+            </div>
+            {debugMode && (
+              <p className="text-xs text-gray-400 mt-2">Press Ctrl/Cmd + K to toggle</p>
             )}
           </div>
 
@@ -268,7 +339,7 @@ function App() {
                 {CURRICULUM.map((level, index) => {
                   const isCompleted = completedLevels.includes(level.id);
                   const isCurrent = currentLevel.id === level.id;
-                  const isLocked = index > 0 && !completedLevels.includes(CURRICULUM[index - 1].id) && !isCurrent;
+                  const isLocked = !debugMode && index > 0 && !completedLevels.includes(CURRICULUM[index - 1].id) && !isCurrent;
                   
                   return (
                     <div key={level.id} className="relative">
@@ -380,13 +451,25 @@ function App() {
               {/* What you'll practice */}
               <div className="mb-6">
                 <h3 className="text-white font-semibold mb-3">🎯 What You'll Practice</h3>
+                {currentLevel.type === 'scale_degree' && currentLevel.context && (
+                  <div className="mb-3 text-sm text-purple-300 bg-purple-900 bg-opacity-20 p-3 rounded-lg">
+                    <strong>Context:</strong> {
+                      currentLevel.context === 'major' ? 'Major Scale (Melodic)' :
+                      currentLevel.context === 'natural_minor' ? 'Natural Minor Scale (Melodic)' :
+                      currentLevel.context === 'major_triads' ? 'Major Scale Triads (Harmonic)' :
+                      currentLevel.context === 'minor_triads' ? 'Minor Scale Triads (Harmonic)' :
+                      currentLevel.context === 'major_7ths' ? 'Major Scale 7th Chords (Harmonic)' :
+                      'Minor Scale 7th Chords (Harmonic)'
+                    }
+                  </div>
+                )}
                 <div className="flex flex-wrap gap-2">
                   {currentLevel.items.map(item => (
                     <span
                       key={item}
                       className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg text-sm font-medium"
                     >
-                      {getDisplayName(item)}
+                      {currentLevel.type === 'scale_degree' ? `Scale Degree ${item}` : getDisplayName(item)}
                     </span>
                   ))}
                 </div>
@@ -488,23 +571,83 @@ function App() {
             </div>
           </div>
 
-          {stats.weaknesses.length > 0 && (
+          {/* Confusion Matrix */}
+          {stats.confusionMatrix && stats.confusionMatrix.length > 0 && (
             <div className="bg-gray-700 rounded-xl p-6 mb-6">
-              <h3 className="text-lg font-semibold text-white mb-4">Detailed Breakdown by Note</h3>
+              <h3 className="text-lg font-semibold text-white mb-4">⚠️ Common Confusions</h3>
               <p className="text-gray-400 text-sm mb-4">
-                See exactly which notes/keys you got right or wrong
+                What you're mixing up - focus here to improve quickly
               </p>
               <div className="space-y-2">
-                {stats.weaknesses.map(weakness => (
+                {stats.confusionMatrix.slice(0, 5).map((confusion, idx) => (
+                  <div key={idx} className="bg-red-900 bg-opacity-30 border border-red-500 border-opacity-30 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-red-300 font-semibold">
+                        {confusion.count}x confused
+                      </span>
+                    </div>
+                    <div className="text-white">
+                      Thought it was <span className="font-bold text-red-400">{getDisplayName(confusion.mistook)}</span>
+                      {' '} but it was actually <span className="font-bold text-green-400">{getDisplayName(confusion.actuallyWas)}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Scale Degree Weaknesses */}
+          {stats.scaleDegreeWeaknesses && stats.scaleDegreeWeaknesses.length > 0 && (
+            <div className="bg-gray-700 rounded-xl p-6 mb-6">
+              <h3 className="text-lg font-semibold text-white mb-4">📍 Weaknesses by Scale Degree</h3>
+              <p className="text-gray-400 text-sm mb-4">
+                Which positions in the scale are challenging for you
+              </p>
+              <div className="space-y-2">
+                {stats.scaleDegreeWeaknesses.slice(0, 5).map((weakness, idx) => (
+                  <div key={idx} className="flex items-center justify-between bg-gray-600 rounded-lg p-3">
+                    <div>
+                      <span className="text-white font-medium">
+                        {weakness.context}
+                      </span>
+                      <div className="text-xs text-gray-400 mt-1">
+                        {weakness.correct}/{weakness.attempts} correct
+                      </div>
+                    </div>
+                    <span className={`font-semibold text-lg min-w-[50px] text-right ${
+                      weakness.accuracy >= 80 ? 'text-green-400' :
+                      weakness.accuracy >= 60 ? 'text-yellow-400' :
+                      'text-red-400'
+                    }`}>
+                      {weakness.accuracy.toFixed(0)}%
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Item-level breakdown - grouped by type */}
+          {stats.weaknesses.length > 0 && (
+            <div className="bg-gray-700 rounded-xl p-6 mb-6">
+              <h3 className="text-lg font-semibold text-white mb-4">🎯 Performance by Item</h3>
+              <p className="text-gray-400 text-sm mb-4">
+                Your accuracy on each specific sound
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {stats.weaknesses
+                  .filter(w => w.attempts >= 1)
+                  .sort((a, b) => a.accuracy - b.accuracy)
+                  .map(weakness => (
                   <div key={weakness.item} className="flex items-center justify-between bg-gray-600 rounded-lg p-3">
-                    <span className="text-white font-medium">
+                    <span className="text-white font-medium text-sm">
                       {weakness.item}
                     </span>
-                    <div className="flex items-center gap-4">
-                      <span className="text-gray-400 text-sm">
+                    <div className="flex items-center gap-3">
+                      <span className="text-gray-400 text-xs">
                         {weakness.correct}/{weakness.attempts}
                       </span>
-                      <span className={`font-semibold min-w-[45px] text-right ${
+                      <span className={`font-semibold text-sm min-w-[45px] text-right ${
                         weakness.accuracy >= 80 ? 'text-green-400' :
                         weakness.accuracy >= 60 ? 'text-yellow-400' :
                         'text-red-400'

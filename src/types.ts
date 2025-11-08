@@ -21,7 +21,13 @@ export type ModeType =
   | 'ionian' | 'dorian' | 'phrygian' | 'lydian' 
   | 'mixolydian' | 'aeolian' | 'locrian';
 
-export type QuestionType = 'interval' | 'triad' | 'seventh_chord' | 'mode';
+export type ScaleDegreeType = 
+  | '1' | '2' | '3' | '4' | '5' | '6' | '7';
+
+export type ScaleDegreeContext = 
+  | 'major' | 'natural_minor' | 'major_triads' | 'minor_triads' | 'major_7ths' | 'minor_7ths';
+
+export type QuestionType = 'interval' | 'triad' | 'seventh_chord' | 'mode' | 'scale_degree';
 
 export interface Question {
   id: string;
@@ -30,6 +36,7 @@ export interface Question {
   rootNote: string;
   playedNotes: string[];
   timestamp: number;
+  context?: ScaleDegreeContext; // For scale degree questions
 }
 
 export interface Answer {
@@ -40,6 +47,11 @@ export interface Answer {
   isCorrect: boolean;
   timestamp: number;
   responseTime: number;
+  // Enhanced tracking
+  itemType: string; // e.g., "major_3rd", "minor", "ionian"
+  scaleDegree?: number; // 0-6 for which scale degree this was played from
+  rootNote: string; // The root note of the scale context
+  questionType: QuestionType; // interval, triad, scale_degree, etc.
 }
 
 export interface SessionStats {
@@ -47,6 +59,8 @@ export interface SessionStats {
   correctAnswers: number;
   accuracy: number;
   weaknesses: WeaknessReport[];
+  scaleDegreeWeaknesses?: ScaleDegreeWeakness[];
+  confusionMatrix?: ConfusionPair[];
 }
 
 export interface WeaknessReport {
@@ -54,6 +68,20 @@ export interface WeaknessReport {
   attempts: number;
   correct: number;
   accuracy: number;
+}
+
+export interface ScaleDegreeWeakness {
+  degree: number; // 0-6 for scale degrees 1-7
+  attempts: number;
+  correct: number;
+  accuracy: number;
+  context: string; // e.g., "intervals from V", "triads on ii"
+}
+
+export interface ConfusionPair {
+  mistook: string; // What they thought it was
+  actuallyWas: string; // What it actually was
+  count: number; // How many times this confusion happened
 }
 
 export interface CurriculumLevel {
@@ -64,6 +92,7 @@ export interface CurriculumLevel {
   unlockRequirement: number; // accuracy percentage to unlock next level
   description: string;
   scaleDegrees?: number[]; // Optional: restrict to specific scale degrees (0-6 for I-VII)
+  context?: ScaleDegreeContext; // For scale degree questions
 }
 
 export interface UserProgress {

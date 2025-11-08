@@ -2,6 +2,81 @@ import { CurriculumLevel } from './types';
 
 // Progressive curriculum that builds musical understanding logically
 export const CURRICULUM: CurriculumLevel[] = [
+  // Scale Degree Identification - Foundation
+  {
+    id: 'scale_degree_major_1',
+    name: 'Major Scale Degrees 1-3-5',
+    type: 'scale_degree',
+    items: ['1', '3', '5'], // Do, Mi, Sol
+    context: 'major',
+    unlockRequirement: 80,
+    description: 'Identify the tonic triad notes (1, 3, 5) in a major scale',
+  },
+  {
+    id: 'scale_degree_major_2',
+    name: 'Major Scale Degrees 1-5',
+    type: 'scale_degree',
+    items: ['1', '2', '3', '4', '5'],
+    context: 'major',
+    unlockRequirement: 75,
+    description: 'Identify scale degrees 1-5 in a major scale',
+  },
+  {
+    id: 'scale_degree_major_full',
+    name: 'All Major Scale Degrees',
+    type: 'scale_degree',
+    items: ['1', '2', '3', '4', '5', '6', '7'],
+    context: 'major',
+    unlockRequirement: 75,
+    description: 'Identify all 7 scale degrees in a major scale',
+  },
+  {
+    id: 'scale_degree_minor',
+    name: 'Natural Minor Scale Degrees',
+    type: 'scale_degree',
+    items: ['1', '2', '3', '4', '5', '6', '7'],
+    context: 'natural_minor',
+    unlockRequirement: 75,
+    description: 'Identify all 7 scale degrees in natural minor',
+  },
+  {
+    id: 'scale_degree_major_triads',
+    name: 'Major Scale Triads (Harmonic)',
+    type: 'scale_degree',
+    items: ['1', '2', '3', '4', '5', '6', '7'],
+    context: 'major_triads',
+    unlockRequirement: 70,
+    description: 'Identify triads built on each scale degree in major',
+  },
+  {
+    id: 'scale_degree_minor_triads',
+    name: 'Minor Scale Triads (Harmonic)',
+    type: 'scale_degree',
+    items: ['1', '2', '3', '4', '5', '6', '7'],
+    context: 'minor_triads',
+    unlockRequirement: 70,
+    description: 'Identify triads built on each scale degree in minor',
+  },
+  {
+    id: 'scale_degree_major_7ths',
+    name: 'Major Scale 7th Chords',
+    type: 'scale_degree',
+    items: ['1', '2', '3', '4', '5', '6', '7'],
+    context: 'major_7ths',
+    unlockRequirement: 70,
+    description: 'Identify 7th chords built on each scale degree in major',
+  },
+  {
+    id: 'scale_degree_minor_7ths',
+    name: 'Minor Scale 7th Chords',
+    type: 'scale_degree',
+    items: ['1', '2', '3', '4', '5', '6', '7'],
+    context: 'minor_7ths',
+    unlockRequirement: 70,
+    description: 'Identify 7th chords built on each scale degree in minor',
+  },
+  
+  // Interval Identification
   {
     id: 'level_1',
     name: 'Tonic Major vs Minor Thirds',
@@ -96,7 +171,6 @@ export function getCurrentLevel(completedLevels: string[]): CurriculumLevel {
 export function canUnlockNextLevel(currentLevelId: string, accuracy: number): boolean {
   const currentLevel = CURRICULUM.find(level => level.id === currentLevelId);
   if (!currentLevel) return false;
-  
   return accuracy >= currentLevel.unlockRequirement;
 }
 

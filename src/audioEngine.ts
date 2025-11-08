@@ -396,6 +396,88 @@ class AudioEngine {
     return scale.indexOf(interval);
   }
 
+  // Play a scale degree with context (melodic or harmonic)
+  async playScaleDegree(
+    rootNote: string, 
+    degree: number, // 0-6 for scale degrees 1-7
+    context: 'major' | 'natural_minor' | 'major_triads' | 'minor_triads' | 'major_7ths' | 'minor_7ths'
+  ): Promise<string[]> {
+    await this.initialize();
+    
+    const octave = 4;
+    const rootIndex = NOTES.indexOf(rootNote);
+    
+    // Get the scale based on context
+    const scale = context === 'natural_minor' || context === 'minor_triads' || context === 'minor_7ths'
+      ? MODES.aeolian // Natural minor
+      : MODES.ionian; // Major
+    
+    const playedNotes: string[] = [];
+    
+    // Melodic context: play the scale degree as a single note
+    if (context === 'major' || context === 'natural_minor') {
+      const semitones = scale[degree];
+      const noteName = this.getNoteFromSemitones(rootNote, semitones);
+      const noteIndex = NOTES.indexOf(noteName);
+      const currentOctave = noteIndex < rootIndex ? octave + 1 : octave;
+      const note = `${noteName}${currentOctave}`;
+      
+      console.log(`🎵 Playing scale degree ${degree + 1} in ${context}:`, note);
+      
+      const now = Tone.now();
+      this.synth.triggerAttackRelease(note, '1n', now);
+      playedNotes.push(note);
+    }
+    // Harmonic context: play the triad or 7th chord built on that degree
+    else {
+      const degreeSemitones = scale[degree];
+      const degreeNoteName = this.getNoteFromSemitones(rootNote, degreeSemitones);
+      
+      // Build chord from the degree
+      let chordFormula: number[];
+      if (context === 'major_triads' || context === 'minor_triads') {
+        // Determine if this degree should be major or minor based on the scale
+        const third = scale[(degree + 2) % 7];
+        const thirdInterval = (third - degreeSemitones + 12) % 12;
+        chordFormula = thirdInterval === 4 ? TRIADS.major : TRIADS.minor;
+      } else {
+        // 7th chords
+        const third = scale[(degree + 2) % 7];
+        const seventh = scale[(degree + 6) % 7];
+        const thirdInterval = (third - degreeSemitones + 12) % 12;
+        const seventhInterval = (seventh - degreeSemitones + 12) % 12;
+        
+        if (thirdInterval === 4 && seventhInterval === 11) {
+          chordFormula = SEVENTH_CHORDS.major_7;
+        } else if (thirdInterval === 3 && seventhInterval === 10) {
+          chordFormula = SEVENTH_CHORDS.minor_7;
+        } else if (thirdInterval === 4 && seventhInterval === 10) {
+          chordFormula = SEVENTH_CHORDS.dominant_7;
+        } else if (thirdInterval === 3 && seventhInterval === 9) {
+          chordFormula = SEVENTH_CHORDS.diminished_7;
+        } else {
+          chordFormula = SEVENTH_CHORDS.half_diminished_7;
+        }
+      }
+      
+      // Build the chord notes
+      const degreeRootIndex = NOTES.indexOf(degreeNoteName);
+      const chordNotes = chordFormula.map(semitones => {
+        const noteName = this.getNoteFromSemitones(degreeNoteName, semitones);
+        const noteIndex = NOTES.indexOf(noteName);
+        const currentOctave = noteIndex < degreeRootIndex ? octave + 1 : octave;
+        return `${noteName}${currentOctave}`;
+      });
+      
+      console.log(`🎹 Playing degree ${degree + 1} chord in ${context}:`, chordNotes);
+      
+      this.synth.triggerAttackRelease(chordNotes, '2n');
+      playedNotes.push(...chordNotes);
+    }
+    
+    return playedNotes;
+  }
+
   // Drone control
   async toggleDrone(rootNote: string, enable: boolean) {
     await this.initialize();

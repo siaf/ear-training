@@ -1,4 +1,4 @@
-import { Answer, SessionStats, WeaknessReport } from './types';
+import { Answer, SessionStats, WeaknessReport, ScaleDegreeWeakness, ConfusionPair } from './types';
 
 export class AnalyticsEngine {
   private answers: Answer[] = [];
@@ -13,12 +13,16 @@ export class AnalyticsEngine {
     const accuracy = totalQuestions > 0 ? (correctAnswers / totalQuestions) * 100 : 0;
 
     const weaknesses = this.calculateWeaknesses();
+    const scaleDegreeWeaknesses = this.calculateScaleDegreeWeaknesses();
+    const confusionMatrix = this.calculateConfusionMatrix();
 
     return {
       totalQuestions,
       correctAnswers,
       accuracy,
       weaknesses,
+      scaleDegreeWeaknesses,
+      confusionMatrix,
     };
   }
 
@@ -57,6 +61,68 @@ export class AnalyticsEngine {
     return reports;
   }
 
+  private calculateScaleDegreeWeaknesses(): ScaleDegreeWeakness[] {
+    const degreeStats = new Map<string, { attempts: number; correct: number; degree: number; questionType: string }>();
+
+    this.answers.forEach(answer => {
+      if (answer.scaleDegree !== undefined) {
+        const degreeNames = ['I (Root)', 'ii', 'iii', 'IV', 'V (Dominant)', 'vi', 'vii°'];
+        const key = `${degreeNames[answer.scaleDegree]}_${answer.questionType}`;
+        const stats = degreeStats.get(key) || { 
+          attempts: 0, 
+          correct: 0, 
+          degree: answer.scaleDegree,
+          questionType: answer.questionType 
+        };
+        
+        stats.attempts++;
+        if (answer.isCorrect) {
+          stats.correct++;
+        }
+        
+        degreeStats.set(key, stats);
+      }
+    });
+
+    const reports: ScaleDegreeWeakness[] = [];
+    degreeStats.forEach((stats) => {
+      const accuracy = (stats.correct / stats.attempts) * 100;
+      const degreeNames = ['I (Root)', 'ii', 'iii', 'IV', 'V (Dominant)', 'vi', 'vii°'];
+      const context = `${stats.questionType}s from ${degreeNames[stats.degree]}`;
+      
+      reports.push({
+        degree: stats.degree,
+        attempts: stats.attempts,
+        correct: stats.correct,
+        accuracy,
+        context,
+      });
+    });
+
+    reports.sort((a, b) => a.accuracy - b.accuracy);
+    return reports;
+  }
+
+  private calculateConfusionMatrix(): ConfusionPair[] {
+    const confusions = new Map<string, number>();
+
+    this.answers.forEach(answer => {
+      if (!answer.isCorrect) {
+        const key = `${answer.userAnswer}|${answer.correctAnswer}`;
+        confusions.set(key, (confusions.get(key) || 0) + 1);
+      }
+    });
+
+    const pairs: ConfusionPair[] = [];
+    confusions.forEach((count, key) => {
+      const [mistook, actuallyWas] = key.split('|');
+      pairs.push({ mistook, actuallyWas, count });
+    });
+
+    pairs.sort((a, b) => b.count - a.count);
+    return pairs;
+  }
+
   getAverageResponseTime(): number {
     if (this.answers.length === 0) return 0;
     
@@ -93,6 +159,23 @@ export class AnalyticsEngine {
     if (weakItems.length > 0) {
       const itemNames = weakItems.slice(0, 3).map(w => w.item).join(', ');
       insights.push(`🎯 Focus on: ${itemNames}`);
+    }
+
+    // Scale degree weaknesses
+    if (stats.scaleDegreeWeaknesses && stats.scaleDegreeWeaknesses.length > 0) {
+      const weakDegrees = stats.scaleDegreeWeaknesses.filter(w => w.attempts >= 2 && w.accuracy < 60);
+      if (weakDegrees.length > 0) {
+        const degreeContext = weakDegrees.slice(0, 2).map(w => w.context).join(', ');
+        insights.push(`📍 Struggle with: ${degreeContext}`);
+      }
+    }
+
+    // Common confusions
+    if (stats.confusionMatrix && stats.confusionMatrix.length > 0) {
+      const topConfusion = stats.confusionMatrix[0];
+      if (topConfusion.count >= 2) {
+        insights.push(`⚠️ Often confuse ${topConfusion.actuallyWas} with ${topConfusion.mistook}`);
+      }
     }
 
     // Identify strong areas
