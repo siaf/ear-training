@@ -2,6 +2,8 @@
 
 A progressive ear training application designed to develop musical listening skills through intelligent, context-aware practice.
 
+**🌐 Live Demo**: [https://siaf.github.io/ear-training/](https://siaf.github.io/ear-training/)
+
 ## Features
 
 ### 🎯 Progressive Curriculum
@@ -59,6 +61,26 @@ Open your browser to the URL shown (typically `http://localhost:5173`)
 npm run build
 npm run preview
 ```
+
+### Deploy to GitHub Pages
+
+The app is configured to automatically deploy to GitHub Pages when you push to the `main` branch.
+
+**First-time setup:**
+1. Go to your repository on GitHub
+2. Navigate to **Settings** → **Pages**
+3. Under **Build and deployment**, set **Source** to **GitHub Actions**
+4. Push your code to the `main` branch
+
+The GitHub Actions workflow will automatically:
+- Install dependencies
+- Build the app
+- Deploy to GitHub Pages
+
+Your site will be live at: `https://siaf.github.io/ear-training/`
+
+**Manual deployment:**
+You can also trigger a deployment manually from the **Actions** tab in your GitHub repository.
 
 ## How It Works
 
