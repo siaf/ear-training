@@ -1,83 +1,405 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Volume2, BarChart3, Trophy, Play, ChevronDown, ChevronRight } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { audioEngine, INTERVALS, TRIADS, SEVENTH_CHORDS, MODES, SynthType } from './audioEngine';
-import { CURRICULUM, CURRICULUM_SEGMENTS, getCurrentLevel, canUnlockNextLevel, getDisplayName } from './curriculum';
+import { CURRICULUM, getCurrentLevel, canUnlockNextLevel, getDisplayName } from './curriculum';
 import { AnalyticsEngine } from './analytics';
-import { Question, Answer } from './types';
+import { Answer, Question } from './types';
 import { filterDiatonicItems } from './scaleContext';
+import { realizeDiatonicSequence, sequenceStartDegreeForQuestion } from './lib/diatonic';
+import Path from './routes/Path';
+import PracticeRoute from './routes/Practice';
+import Results from './routes/Results';
+import Settings, { DEFAULT_VOICE_RANGE, SettingsState, VOICE_RANGE_BASE_OCTAVE, VOICE_RANGE_NOTES } from './routes/Settings';
+import Stats from './routes/Stats';
+import Landing from './routes/Landing';
+import Onboarding from './routes/Onboarding';
+import Paywall, { PlanId } from './routes/Paywall';
+import { clearAllSessions, getStreakDays, getTodayMinutes, hasHistory, recordSession, timeSinceLastSession } from './lib/sessionStore';
+import {
+  startSyncEngine,
+  subscribeSyncState,
+  signOut as syncSignOut,
+  getCurrentUser,
+  flushNow,
+  type SyncState,
+  type ProfileSnapshot,
+} from './lib/syncEngine';
+import { PRODUCT_IDS, isPro, purchaseProduct, subscribeBilling } from './lib/billing';
+import LessonIntro from './components/LessonIntro';
+import MasteryOverlay from './components/MasteryOverlay';
+import StreakRecoverySheet from './components/StreakRecoverySheet';
+import AuthSheet from './components/AuthSheet';
+import BottomTabs, { BottomTabRoute } from './components/BottomTabs';
+import { haptics } from './lib/haptics';
+import { cancelStreakReminder, requestNotificationPermission, scheduleStreakReminder } from './lib/notifications';
+import { getLessonIntro } from './lib/lessonIntro';
+import { parseRouteFromUrl, syncUrl, usePopStateRoute } from './lib/routing';
+import { ThemePreference, loadThemePreference, useTheme } from './lib/theme';
 
-const MAX_QUESTIONS = 24;
-const QUESTIONS_PER_KEY = 8;
+import type { Route } from './lib/routing';
+import type { AcousticKind, CurriculumLevel } from './types';
 
-function App() {
-  const [completedLevels, setCompletedLevels] = useState<string[]>([]);
+// Acoustic kinds that don't rely on a tonal center — they compare two raw pitches,
+// so establishing a key with a scale reference would be misleading.
+const NON_TONAL_ACOUSTIC_KINDS: AcousticKind[] = [
+  'same_diff',
+  'beating',
+  'higher_lower',
+  'consonance',
+  'match_pitch',
+];
+
+interface LessonConfig {
+  establishTonality: boolean;
+  maxQuestions: number;
+  questionsPerKey: number;
+}
+
+function getLessonConfig(level: CurriculumLevel): LessonConfig {
+  const nonTonal = level.type === 'acoustic' && level.acousticKind
+    ? NON_TONAL_ACOUSTIC_KINDS.includes(level.acousticKind)
+    : false;
+  const establishTonality = level.establishTonality ?? !nonTonal;
+  if (!establishTonality) {
+    const maxQuestions = level.maxQuestions ?? 8;
+    return { establishTonality: false, maxQuestions, questionsPerKey: maxQuestions };
+  }
+  const maxQuestions = level.maxQuestions ?? 15;
+  const questionsPerKey = level.questionsPerKey ?? 5;
+  return { establishTonality: true, maxQuestions, questionsPerKey };
+}
+
+function resolveGroupedAnswer(item: string, itemGroups?: Record<string, string[]>): string {
+  if (!itemGroups) return item;
+  for (const [bucket, members] of Object.entries(itemGroups)) {
+    if (members.includes(item)) return bucket;
+  }
+  return item;
+}
+
+const STORAGE_KEY = 'fifths.v1';
+
+type Persisted = {
+  completedLevels: string[];
+  settings: SettingsState;
+  hasSeenLanding: boolean;
+  hasOnboarded: boolean;
+  hasEverPracticed: boolean;
+  debugMode: boolean;
+};
+
+const DEFAULT_SETTINGS: SettingsState = {
+  synth: 'piano',
+  playbackSpeed: 1,
+  drone: false,
+  autoPlay: true,
+};
+
+function loadPersisted(): Persisted {
+  const devDefault = Boolean(import.meta.env.DEV);
+  const fallback: Persisted = {
+    completedLevels: [],
+    settings: DEFAULT_SETTINGS,
+    hasSeenLanding: false,
+    hasOnboarded: false,
+    hasEverPracticed: false,
+    debugMode: devDefault,
+  };
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return fallback;
+    const parsed = JSON.parse(raw);
+    return {
+      completedLevels: Array.isArray(parsed.completedLevels) ? parsed.completedLevels : [],
+      settings: { ...DEFAULT_SETTINGS, ...(parsed.settings ?? {}) },
+      hasSeenLanding: Boolean(parsed.hasSeenLanding),
+      hasOnboarded: Boolean(parsed.hasOnboarded),
+      hasEverPracticed: Boolean(parsed.hasEverPracticed),
+      debugMode: typeof parsed.debugMode === 'boolean' ? parsed.debugMode : devDefault,
+    };
+  } catch {
+    return fallback;
+  }
+}
+
+function savePersisted(p: Persisted) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(p));
+  } catch {
+    /* ignore */
+  }
+}
+
+export default function App() {
+  const initial = loadPersisted();
+
+  const defaultRoute: Route = !initial.hasSeenLanding
+    ? 'landing'
+    : !initial.hasOnboarded
+    ? 'onboarding'
+    : 'path';
+  const [route, setRouteState] = useState<Route>(parseRouteFromUrl(defaultRoute));
+  const setRoute = (r: Route) => {
+    setRouteState(r);
+    syncUrl(r);
+  };
+  usePopStateRoute(setRouteState);
+
+  // On first render, make sure URL reflects the route we picked (for Landing/onboarding flows).
+  useEffect(() => {
+    syncUrl(route, true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const [completedLevels, setCompletedLevels] = useState<string[]>(initial.completedLevels);
   const [selectedLevelId, setSelectedLevelId] = useState<string | null>(null);
+  const [settings, setSettings] = useState<SettingsState>(initial.settings);
+  const [hasOnboarded, setHasOnboarded] = useState<boolean>(initial.hasOnboarded);
+  const [hasEverPracticed, setHasEverPracticed] = useState<boolean>(initial.hasEverPracticed);
+  const [theme, setTheme] = useState<ThemePreference>(() => loadThemePreference());
+  useTheme(theme);
+
+  // Session state
+  const [analytics] = useState(() => new AnalyticsEngine());
   const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [showFeedback, setShowFeedback] = useState(false);
-  const [analytics] = useState(() => new AnalyticsEngine());
-  const [sessionStarted, setSessionStarted] = useState(false);
-  const [showStats, setShowStats] = useState(false);
   const [questionStartTime, setQuestionStartTime] = useState<number>(0);
-  const [synthType, setSynthType] = useState<SynthType>('piano');
   const [currentScaleRoot, setCurrentScaleRoot] = useState<string>('C');
   const [scaleRoots, setScaleRoots] = useState<string[]>([]);
   const [isPlayingScale, setIsPlayingScale] = useState(false);
-  const [droneEnabled, setDroneEnabled] = useState(false);
-  const [playbackSpeed, setPlaybackSpeed] = useState(1);
-  const [debugMode, setDebugMode] = useState(false);
-  const [expandedSegments, setExpandedSegments] = useState<string[]>(['pitch']); // Start with first segment expanded
-  const [lastKeyChangeQuestion, setLastKeyChangeQuestion] = useState<number>(-1); // Track when we last changed keys
+  const [lastKeyChangeQuestion, setLastKeyChangeQuestion] = useState<number>(-1);
+  const [introDismissed, setIntroDismissed] = useState(false);
+  const scaleLockRef = useRef(false);
+  const autoAdvanceTimerRef = useRef<number | null>(null);
+  const [debugMode, setDebugMode] = useState(initial.debugMode);
+  const [syncState, setSyncState] = useState<SyncState>('disabled');
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [showAuth, setShowAuth] = useState(false);
+  const [proActive, setProActive] = useState<boolean>(isPro());
+  useEffect(() => subscribeBilling(() => setProActive(isPro())), []);
+  const completedLevelsRef = useRef<string[]>(initial.completedLevels);
+  const settingsRef = useRef<SettingsState>(initial.settings);
+  const hasEverPracticedRef = useRef<boolean>(initial.hasEverPracticed);
+  useEffect(() => { completedLevelsRef.current = completedLevels; }, [completedLevels]);
+  useEffect(() => { settingsRef.current = settings; }, [settings]);
+  useEffect(() => { hasEverPracticedRef.current = hasEverPracticed; }, [hasEverPracticed]);
+  const [sessionStartedAt, setSessionStartedAt] = useState<number>(0);
+  const [statsTick, setStatsTick] = useState(0);
+  const [masteryLevelId, setMasteryLevelId] = useState<string | null>(null);
+  const [streakSheetDismissed, setStreakSheetDismissed] = useState<boolean>(false);
+  const [isMobile, setIsMobile] = useState<boolean>(() => typeof window !== 'undefined' && window.innerWidth < 1024);
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < 1024);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+  const tabsActive: BottomTabRoute | null =
+    route === 'path' ? 'path' : route === 'stats' ? 'stats' : route === 'settings' ? 'settings' : null;
 
-  const currentLevel = selectedLevelId 
-    ? CURRICULUM.find(l => l.id === selectedLevelId) || getCurrentLevel(completedLevels)
-    : getCurrentLevel(completedLevels);
+  const isSignedIn = userEmail !== null;
+  const ANON_LESSON_LIMIT = 7;
+  const pendingPurchaseRef = useRef<string | null>(null);
+  const pendingStartRef = useRef<string | null>(null);
+  const currentLevel = selectedLevelId
+    ? CURRICULUM.find((l) => l.id === selectedLevelId) ?? getCurrentLevel(completedLevels, proActive)
+    : getCurrentLevel(completedLevels, proActive);
+  const lessonCfg = getLessonConfig(currentLevel);
   const stats = analytics.getSessionStats();
 
-  // Define generateQuestion first so it can be used in useEffects
+  // Persist on change
+  useEffect(() => {
+    savePersisted({
+      completedLevels,
+      settings,
+      hasSeenLanding: route !== 'landing' || initial.hasSeenLanding,
+      hasOnboarded,
+      hasEverPracticed,
+      debugMode,
+    });
+  }, [completedLevels, settings, route, initial.hasSeenLanding, hasOnboarded, hasEverPracticed, debugMode]);
+
+  // Wire audio settings
+  useEffect(() => {
+    audioEngine.setSynthType(settings.synth as SynthType);
+    audioEngine.setPlaybackSpeed(settings.playbackSpeed);
+  }, [settings.synth, settings.playbackSpeed]);
+
+  // Drone follows setting + current scale root
+  useEffect(() => {
+    if (route === 'practice' && settings.drone) {
+      audioEngine.toggleDrone(currentScaleRoot, true);
+      return () => {
+        audioEngine.toggleDrone(currentScaleRoot, false);
+      };
+    }
+  }, [route, settings.drone, currentScaleRoot]);
+
+  // Debug mode (Ctrl/Cmd + K)
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        setDebugMode((v) => !v);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
+  // Cloud sync engine — magic-link auth + Supabase profile/sessions sync.
+  useEffect(() => {
+    const getProfile = (): ProfileSnapshot => ({
+      email: getCurrentUser()?.email ?? null,
+      synth: settingsRef.current.synth,
+      playbackSpeed: settingsRef.current.playbackSpeed,
+      drone: settingsRef.current.drone,
+      autoPlay: settingsRef.current.autoPlay,
+      voiceRange: settingsRef.current.voiceRange ?? null,
+      singDifficulty: settingsRef.current.singDifficulty ?? null,
+      completedLevels: completedLevelsRef.current,
+      hasEverPracticed: hasEverPracticedRef.current,
+    });
+    const applyProfile = (p: ProfileSnapshot) => {
+      setSettings((curr) => ({
+        ...curr,
+        synth: p.synth as SynthType,
+        playbackSpeed: p.playbackSpeed,
+        drone: p.drone,
+        autoPlay: p.autoPlay,
+        voiceRange: (p.voiceRange as SettingsState['voiceRange']) ?? curr.voiceRange,
+        singDifficulty: (p.singDifficulty as SettingsState['singDifficulty']) ?? curr.singDifficulty,
+      }));
+      setCompletedLevels((curr) => Array.from(new Set([...curr, ...p.completedLevels])));
+      if (p.hasEverPracticed) setHasEverPracticed(true);
+    };
+    startSyncEngine({ getProfile, applyProfile });
+    const unsub = subscribeSyncState((s) => {
+      setSyncState(s);
+      const email = getCurrentUser()?.email ?? null;
+      setUserEmail(email);
+      // Resume any deferred intent the user queued before signing in.
+      if (email && pendingStartRef.current) {
+        const id = pendingStartRef.current;
+        pendingStartRef.current = null;
+        setShowAuth(false);
+        void startSession(id);
+      }
+      if (email && pendingPurchaseRef.current) {
+        const id = pendingPurchaseRef.current;
+        pendingPurchaseRef.current = null;
+        setShowAuth(false);
+        void purchaseProduct(id);
+      }
+    });
+    return () => unsub();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  /* ---------- Session control ---------- */
+
+  const startSession = useCallback(
+    async (levelId: string) => {
+      await audioEngine.initialize();
+      analytics.clearAnswers();
+      setSelectedLevelId(levelId);
+      setCurrentQuestion(null);
+      setSelectedAnswer(null);
+      setShowFeedback(false);
+      setScaleRoots([]);
+      setIsPlayingScale(false);
+      setLastKeyChangeQuestion(-1);
+      setIntroDismissed(false);
+      setSessionStartedAt(Date.now());
+      setRoute('practice');
+      cancelStreakReminder().catch(() => {});
+    },
+    [analytics],
+  );
+
+  // Wrap startSession to enforce the anonymous lesson cap.
+  const guardedStartSession = useCallback(
+    (levelId: string) => {
+      if (!isSignedIn && completedLevels.length >= ANON_LESSON_LIMIT) {
+        pendingStartRef.current = levelId;
+        setShowAuth(true);
+        return;
+      }
+      void startSession(levelId);
+    },
+    [isSignedIn, completedLevels.length, startSession],
+  );
+
   const generateQuestion = useCallback(async () => {
+    const level = currentLevel;
     let playedNotes: string[] = [];
     let itemType: string;
+    let correctAnswer: string;
     let rootNote: string;
+    let acousticSemis: number | undefined;
 
-    // Scale degree questions work differently - pick random degree
-    if (currentLevel.type === 'scale_degree') {
-      const randomDegree = currentLevel.items[Math.floor(Math.random() * currentLevel.items.length)];
+    // Wait until any previous playback (scale reference, previous note) is fully done
+    // before triggering the quiz sound. Prevents scale + question-note overlap.
+    while (audioEngine.isPlaybackActive()) {
+      await new Promise((r) => setTimeout(r, 40));
+    }
+
+    if (level.type === 'scale_degree') {
+      const randomDegree = level.items[Math.floor(Math.random() * level.items.length)];
       itemType = randomDegree;
+      correctAnswer = resolveGroupedAnswer(randomDegree, level.itemGroups);
       rootNote = currentScaleRoot;
-      
       try {
-        playedNotes = await audioEngine.playScaleDegree(
-          currentScaleRoot,
-          parseInt(randomDegree) - 1, // Convert 1-7 to 0-6
-          currentLevel.context!
-        );
-      } catch (error) {
-        console.error('Error playing scale degree:', error);
+        playedNotes = await audioEngine.playScaleDegree(currentScaleRoot, parseInt(randomDegree) - 1, level.context!);
+      } catch (err) {
+        console.error('playScaleDegree error:', err);
+      }
+    } else if (level.type === 'acoustic') {
+      rootNote = currentScaleRoot;
+      try {
+        if (!level.acousticKind) throw new Error(`acoustic level ${level.id} missing acousticKind`);
+        if (level.acousticKind === 'match_pitch') {
+          const vocalNotes = VOICE_RANGE_NOTES[settings.voiceRange ?? DEFAULT_VOICE_RANGE];
+          const target = vocalNotes[Math.floor(Math.random() * vocalNotes.length)];
+          itemType = 'match';
+          correctAnswer = target;
+          playedNotes = await audioEngine.playNote(target, 1.2);
+        } else if (level.acousticKind === 'sing_sequence') {
+          const shape = level.sequenceShape ?? [0, 1, 0, -1, 0];
+          const scale = level.sequenceScale ?? 'major';
+          const keyRoot = level.sequenceKeyRoot ?? 'C';
+          const transposeStep = level.sequenceTransposeStep ?? 1;
+          const startDegree = sequenceStartDegreeForQuestion(stats.totalQuestions, transposeStep);
+          const baseOctave = VOICE_RANGE_BASE_OCTAVE[settings.voiceRange ?? DEFAULT_VOICE_RANGE];
+          const sequence = realizeDiatonicSequence(keyRoot, scale, startDegree, shape, baseOctave);
+          itemType = `seq_${startDegree}`;
+          correctAnswer = sequence.join(',');
+          playedNotes = await audioEngine.playSequence(sequence);
+        } else {
+          const answer = level.items[Math.floor(Math.random() * level.items.length)];
+          itemType = answer;
+          correctAnswer = answer;
+          const acoustic = await audioEngine.playAcoustic(level.acousticKind, answer, rootNote);
+          playedNotes = acoustic.notes;
+          acousticSemis = acoustic.semis;
+        }
+      } catch (err) {
+        console.error('playAcoustic error:', err);
+        itemType = 'match';
+        correctAnswer = 'A4';
       }
     } else {
-      // Get diatonic items within the current scale
-      const diatonicItems = filterDiatonicItems(
-        currentLevel.items,
-        currentLevel.type,
-        currentScaleRoot,
-        currentLevel.scaleDegrees
-      );
-      
-      // Pick a random diatonic item
-      const randomDiatonic = diatonicItems[Math.floor(Math.random() * diatonicItems.length)];
-      rootNote = randomDiatonic.root;
-      itemType = randomDiatonic.type;
-      
-      // Play the sound based on question type
+      const diatonicItems = filterDiatonicItems(level.items, level.type, currentScaleRoot, level.scaleDegrees);
+      const pick = diatonicItems[Math.floor(Math.random() * diatonicItems.length)];
+      rootNote = pick.root;
+      itemType = pick.type;
+      correctAnswer = itemType;
       try {
-        switch (currentLevel.type) {
+        switch (level.type) {
           case 'interval':
             playedNotes = await audioEngine.playInterval(
-              rootNote, 
+              rootNote,
               itemType as keyof typeof INTERVALS,
-              currentLevel.intervalDirection || 'ascending',
-              currentLevel.intervalPresentation || 'melodic'
+              level.intervalDirection || 'ascending',
+              level.intervalPresentation || 'melodic',
             );
             break;
           case 'triad':
@@ -90,179 +412,243 @@ function App() {
             playedNotes = await audioEngine.playMode(rootNote, itemType as keyof typeof MODES);
             break;
         }
-      } catch (error) {
-        console.error('Error playing audio:', error);
+      } catch (err) {
+        console.error('audio error:', err);
       }
     }
 
-    const question: Question = {
+    const modes = level.responseModes ?? ['select'];
+    const responseMode =
+      modes.length === 1
+        ? modes[0]
+        : Math.random() < (level.singProbability ?? 0.5)
+        ? 'sing'
+        : 'select';
+
+    const singTargets =
+      responseMode === 'sing'
+        ? level.acousticKind === 'sing_sequence'
+          ? playedNotes
+          : [correctAnswer]
+        : undefined;
+
+    setCurrentQuestion({
       id: `q_${Date.now()}`,
-      type: currentLevel.type,
-      correctAnswer: itemType,
+      type: level.type,
+      correctAnswer,
+      itemType,
       rootNote,
       playedNotes,
       timestamp: Date.now(),
-      context: currentLevel.context,
-      intervalDirection: currentLevel.intervalDirection,
-      intervalPresentation: currentLevel.intervalPresentation,
-    };
-
-    setCurrentQuestion(question);
+      context: level.context,
+      intervalDirection: level.intervalDirection,
+      intervalPresentation: level.intervalPresentation,
+      acousticKind: level.acousticKind,
+      acousticSemis,
+      responseMode,
+      targetNotes: singTargets,
+    });
     setSelectedAnswer(null);
     setShowFeedback(false);
     setQuestionStartTime(Date.now());
   }, [currentLevel, currentScaleRoot]);
 
-  useEffect(() => {
-    const handleQuestionGeneration = async () => {
-      if (sessionStarted && !currentQuestion && stats.totalQuestions < MAX_QUESTIONS && scaleRoots.length > 0 && !isPlayingScale) {
-        // Check if we need to switch keys
-        const questionInBlock = stats.totalQuestions % QUESTIONS_PER_KEY;
-        // Only change key if we're at a boundary AND we haven't already changed for this question number
-        if (questionInBlock === 0 && stats.totalQuestions > 0 && lastKeyChangeQuestion !== stats.totalQuestions) {
-          // New key block - switch scale
-          const blockIndex = Math.floor(stats.totalQuestions / QUESTIONS_PER_KEY);
-          if (blockIndex < scaleRoots.length) {
-            const newRoot = scaleRoots[blockIndex];
-            setLastKeyChangeQuestion(stats.totalQuestions); // Mark that we changed keys for this question
-            setCurrentScaleRoot(newRoot); // Update UI immediately
-            setIsPlayingScale(true);
-            // Play scale reference automatically and wait for it to finish
-            const { duration } = await audioEngine.playMajorScaleReference(newRoot, 4);
-            // Wait for scale to finish
-            await new Promise(resolve => setTimeout(resolve, duration * 1000 + 500));
-            setIsPlayingScale(false);
-            return; // Don't generate question yet - wait for state update
-          }
-        }
-        generateQuestion();
-      } else if (sessionStarted && stats.totalQuestions >= MAX_QUESTIONS) {
-        handleEndSession();
+  const endSession = useCallback(() => {
+    const finalStats = analytics.getSessionStats();
+    const unlocked = canUnlockNextLevel(currentLevel.id, finalStats.accuracy);
+    const firstUnlock = unlocked && !completedLevels.includes(currentLevel.id);
+    if (unlocked) {
+      setCompletedLevels((prev) => (prev.includes(currentLevel.id) ? prev : [...prev, currentLevel.id]));
+    }
+    if (finalStats.totalQuestions > 0) {
+      recordSession({
+        levelId: currentLevel.id,
+        startedAt: sessionStartedAt || Date.now(),
+        endedAt: Date.now(),
+        answers: analytics.getAnswers(),
+        stats: finalStats,
+        unlocked,
+      });
+      setStatsTick((n) => n + 1);
+      // First-session prompt for notifications, then schedule reminder.
+      if (!hasEverPracticed) {
+        requestNotificationPermission().then(() => scheduleStreakReminder(22)).catch(() => {});
+      } else {
+        scheduleStreakReminder(22).catch(() => {});
       }
-    };
-    
-    handleQuestionGeneration();
-  }, [sessionStarted, currentQuestion, stats.totalQuestions, scaleRoots, generateQuestion, isPlayingScale, currentScaleRoot, lastKeyChangeQuestion]);
+      setHasEverPracticed(true);
+    }
+    if (firstUnlock) {
+      setMasteryLevelId(currentLevel.id);
+      haptics.heavy();
+    }
+    setRoute('results');
+  }, [analytics, completedLevels, currentLevel.id, sessionStartedAt]);
 
-  // Initialize scale roots when session starts
+  /* ---------- Question orchestration ---------- */
+
   useEffect(() => {
-    const initializeSession = async () => {
-      if (sessionStarted && scaleRoots.length === 0) {
-        setIsPlayingScale(true);
-        // Generate 3 random keys for the session
-        const roots = [];
-        for (let i = 0; i < 3; i++) {
-          roots.push(audioEngine.getRandomRootNote());
-        }
+    if (route !== 'practice') {
+      scaleLockRef.current = false;
+      return;
+    }
+    if (!introDismissed) return;
+
+    const run = async () => {
+      const { establishTonality, maxQuestions, questionsPerKey } = lessonCfg;
+
+      // First-time setup — pick keys for the session. For tonal lessons, we pick one
+      // root per block and play a scale reference. For non-tonal lessons (beating, etc.)
+      // there's no musical key, so we just seed a root and skip the scale playback.
+      if (scaleRoots.length === 0) {
+        if (scaleLockRef.current) return;
+        scaleLockRef.current = true;
+        const numBlocks = Math.max(1, Math.ceil(maxQuestions / questionsPerKey));
+        const roots = establishTonality
+          ? Array.from({ length: numBlocks }, () => audioEngine.getRandomRootNote())
+          : [audioEngine.getRandomRootNote()];
         setScaleRoots(roots);
         setCurrentScaleRoot(roots[0]);
-        // Play initial scale reference and wait before first question
-        const { duration } = await audioEngine.playMajorScaleReference(roots[0], 4);
-        await new Promise(resolve => setTimeout(resolve, duration * 1000 + 500));
-        setIsPlayingScale(false);
-        // First question will be generated by the other useEffect
+        if (establishTonality) {
+          setIsPlayingScale(true);
+          try {
+            const { duration } = await audioEngine.playMajorScaleReference(roots[0], 4);
+            await new Promise((r) => setTimeout(r, duration * 1000 + 500));
+          } finally {
+            setIsPlayingScale(false);
+            scaleLockRef.current = false;
+          }
+        } else {
+          scaleLockRef.current = false;
+        }
+        return;
+      }
+
+      if (stats.totalQuestions >= maxQuestions) {
+        endSession();
+        return;
+      }
+
+      if (currentQuestion || isPlayingScale) return;
+
+      // Key changes only happen for tonal lessons.
+      if (establishTonality) {
+        const questionInBlock = stats.totalQuestions % questionsPerKey;
+        if (questionInBlock === 0 && stats.totalQuestions > 0 && lastKeyChangeQuestion !== stats.totalQuestions) {
+          const blockIndex = Math.floor(stats.totalQuestions / questionsPerKey);
+          if (blockIndex < scaleRoots.length) {
+            if (scaleLockRef.current) return;
+            scaleLockRef.current = true;
+            const newRoot = scaleRoots[blockIndex];
+            setLastKeyChangeQuestion(stats.totalQuestions);
+            setCurrentScaleRoot(newRoot);
+            setIsPlayingScale(true);
+            try {
+              const { duration } = await audioEngine.playMajorScaleReference(newRoot, 4);
+              await new Promise((r) => setTimeout(r, duration * 1000 + 500));
+            } finally {
+              setIsPlayingScale(false);
+              scaleLockRef.current = false;
+            }
+            return;
+          }
+        }
+      }
+
+      if (settings.autoPlay || currentQuestion === null) {
+        generateQuestion();
       }
     };
-    
-    initializeSession();
-  }, [sessionStarted, scaleRoots.length]);
 
-  useEffect(() => {
-    audioEngine.setSynthType(synthType);
-  }, [synthType]);
-
-  // Debug mode keyboard shortcut (Ctrl/Cmd + K)
-  useEffect(() => {
-    const handleKeyPress = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-        e.preventDefault();
-        setDebugMode(prev => {
-          console.log(`🐛 Debug mode ${!prev ? 'ENABLED' : 'DISABLED'} - All levels unlocked`);
-          return !prev;
-        });
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
-  }, []);
-
-  // Update drone when scale root changes
-  useEffect(() => {
-    if (droneEnabled && sessionStarted) {
-      audioEngine.switchDroneNote(currentScaleRoot);
-    }
-  }, [currentScaleRoot, droneEnabled, sessionStarted]);
+    run();
+  }, [
+    route,
+    scaleRoots,
+    currentQuestion,
+    stats.totalQuestions,
+    isPlayingScale,
+    lastKeyChangeQuestion,
+    generateQuestion,
+    endSession,
+    settings.autoPlay,
+    lessonCfg.establishTonality,
+    lessonCfg.maxQuestions,
+    lessonCfg.questionsPerKey,
+    introDismissed,
+  ]);
 
   const replaySound = async () => {
     if (!currentQuestion) return;
-
     try {
       switch (currentQuestion.type) {
         case 'scale_degree':
-          await audioEngine.playScaleDegree(
-            currentQuestion.rootNote,
-            parseInt(currentQuestion.correctAnswer) - 1,
-            currentQuestion.context!
-          );
+          await audioEngine.playScaleDegree(currentQuestion.rootNote, parseInt(currentQuestion.itemType) - 1, currentQuestion.context!);
           break;
         case 'interval':
           await audioEngine.playInterval(
             currentQuestion.rootNote,
-            currentQuestion.correctAnswer as keyof typeof INTERVALS,
+            currentQuestion.itemType as keyof typeof INTERVALS,
             currentQuestion.intervalDirection || 'ascending',
-            currentQuestion.intervalPresentation || 'melodic'
+            currentQuestion.intervalPresentation || 'melodic',
           );
           break;
         case 'triad':
-          await audioEngine.playTriad(
-            currentQuestion.rootNote,
-            currentQuestion.correctAnswer as keyof typeof TRIADS
-          );
+          await audioEngine.playTriad(currentQuestion.rootNote, currentQuestion.itemType as keyof typeof TRIADS);
           break;
         case 'seventh_chord':
-          await audioEngine.playSeventhChord(
-            currentQuestion.rootNote,
-            currentQuestion.correctAnswer as keyof typeof SEVENTH_CHORDS
-          );
+          await audioEngine.playSeventhChord(currentQuestion.rootNote, currentQuestion.itemType as keyof typeof SEVENTH_CHORDS);
           break;
         case 'mode':
-          await audioEngine.playMode(
-            currentQuestion.rootNote,
-            currentQuestion.correctAnswer as keyof typeof MODES
-          );
+          await audioEngine.playMode(currentQuestion.rootNote, currentQuestion.itemType as keyof typeof MODES);
+          break;
+        case 'acoustic':
+          if (currentQuestion.acousticKind === 'match_pitch') {
+            await audioEngine.playNote(currentQuestion.correctAnswer, 1.2);
+          } else if (currentQuestion.acousticKind === 'sing_sequence') {
+            await audioEngine.playSequence(currentQuestion.playedNotes);
+          } else if (currentQuestion.acousticKind) {
+            await audioEngine.playAcoustic(
+              currentQuestion.acousticKind,
+              currentQuestion.correctAnswer,
+              currentQuestion.rootNote,
+              currentQuestion.acousticSemis,
+            );
+          }
           break;
       }
-    } catch (error) {
-      console.error('Error replaying sound:', error);
+    } catch (err) {
+      console.error('replay error:', err);
     }
   };
 
   const handleAnswer = (answer: string) => {
     if (!currentQuestion || showFeedback) return;
-
     setSelectedAnswer(answer);
     setShowFeedback(true);
 
     const isCorrect = answer === currentQuestion.correctAnswer;
+    if (isCorrect) {
+      haptics.success();
+      audioEngine.playCorrectChime();
+    } else {
+      haptics.warning();
+      audioEngine.playIncorrectBuzz();
+    }
     const responseTime = Date.now() - questionStartTime;
-
-    // Create full description with root note and type
     const fullDescription = `${currentQuestion.rootNote} ${getDisplayName(currentQuestion.correctAnswer)}`;
 
-    // Calculate scale degree if applicable (for interval/triad/chord questions)
     let scaleDegree: number | undefined;
     if (currentQuestion.type !== 'scale_degree' && currentQuestion.type !== 'mode') {
-      // Get the scale degree of the root note of this question
-      const rootIndex = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'].indexOf(currentQuestion.rootNote);
-      const scaleRootIndex = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'].indexOf(currentScaleRoot);
-      const interval = (rootIndex - scaleRootIndex + 12) % 12;
+      const chromatic = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+      const rootIdx = chromatic.indexOf(currentQuestion.rootNote);
+      const scaleIdx = chromatic.indexOf(currentScaleRoot);
+      const interval = (rootIdx - scaleIdx + 12) % 12;
       const majorScale = [0, 2, 4, 5, 7, 9, 11];
-      scaleDegree = majorScale.indexOf(interval);
-      if (scaleDegree === -1) scaleDegree = undefined; // Not in scale
+      const sd = majorScale.indexOf(interval);
+      scaleDegree = sd === -1 ? undefined : sd;
     }
 
-    const answerRecord: Answer = {
+    const record: Answer = {
       questionId: currentQuestion.id,
       userAnswer: answer,
       correctAnswer: currentQuestion.correctAnswer,
@@ -270,709 +656,286 @@ function App() {
       isCorrect,
       timestamp: Date.now(),
       responseTime,
-      // Enhanced tracking
-      itemType: currentQuestion.correctAnswer,
+      itemType: currentQuestion.itemType,
       scaleDegree,
       rootNote: currentScaleRoot,
       questionType: currentQuestion.type,
       intervalDirection: currentQuestion.intervalDirection,
       intervalPresentation: currentQuestion.intervalPresentation,
     };
+    analytics.addAnswer(record);
 
-    analytics.addAnswer(answerRecord);
+    // On correct, flash the green feedback briefly then advance automatically.
+    if (isCorrect) {
+      if (autoAdvanceTimerRef.current !== null) window.clearTimeout(autoAdvanceTimerRef.current);
+      autoAdvanceTimerRef.current = window.setTimeout(() => {
+        autoAdvanceTimerRef.current = null;
+        setCurrentQuestion(null);
+        setSelectedAnswer(null);
+        setShowFeedback(false);
+      }, 650);
+    }
+  };
+
+  const handlePick = (answer: string) => {
+    if (!currentQuestion || showFeedback) return;
+    setSelectedAnswer(answer);
+  };
+
+  const handleSubmit = () => {
+    if (!currentQuestion || showFeedback || !selectedAnswer) return;
+    handleAnswer(selectedAnswer);
   };
 
   const handleNext = () => {
+    if (autoAdvanceTimerRef.current !== null) {
+      window.clearTimeout(autoAdvanceTimerRef.current);
+      autoAdvanceTimerRef.current = null;
+    }
     setCurrentQuestion(null);
     setSelectedAnswer(null);
     setShowFeedback(false);
   };
 
-  const handleEndSession = () => {
-    const finalStats = analytics.getSessionStats();
-    
-    // Check if user can unlock next level
-    if (canUnlockNextLevel(currentLevel.id, finalStats.accuracy)) {
-      if (!completedLevels.includes(currentLevel.id)) {
-        setCompletedLevels([...completedLevels, currentLevel.id]);
-      }
-    }
-    
-    setShowStats(true);
+  const handlePracticeAgain = () => {
+    if (selectedLevelId) startSession(selectedLevelId);
+    else startSession(currentLevel.id);
   };
 
-  const handleStartNewSession = () => {
+  const handleNextLesson = () => {
+    const idx = CURRICULUM.findIndex((l) => l.id === currentLevel.id);
+    const next = CURRICULUM[idx + 1];
+    if (next) startSession(next.id);
+  };
+
+  const handleResetProgress = () => {
+    setCompletedLevels([]);
+    setSelectedLevelId(null);
     analytics.clearAnswers();
-    setSessionStarted(true);
-    setShowStats(false);
-    setCurrentQuestion(null);
-    setScaleRoots([]);
-    setCurrentScaleRoot('C');
-    setIsPlayingScale(false);
-    setLastKeyChangeQuestion(-1);
+    clearAllSessions();
+    setStatsTick((n) => n + 1);
   };
 
-  const getAnswerOptions = (): string[] => {
-    return currentLevel.items;
-  };
+  /* ---------- Render ---------- */
 
-  if (!sessionStarted) {
-    const currentLevelIndex = CURRICULUM.findIndex(l => l.id === currentLevel.id);
-    
+  if (route === 'landing') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 p-4 md:p-8">
-        <div className="max-w-6xl mx-auto">
-          {/* Header */}
-          <div className="text-center mb-8">
-            <h1 className="text-5xl font-bold text-white mb-2">🎵 Ear Training</h1>
-            <p className="text-gray-300 text-lg">Master musical intervals through progressive practice</p>
-            <div className="flex items-center justify-center gap-3 mt-3">
-              {completedLevels.length > 0 && (
-                <div className="inline-flex items-center gap-2 bg-yellow-500 bg-opacity-20 px-4 py-2 rounded-full">
-                  <Trophy className="w-5 h-5 text-yellow-400" />
-                  <span className="text-yellow-300 font-semibold">{completedLevels.length} levels completed</span>
-                </div>
-              )}
-              {debugMode && (
-                <div className="inline-flex items-center gap-2 bg-red-500 bg-opacity-20 px-4 py-2 rounded-full border border-red-500 border-opacity-50">
-                  <span className="text-red-300 font-semibold">🐛 Debug Mode</span>
-                </div>
-              )}
-            </div>
-            {debugMode && (
-              <p className="text-xs text-gray-400 mt-2">Press Ctrl/Cmd + K to toggle</p>
-            )}
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-6">
-            {/* Left: Learning Path */}
-            <div className="bg-gray-800 rounded-2xl shadow-2xl p-6">
-              <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
-                <BarChart3 className="w-6 h-6 text-purple-400" />
-                Learning Path
-              </h2>
-              
-              <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
-                {CURRICULUM_SEGMENTS.map((segment) => {
-                  const isExpanded = expandedSegments.includes(segment.id);
-                  const segmentLevels = segment.levels;
-                  const completedInSegment = segmentLevels.filter(l => completedLevels.includes(l.id)).length;
-                  
-                  return (
-                    <div key={segment.id} className="border border-gray-600 rounded-xl overflow-hidden">
-                      {/* Segment Header */}
-                      <button
-                        onClick={() => setExpandedSegments(prev => 
-                          prev.includes(segment.id) 
-                            ? prev.filter(id => id !== segment.id)
-                            : [...prev, segment.id]
-                        )}
-                        className={`w-full p-4 flex items-center justify-between bg-${segment.color}-900 bg-opacity-30 hover:bg-opacity-40 transition-all`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <span className="text-2xl">{segment.icon}</span>
-                          <div className="text-left">
-                            <h3 className="font-bold text-white">{segment.name}</h3>
-                            <p className="text-xs text-gray-300">{segment.description}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <span className="text-xs text-gray-400">
-                            {completedInSegment}/{segmentLevels.length}
-                          </span>
-                          {isExpanded ? <ChevronDown className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
-                        </div>
-                      </button>
-                      
-                      {/* Segment Levels */}
-                      {isExpanded && (
-                        <div className="p-2 space-y-2">
-                          {segmentLevels.map((level) => {
-                            const globalIndex = CURRICULUM.findIndex(l => l.id === level.id);
-                            const isCompleted = completedLevels.includes(level.id);
-                            const isCurrent = currentLevel.id === level.id;
-                            const isLocked = !debugMode && globalIndex > 0 && !completedLevels.includes(CURRICULUM[globalIndex - 1].id) && !isCurrent;
-                  
-                            return (
-                              <button
-                                key={level.id}
-                                onClick={() => !isLocked && setSelectedLevelId(level.id)}
-                                disabled={isLocked}
-                                className={`w-full text-left p-3 rounded-lg transition-all ${
-                                  isCurrent
-                                    ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-md'
-                                    : isCompleted
-                                    ? 'bg-green-900 bg-opacity-40 text-white hover:bg-opacity-60'
-                                    : isLocked
-                                    ? 'bg-gray-700 bg-opacity-50 text-gray-500 cursor-not-allowed'
-                                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                                }`}
-                              >
-                                <div className="flex items-center gap-3">
-                                  {/* Level indicator */}
-                                  <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
-                                    isCurrent
-                                      ? 'bg-white text-purple-600'
-                                      : isCompleted
-                                      ? 'bg-green-500 text-white'
-                                      : isLocked
-                                      ? 'bg-gray-600 text-gray-400'
-                                      : 'bg-purple-500 text-white'
-                                  }`}>
-                                    {isCompleted ? '✓' : globalIndex + 1}
-                                  </div>
-                                  
-                                  <div className="flex-1 min-w-0">
-                                    <h3 className="font-semibold text-sm">{level.name}</h3>
-                                    <p className="text-xs opacity-75 truncate">{level.description}</p>
-                                  </div>
-                                  {isLocked && <span className="text-xs">🔒</span>}
-                                </div>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Right: Selected Level Details */}
-            <div className="bg-gray-800 rounded-2xl shadow-2xl p-6">
-              <div className="mb-6">
-                <div className="flex items-center justify-between mb-3">
-                  <h2 className="text-3xl font-bold text-white">{currentLevel.name}</h2>
-                  <div className="text-sm text-gray-400">
-                    Level {currentLevelIndex + 1}/{CURRICULUM.length}
-                  </div>
-                </div>
-                <p className="text-gray-300 text-lg mb-4">{currentLevel.description}</p>
-                
-                {/* Progress bar */}
-                <div className="bg-gray-700 rounded-full h-2 mb-2">
-                  <div 
-                    className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full transition-all"
-                    style={{ width: `${(completedLevels.length / CURRICULUM.length) * 100}%` }}
-                  />
-                </div>
-                <p className="text-xs text-gray-400 text-right">
-                  {completedLevels.length} of {CURRICULUM.length} levels completed
-                </p>
-              </div>
-
-              {/* Session Info */}
-              <div className="bg-purple-900 bg-opacity-30 rounded-xl p-4 mb-6 border border-purple-500 border-opacity-30">
-                <h3 className="text-white font-semibold mb-2 flex items-center gap-2">
-                  📊 Session Format
-                </h3>
-                <div className="space-y-1 text-sm text-purple-200">
-                  <p>• <strong>{MAX_QUESTIONS} questions</strong> per session</p>
-                  <p>• <strong>3 random keys</strong> ({QUESTIONS_PER_KEY} questions each)</p>
-                  <p>• All content is <strong>diatonic</strong> (in-scale)</p>
-                  <p>• Target: <strong>{currentLevel.unlockRequirement}% accuracy</strong> to unlock next level</p>
-                </div>
-              </div>
-
-              {/* What you'll practice */}
-              <div className="mb-6">
-                <h3 className="text-white font-semibold mb-3">🎯 What You'll Practice</h3>
-                {currentLevel.type === 'scale_degree' && currentLevel.context && (
-                  <div className="mb-3 text-sm text-purple-300 bg-purple-900 bg-opacity-20 p-3 rounded-lg">
-                    <strong>Context:</strong> {
-                      currentLevel.context === 'major' ? 'Major Scale (Melodic)' :
-                      currentLevel.context === 'natural_minor' ? 'Natural Minor Scale (Melodic)' :
-                      currentLevel.context === 'major_triads' ? 'Major Scale Triads (Harmonic)' :
-                      currentLevel.context === 'minor_triads' ? 'Minor Scale Triads (Harmonic)' :
-                      currentLevel.context === 'major_7ths' ? 'Major Scale 7th Chords (Harmonic)' :
-                      'Minor Scale 7th Chords (Harmonic)'
-                    }
-                  </div>
-                )}
-                <div className="flex flex-wrap gap-2">
-                  {currentLevel.items.map(item => (
-                    <span
-                      key={item}
-                      className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg text-sm font-medium"
-                    >
-                      {currentLevel.type === 'scale_degree' ? `Scale Degree ${item}` : getDisplayName(item)}
-                    </span>
-                  ))}
-                </div>
-                {currentLevel.scaleDegrees && (
-                  <div className="mt-3 text-sm text-purple-300 bg-purple-900 bg-opacity-20 p-3 rounded-lg">
-                    <strong>Focus:</strong> {currentLevel.scaleDegrees.map(d => {
-                      const degreeNames = ['I (Root)', 'ii', 'iii', 'IV', 'V (Dominant)', 'vi', 'vii°'];
-                      return degreeNames[d];
-                    }).join(', ')}
-                  </div>
-                )}
-              </div>
-
-              {/* Sound Settings */}
-              <div className="mb-6">
-                <h3 className="text-white font-semibold mb-3">🎹 Sound</h3>
-                <div className="flex gap-2">
-                  {(['piano', 'sine', 'sawtooth'] as SynthType[]).map(type => (
-                    <button
-                      key={type}
-                      onClick={() => setSynthType(type)}
-                      className={`flex-1 px-4 py-3 rounded-lg text-sm font-medium transition-all ${
-                        synthType === type
-                          ? 'bg-purple-600 text-white shadow-lg'
-                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                      }`}
-                    >
-                      {type.charAt(0).toUpperCase() + type.slice(1)}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Start Button */}
-              <button
-                onClick={async () => {
-                  // Initialize audio context on user interaction (required for iOS)
-                  await audioEngine.initialize();
-                  setSessionStarted(true);
-                }}
-                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-5 rounded-xl font-bold text-xl hover:from-purple-700 hover:to-pink-700 transition-all flex items-center justify-center gap-3 shadow-lg hover:shadow-xl transform hover:scale-105"
-              >
-                <Play className="w-7 h-7" />
-                Start Training
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <Landing
+        onStart={async () => {
+          await audioEngine.initialize();
+          setRoute(hasOnboarded ? 'path' : 'onboarding');
+        }}
+        onDemo={() => audioEngine.initialize().then(() => audioEngine.playInterval('C', 'major_3rd', 'ascending', 'melodic'))}
+      />
     );
   }
 
-  if (showStats) {
-    const insights = analytics.getInsights();
-    const canProgress = canUnlockNextLevel(currentLevel.id, stats.accuracy);
-
+  if (route === 'onboarding') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex items-center justify-center p-4">
-        <div className="max-w-2xl w-full bg-gray-800 rounded-2xl shadow-2xl p-8">
-          <div className="text-center mb-8">
-            <BarChart3 className="w-16 h-16 text-purple-400 mx-auto mb-4" />
-            <h2 className="text-3xl font-bold text-white mb-2">Session Complete!</h2>
-          </div>
-
-          <div className="bg-gray-700 rounded-xl p-6 mb-6">
-            <div className="grid grid-cols-3 gap-4 mb-6">
-              <div className="text-center">
-                <div className="text-3xl font-bold text-white">{stats.totalQuestions}</div>
-                <div className="text-sm text-gray-400">Questions</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-green-400">{stats.correctAnswers}</div>
-                <div className="text-sm text-gray-400">Correct</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-purple-400">{stats.accuracy.toFixed(1)}%</div>
-                <div className="text-sm text-gray-400">Accuracy</div>
-              </div>
-            </div>
-
-            {canProgress && (
-              <div className="bg-green-900 border border-green-600 rounded-lg p-4 mb-4">
-                <div className="flex items-center gap-2 text-green-300 font-semibold">
-                  <Trophy className="w-5 h-5" />
-                  Level Unlocked!
-                </div>
-                <p className="text-green-200 text-sm mt-1">
-                  You've mastered this level and can move to the next one!
-                </p>
-              </div>
-            )}
-
-            <div className="space-y-2">
-              {insights.map((insight, index) => (
-                <div key={index} className="text-gray-300 text-sm bg-gray-600 rounded-lg p-3">
-                  {insight}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Confusion Matrix */}
-          {stats.confusionMatrix && stats.confusionMatrix.length > 0 && (
-            <div className="bg-gray-700 rounded-xl p-6 mb-6">
-              <h3 className="text-lg font-semibold text-white mb-4">⚠️ Common Confusions</h3>
-              <p className="text-gray-400 text-sm mb-4">
-                What you're mixing up - focus here to improve quickly
-              </p>
-              <div className="space-y-2">
-                {stats.confusionMatrix.slice(0, 5).map((confusion, idx) => (
-                  <div key={idx} className="bg-red-900 bg-opacity-30 border border-red-500 border-opacity-30 rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-red-300 font-semibold">
-                        {confusion.count}x confused
-                      </span>
-                    </div>
-                    <div className="text-white">
-                      Thought it was <span className="font-bold text-red-400">{getDisplayName(confusion.mistook)}</span>
-                      {' '} but it was actually <span className="font-bold text-green-400">{getDisplayName(confusion.actuallyWas)}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Interval Weaknesses */}
-          {stats.intervalWeaknesses && stats.intervalWeaknesses.length > 0 && (
-            <div className="bg-gray-700 rounded-xl p-6 mb-6">
-              <h3 className="text-lg font-semibold text-white mb-4">🎵 Interval Performance</h3>
-              <p className="text-gray-400 text-sm mb-4">
-                Your accuracy on intervals by direction and presentation
-              </p>
-              <div className="space-y-2">
-                {stats.intervalWeaknesses.slice(0, 8).map((weakness, idx) => (
-                  <div key={idx} className="flex items-center justify-between bg-gray-600 rounded-lg p-3">
-                    <div>
-                      <span className="text-white font-medium">
-                        {weakness.context}
-                      </span>
-                      <div className="text-xs text-gray-400 mt-1">
-                        {weakness.correct}/{weakness.attempts} correct
-                      </div>
-                    </div>
-                    <span className={`font-semibold text-lg min-w-[50px] text-right ${
-                      weakness.accuracy >= 80 ? 'text-green-400' :
-                      weakness.accuracy >= 60 ? 'text-yellow-400' :
-                      'text-red-400'
-                    }`}>
-                      {weakness.accuracy.toFixed(0)}%
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Scale Degree Weaknesses */}
-          {stats.scaleDegreeWeaknesses && stats.scaleDegreeWeaknesses.length > 0 && (
-            <div className="bg-gray-700 rounded-xl p-6 mb-6">
-              <h3 className="text-lg font-semibold text-white mb-4">📍 Weaknesses by Scale Degree</h3>
-              <p className="text-gray-400 text-sm mb-4">
-                Which positions in the scale are challenging for you
-              </p>
-              <div className="space-y-2">
-                {stats.scaleDegreeWeaknesses.slice(0, 5).map((weakness, idx) => (
-                  <div key={idx} className="flex items-center justify-between bg-gray-600 rounded-lg p-3">
-                    <div>
-                      <span className="text-white font-medium">
-                        {weakness.context}
-                      </span>
-                      <div className="text-xs text-gray-400 mt-1">
-                        {weakness.correct}/{weakness.attempts} correct
-                      </div>
-                    </div>
-                    <span className={`font-semibold text-lg min-w-[50px] text-right ${
-                      weakness.accuracy >= 80 ? 'text-green-400' :
-                      weakness.accuracy >= 60 ? 'text-yellow-400' :
-                      'text-red-400'
-                    }`}>
-                      {weakness.accuracy.toFixed(0)}%
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Item-level breakdown - only show for non-interval lessons or when helpful */}
-          {stats.weaknesses.length > 0 && !stats.intervalWeaknesses && (
-            <div className="bg-gray-700 rounded-xl p-6 mb-6">
-              <h3 className="text-lg font-semibold text-white mb-4">🎯 Performance by Item</h3>
-              <p className="text-gray-400 text-sm mb-4">
-                Your accuracy on each specific sound
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                {stats.weaknesses
-                  .filter(w => w.attempts >= 1)
-                  .sort((a, b) => a.accuracy - b.accuracy)
-                  .map(weakness => (
-                  <div key={weakness.item} className="flex items-center justify-between bg-gray-600 rounded-lg p-3">
-                    <span className="text-white font-medium text-sm">
-                      {weakness.item}
-                    </span>
-                    <div className="flex items-center gap-3">
-                      <span className="text-gray-400 text-xs">
-                        {weakness.correct}/{weakness.attempts}
-                      </span>
-                      <span className={`font-semibold text-sm min-w-[45px] text-right ${
-                        weakness.accuracy >= 80 ? 'text-green-400' :
-                        weakness.accuracy >= 60 ? 'text-yellow-400' :
-                        'text-red-400'
-                      }`}>
-                        {weakness.accuracy.toFixed(0)}%
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <div className="flex gap-4">
-            <button
-              onClick={() => {
-                // Reset all session state
-                analytics.clearAnswers();
-                setShowStats(false);
-                setSessionStarted(false);
-                setCurrentQuestion(null);
-                setScaleRoots([]);
-                setCurrentScaleRoot('C');
-                setIsPlayingScale(false);
-                setLastKeyChangeQuestion(-1);
-                setSelectedAnswer(null);
-                setShowFeedback(false);
-              }}
-              className="flex-1 bg-gray-700 hover:bg-gray-600 text-white py-4 rounded-xl font-semibold text-lg transition-all"
-            >
-              ← Back to Lessons
-            </button>
-            <button
-              onClick={handleStartNewSession}
-              className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white py-4 rounded-xl font-semibold text-lg hover:from-purple-700 hover:to-pink-700 transition-all"
-            >
-              Practice Again
-            </button>
-          </div>
-          
-          {/* Next Lesson Button - only show if level was unlocked and there's a next lesson */}
-          {stats.accuracy >= currentLevel.unlockRequirement && (() => {
-            const currentLevelIndex = CURRICULUM.findIndex(l => l.id === currentLevel.id);
-            const nextLevel = CURRICULUM[currentLevelIndex + 1];
-            return nextLevel && (
-              <button
-                onClick={() => {
-                  setSelectedLevelId(nextLevel.id);
-                  handleStartNewSession();
-                }}
-                className="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white py-4 rounded-xl font-semibold text-lg hover:from-green-700 hover:to-emerald-700 transition-all flex items-center justify-center gap-2"
-              >
-                Next Lesson: {nextLevel.name} →
-              </button>
-            );
-          })()}
-        </div>
-      </div>
+      <Onboarding
+        onDone={(result) => {
+          setHasOnboarded(true);
+          setSelectedLevelId(result.startLevelId);
+          setSettings((s) => ({ ...s, voiceRange: result.voiceRange }));
+          setRoute('path');
+        }}
+        onSkip={() => {
+          setHasOnboarded(true);
+          setRoute('path');
+        }}
+      />
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex items-center justify-center p-4">
-      <div className="max-w-2xl w-full bg-gray-800 rounded-2xl shadow-2xl p-8">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h2 className="text-2xl font-bold text-white">{currentLevel.name}</h2>
-            <p className="text-gray-400 text-sm">Question {stats.totalQuestions + 1} of {MAX_QUESTIONS}</p>
-          </div>
-          <div className="text-right">
-            <div className="text-2xl font-bold text-purple-400">{stats.accuracy.toFixed(0)}%</div>
-            <div className="text-sm text-gray-400">{stats.correctAnswers}/{stats.totalQuestions}</div>
-          </div>
-        </div>
+  if (route === 'practice') {
+    if (!introDismissed) {
+      return (
+        <LessonIntro
+          pages={getLessonIntro(currentLevel)}
+          lessonName={currentLevel.name}
+          onContinue={() => setIntroDismissed(true)}
+          onExit={() => setRoute('path')}
+        />
+      );
+    }
+    return (
+      <PracticeRoute
+        level={currentLevel}
+        question={currentQuestion}
+        selectedAnswer={selectedAnswer}
+        showFeedback={showFeedback}
+        stats={stats}
+        currentScaleRoot={currentScaleRoot}
+        scaleRootIndexInSession={Math.floor(stats.totalQuestions / lessonCfg.questionsPerKey)}
+        isPlayingScale={isPlayingScale}
+        droneEnabled={settings.drone}
+        playbackSpeed={settings.playbackSpeed}
+        maxQuestions={lessonCfg.maxQuestions}
+        questionsPerKey={lessonCfg.questionsPerKey}
+        establishTonality={lessonCfg.establishTonality}
+        singDifficulty={settings.singDifficulty}
+        degreeNotation={settings.degreeNotation}
+        onReplay={replaySound}
+        onAnswer={handleAnswer}
+        onPick={handlePick}
+        onSubmit={handleSubmit}
+        onNext={handleNext}
+        onEndSession={endSession}
+        onToggleDrone={() => setSettings((s) => ({ ...s, drone: !s.drone }))}
+        onSpeedChange={(v) => setSettings((s) => ({ ...s, playbackSpeed: v }))}
+        onExit={() => setRoute('path')}
+      />
+    );
+  }
 
-        <div className="bg-purple-900 bg-opacity-50 rounded-lg p-3 mb-6 text-center">
-          <p className="text-purple-200 text-sm font-medium">
-            Current Key: <span className="text-white font-bold text-lg">{currentScaleRoot} Major</span>
-          </p>
-          <p className="text-purple-300 text-xs mt-1">
-            Questions {Math.floor(stats.totalQuestions / QUESTIONS_PER_KEY) * QUESTIONS_PER_KEY + 1}-{Math.min((Math.floor(stats.totalQuestions / QUESTIONS_PER_KEY) + 1) * QUESTIONS_PER_KEY, MAX_QUESTIONS)} in this key
-          </p>
-        </div>
-
-        <div className="bg-gray-700 rounded-xl p-8 mb-6 text-center">
-          <h3 className="text-xl text-white mb-6">
-            What do you hear?
-          </h3>
-          
-          <button
-            onClick={replaySound}
-            className="bg-purple-600 hover:bg-purple-700 text-white rounded-full p-6 transition-all transform hover:scale-105 mb-4"
-          >
-            <Volume2 className="w-12 h-12" />
-          </button>
-          
-          <p className="text-gray-400 text-sm mb-4">Click to replay</p>
-
-          <div className="mt-6 pt-6 border-t border-gray-600">
-            <div className="flex gap-2 justify-center mb-3">
-              <button
-                onClick={() => audioEngine.playMajorScaleReference(currentScaleRoot, 4)}
-                className="px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded-lg text-sm transition-all"
-                title={`Play ${currentScaleRoot} major scale (up and down)`}
-              >
-                🎹 {currentScaleRoot} Scale
-              </button>
-              <button
-                onClick={() => audioEngine.playTonicTriadReference(currentScaleRoot)}
-                className="px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded-lg text-sm transition-all"
-                title={`Play ${currentScaleRoot} major I-V-I progression`}
-              >
-                🎵 I-V-I
-              </button>
-              <button
-                onClick={() => {
-                  const newState = !droneEnabled;
-                  setDroneEnabled(newState);
-                  audioEngine.toggleDrone(currentScaleRoot, newState);
-                }}
-                className={`px-4 py-2 rounded-lg text-sm transition-all ${
-                  droneEnabled
-                    ? 'bg-purple-600 text-white'
-                    : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
-                }`}
-                title="Toggle drone (continuous root note)"
-              >
-                🎶 Drone {droneEnabled ? 'ON' : 'OFF'}
-              </button>
-            </div>
-            
-            <div className="flex items-center justify-center gap-3">
-              <span className="text-gray-400 text-xs">Speed:</span>
-              <button
-                onClick={() => {
-                  const newSpeed = Math.max(0.5, playbackSpeed - 0.25);
-                  setPlaybackSpeed(newSpeed);
-                  audioEngine.setPlaybackSpeed(newSpeed);
-                }}
-                className="px-3 py-1 bg-gray-600 hover:bg-gray-500 text-white rounded text-xs"
-              >
-                − Slower
-              </button>
-              <span className="text-white text-sm font-mono min-w-[45px] text-center">
-                {playbackSpeed.toFixed(2)}x
-              </span>
-              <button
-                onClick={() => {
-                  const newSpeed = Math.min(2, playbackSpeed + 0.25);
-                  setPlaybackSpeed(newSpeed);
-                  audioEngine.setPlaybackSpeed(newSpeed);
-                }}
-                className="px-3 py-1 bg-gray-600 hover:bg-gray-500 text-white rounded text-xs"
-              >
-                + Faster
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-3 mb-6">
-          {getAnswerOptions().map(option => {
-            const isSelected = selectedAnswer === option;
-            const isCorrect = currentQuestion?.correctAnswer === option;
-            const showCorrect = showFeedback && isCorrect;
-            const showWrong = showFeedback && isSelected && !isCorrect;
-
-            return (
-              <button
-                key={option}
-                onClick={() => handleAnswer(option)}
-                disabled={showFeedback}
-                className={`p-4 rounded-xl font-semibold transition-all ${
-                  showCorrect
-                    ? 'bg-green-600 text-white'
-                    : showWrong
-                    ? 'bg-red-600 text-white'
-                    : isSelected
-                    ? 'bg-purple-600 text-white'
-                    : 'bg-gray-700 text-white hover:bg-gray-600'
-                } ${showFeedback ? 'cursor-not-allowed' : 'cursor-pointer'}`}
-              >
-                {getDisplayName(option)}
-              </button>
-            );
-          })}
-        </div>
-
-        {showFeedback && currentQuestion && (
-          <>
-            {/* Detailed Feedback Panel */}
-            <div className={`mb-4 p-4 rounded-xl ${
-              selectedAnswer === currentQuestion.correctAnswer 
-                ? 'bg-green-900/30 border-2 border-green-500' 
-                : 'bg-red-900/30 border-2 border-red-500'
-            }`}>
-              <div className="text-center mb-3">
-                <div className={`text-2xl font-bold mb-1 ${
-                  selectedAnswer === currentQuestion.correctAnswer ? 'text-green-400' : 'text-red-400'
-                }`}>
-                  {selectedAnswer === currentQuestion.correctAnswer ? '✓ Correct!' : '✗ Incorrect'}
-                </div>
-                {selectedAnswer !== currentQuestion.correctAnswer && (
-                  <div className="text-white text-sm">
-                    You answered: <span className="font-semibold text-red-300">{getDisplayName(selectedAnswer!)}</span>
-                  </div>
-                )}
-              </div>
-              
-              <div className="bg-gray-800/50 rounded-lg p-3 space-y-2">
-                <div className="text-center text-white">
-                  <div className="text-lg font-semibold text-purple-300 mb-2">What You Heard:</div>
-                  <div className="text-xl font-bold text-white mb-1">
-                    {getDisplayName(currentQuestion.correctAnswer)}
-                  </div>
-                  
-                  {/* Interval-specific details */}
-                  {currentQuestion.intervalDirection && currentQuestion.intervalPresentation && (
-                    <div className="flex items-center justify-center gap-2 text-sm text-gray-300 mt-2">
-                      <span className="bg-purple-600/30 px-3 py-1 rounded-full">
-                        {currentQuestion.intervalDirection === 'ascending' ? '↑ Ascending' : '↓ Descending'}
-                      </span>
-                      <span className="bg-blue-600/30 px-3 py-1 rounded-full">
-                        {currentQuestion.intervalPresentation === 'harmonic' ? '♫ Harmonic' : '→ Melodic'}
-                      </span>
-                    </div>
-                  )}
-                  
-                  {/* Scale degree context */}
-                  {currentQuestion.context && (
-                    <div className="text-xs text-gray-400 mt-2">
-                      Context: {currentQuestion.context.replace(/_/g, ' ')}
-                    </div>
-                  )}
-                  
-                  {/* Root note and played notes */}
-                  <div className="text-xs text-gray-400 mt-2">
-                    Root: <span className="text-purple-300 font-mono">{currentQuestion.rootNote}</span>
-                    {currentQuestion.playedNotes.length > 0 && (
-                      <span className="ml-2">
-                        Notes: <span className="text-purple-300 font-mono">{currentQuestion.playedNotes.join(', ')}</span>
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex gap-3">
-              <button
-                onClick={handleNext}
-                className="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-xl font-semibold transition-all"
-              >
-                Next Question
-              </button>
-              <button
-                onClick={handleEndSession}
-                className="flex-1 bg-gray-700 hover:bg-gray-600 text-white py-3 rounded-xl font-semibold transition-all"
-              >
-                End Session
-              </button>
-            </div>
-          </>
+  if (route === 'results') {
+    const masteryLevel = masteryLevelId ? CURRICULUM.find((l) => l.id === masteryLevelId) : null;
+    return (
+      <>
+        <Results
+          level={currentLevel}
+          stats={stats}
+          insights={analytics.getInsights()}
+          canUnlock={canUnlockNextLevel(currentLevel.id, stats.accuracy)}
+          onBackToPath={() => setRoute('path')}
+          onPracticeAgain={handlePracticeAgain}
+          onNextLesson={handleNextLesson}
+          onNavigate={(tab) => setRoute(tab)}
+        />
+        {masteryLevel && (
+          <MasteryOverlay
+            level={masteryLevel}
+            onClose={() => setMasteryLevelId(null)}
+            onContinue={() => {
+              setMasteryLevelId(null);
+              handleNextLesson();
+            }}
+          />
         )}
-      </div>
-    </div>
+      </>
+    );
+  }
+
+  if (route === 'settings') {
+    return (
+      <>
+        <Settings
+          settings={settings}
+          onChange={setSettings}
+          onResetProgress={handleResetProgress}
+          onBack={() => setRoute('path')}
+          onNavigate={(tab) => setRoute(tab)}
+          onOpenPaywall={() => setRoute('paywall')}
+          bottomPadding={isMobile && tabsActive ? 88 : 0}
+          theme={theme}
+          onThemeChange={setTheme}
+          debugMode={debugMode}
+          onToggleDebug={() => setDebugMode((v) => !v)}
+          syncState={syncState}
+          userEmail={userEmail}
+          onOpenAuth={() => setShowAuth(true)}
+          onSignOut={() => { void syncSignOut(); }}
+          onSyncNow={() => { void flushNow(); }}
+          isPro={proActive}
+        />
+        {isMobile && tabsActive && <BottomTabs active={tabsActive} onChange={(r) => setRoute(r)} />}
+        {showAuth && <AuthSheet onClose={() => setShowAuth(false)} />}
+      </>
+    );
+  }
+
+  if (route === 'paywall') {
+    const planToProductId: Record<PlanId, string | null> = {
+      free: null,
+      pro: PRODUCT_IDS.proMonthly,
+      studio: PRODUCT_IDS.proAnnual,
+    };
+    return (
+      <>
+        <Paywall
+          trigger="manual"
+          currentPlan={proActive ? 'pro' : 'free'}
+          onSelect={async (plan) => {
+            const productId = planToProductId[plan];
+            if (!productId) { setRoute('path'); return; }
+            // Anonymous users must sign in before purchase so the entitlement attaches
+            // to their email (not a localStorage anon ID that can be wiped).
+            if (!isSignedIn) {
+              pendingPurchaseRef.current = productId;
+              setShowAuth(true);
+              return;
+            }
+            try {
+              const ok = await purchaseProduct(productId);
+              if (ok) setRoute('path');
+              else alert(`Couldn't start checkout for ${productId}. Check the console.`);
+            } catch (err) {
+              console.error('[paywall] purchase error', err);
+              alert(`Purchase failed: ${err instanceof Error ? err.message : 'unknown error'}`);
+            }
+          }}
+          onDismiss={() => setRoute('path')}
+        />
+        {showAuth && <AuthSheet onClose={() => setShowAuth(false)} />}
+      </>
+    );
+  }
+
+  if (route === 'stats') {
+    return (
+      <>
+        <Stats
+          onStart={() => guardedStartSession(currentLevel.id)}
+          onBack={() => setRoute('path')}
+          onNavigate={(tab) => setRoute(tab)}
+          hasHistory={hasHistory()}
+          hasEverPracticed={hasEverPracticed}
+          bottomPadding={isMobile && tabsActive ? 88 : 0}
+          isPro={proActive}
+          onOpenPaywall={() => setRoute('paywall')}
+        />
+        {isMobile && tabsActive && <BottomTabs active={tabsActive} onChange={(r) => setRoute(r)} />}
+      </>
+    );
+  }
+
+  // path
+  void statsTick; // re-render when stats mutate
+  const streakDays = getStreakDays();
+  const sinceMs = timeSinceLastSession();
+  const hoursSince = sinceMs / 3_600_000;
+  const showStreakRecovery =
+    !streakSheetDismissed && streakDays > 0 && hoursSince >= 24 && hoursSince <= 48;
+  return (
+    <>
+      <Path
+        completedLevels={completedLevels}
+        currentLevelId={currentLevel.id}
+        debugMode={debugMode}
+        onStart={guardedStartSession}
+        onNavigate={(r) => setRoute(r)}
+        onOpenPaywall={() => setRoute('paywall')}
+        onOpenAuth={() => setShowAuth(true)}
+        streakDays={streakDays}
+        todayMinutes={getTodayMinutes()}
+        bottomPadding={isMobile ? 88 : 0}
+        isPro={proActive}
+        isSignedIn={isSignedIn}
+      />
+      {isMobile && tabsActive && <BottomTabs active={tabsActive} onChange={(r) => setRoute(r)} />}
+      {showAuth && <AuthSheet onClose={() => setShowAuth(false)} />}
+      {showStreakRecovery && (
+        <StreakRecoverySheet
+          streakDays={streakDays}
+          hoursSince={hoursSince}
+          onRecover={() => {
+            setStreakSheetDismissed(true);
+            guardedStartSession(currentLevel.id);
+          }}
+          onDismiss={() => setStreakSheetDismissed(true)}
+          onPause={() => setStreakSheetDismissed(true)}
+        />
+      )}
+    </>
   );
 }
-
-export default App;

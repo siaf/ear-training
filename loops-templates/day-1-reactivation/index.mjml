@@ -1,0 +1,68 @@
+<mjml>
+  <mj-head>
+    <mj-title>Your first session — 5 minutes is plenty</mj-title>
+    <mj-preview>One short session today. We'll show you something about your ear by the end of it.</mj-preview>
+    <mj-attributes>
+      <mj-all font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" />
+      <mj-text line-height="1.55" font-size="15px" color="#54466b" padding="0 0 12px" />
+      <mj-button background-color="#ff8a6b" color="#ffffff" border-radius="999px" padding="14px 32px" font-weight="600" font-size="16px" inner-padding="14px 32px" />
+    </mj-attributes>
+    <mj-style inline="inline">
+      .h1 { font-family: Georgia, 'DM Serif Display', serif; font-weight: 600; font-size: 28px; line-height: 1.15; letter-spacing: -0.02em; color: #2a1d3a; margin: 0; }
+      .h3 { font-family: Georgia, 'DM Serif Display', serif; font-weight: 600; font-style: italic; font-size: 18px; color: #2a1d3a; margin: 0; }
+      .accent { font-style: italic; color: #c64632; }
+      .meta { font-size: 11px; color: #b7acc4; }
+      .small { font-size: 12px; color: #8a7b9d; line-height: 1.55; }
+      .pill { display: inline-block; padding: 4px 10px; border-radius: 999px; background: #fff0c1; color: #9a6f00; font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+      .label { font-size: 11px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; }
+      a.contact, a.unsub { color: #54466b; }
+    </mj-style>
+  </mj-head>
+  <mj-body background-color="#fff8ef" width="560px">
+    <mj-section padding="32px 0 8px">
+      <mj-column>
+        <mj-image src="img/logo.png" width="120px" align="left" padding="0" alt="Fifths" />
+      </mj-column>
+    </mj-section>
+
+    <mj-wrapper background-color="#ffffff" border-radius="24px" padding="32px">
+      <mj-section padding="0">
+        <mj-group>
+          <mj-column width="65%">
+            <mj-text padding="0 0 10px"><span class="pill">day one</span></mj-text>
+            <mj-text padding="0 0 12px"><span class="h1">Your <span class="accent">first 5 minutes</span> is all we need.</span></mj-text>
+            <mj-text padding="0">Yesterday you signed up — today's the part where it actually starts working. One short session is enough for us to start showing you something real about your ear. No streak guilt. No commitment.</mj-text>
+          </mj-column>
+          <mj-column width="35%">
+            <mj-image src="img/mascot.png" width="140px" align="right" padding="0" alt="Fable" />
+          </mj-column>
+        </mj-group>
+      </mj-section>
+
+      <mj-section padding="24px 0 0">
+        <mj-column>
+          <mj-button href="https://app.fifths.io" align="left">Start a 5-min session →</mj-button>
+        </mj-column>
+      </mj-section>
+    </mj-wrapper>
+
+    <mj-section background-color="#e4daff" border-radius="18px" padding="22px 26px" css-class="coda">
+      <mj-column>
+        <mj-text padding="0 0 6px"><span class="label" style="color:#5b3fb3">what day-one users discover</span></mj-text>
+        <mj-text padding="0 0 12px"><span class="h3">Three things you'll notice in your first session.</span></mj-text>
+        <mj-text padding="0 0 8px" font-size="14px" color="#2a1d3a"><strong>1.</strong> Your ear is more confident in some keys than others — and you probably don't know which yet.</mj-text>
+        <mj-text padding="0 0 8px" font-size="14px" color="#2a1d3a"><strong>2.</strong> The interval that feels obvious in isolation is the one that fools you in context.</mj-text>
+        <mj-text padding="0" font-size="14px" color="#2a1d3a"><strong>3.</strong> By question 8, the Stats tab already has enough data to point at one thing worth drilling.</mj-text>
+      </mj-column>
+    </mj-section>
+
+    <mj-section padding="20px 0 0">
+      <mj-column>
+        <mj-text align="center" padding="0 0 6px"><span class="small">If you'd rather not get nudges like this, just reply with "no nudges" and we'll mute them.</span></mj-text>
+        <mj-text align="center" padding="0 0 6px"><span class="small"><a class="contact" href="mailto:hello@fifths.io">hello@fifths.io</a></span></mj-text>
+        <mj-text align="center" padding="6px 0 6px"><span class="meta">ear training that tells you what you keep missing</span></mj-text>
+        <mj-text align="center" padding="0"><span class="small"><a class="unsub" href="{unsubscribe_link}">Unsubscribe</a></span></mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

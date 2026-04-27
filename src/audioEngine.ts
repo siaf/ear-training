@@ -1,4 +1,6 @@
 import * as Tone from 'tone';
+import type { AcousticKind } from './types';
+import { startPitchDetect, type ListenHandle, type PitchListener } from './lib/pitchDetect';
 
 // Note frequencies and intervals
 const NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
@@ -49,19 +51,136 @@ export const MODES = {
   locrian: [0, 1, 3, 5, 6, 8, 10],
 };
 
-export type SynthType = 'sine' | 'piano' | 'sawtooth';
+export type SynthType =
+  | 'piano'
+  | 'sine'
+  | 'triangle'
+  | 'square'
+  | 'sawtooth'
+  | 'epiano'
+  | 'bells'
+  | 'pluck'
+  | 'guitar'
+  | 'bass'
+  | 'violin'
+  | 'cello';
+
+export interface SynthMeta {
+  id: SynthType;
+  label: string;
+  category: 'keyboard' | 'synth' | 'strings' | 'plucked';
+  needsSamples: boolean;
+  hidden?: boolean; // Still supported by the engine but not shown in the UI picker.
+}
+
+export const SYNTH_CATALOG: SynthMeta[] = [
+  { id: 'piano',    label: 'Piano',          category: 'keyboard', needsSamples: true },
+  { id: 'epiano',   label: 'Electric piano', category: 'keyboard', needsSamples: false, hidden: true },
+  { id: 'bells',    label: 'Bells',          category: 'synth',    needsSamples: false, hidden: true },
+  { id: 'pluck',    label: 'Pluck',          category: 'synth',    needsSamples: false, hidden: true },
+  { id: 'sine',     label: 'Sine',           category: 'synth',    needsSamples: false },
+  { id: 'triangle', label: 'Triangle',       category: 'synth',    needsSamples: false },
+  { id: 'square',   label: 'Square',         category: 'synth',    needsSamples: false },
+  { id: 'sawtooth', label: 'Sawtooth',       category: 'synth',    needsSamples: false },
+  { id: 'guitar',   label: 'Guitar',         category: 'plucked',  needsSamples: true },
+  { id: 'bass',     label: 'Bass',           category: 'plucked',  needsSamples: true },
+  { id: 'violin',   label: 'Violin',         category: 'strings',  needsSamples: true },
+  { id: 'cello',    label: 'Cello',          category: 'strings',  needsSamples: true },
+];
+
+// Sample-based instrument configs. Hosted on nbrosowsky's tonejs-instruments GitHub Pages
+// (public domain samples, CORS-enabled, cached by the browser after first fetch).
+const INSTRUMENT_SAMPLES = 'https://nbrosowsky.github.io/tonejs-instruments/samples';
+
+interface SamplerConfig {
+  baseUrl: string;
+  urls: Record<string, string>;
+  release?: number;
+}
+
+const SAMPLER_CONFIGS: Partial<Record<SynthType, SamplerConfig>> = {
+  piano: {
+    baseUrl: 'https://tonejs.github.io/audio/salamander/',
+    release: 1,
+    urls: {
+      A0: 'A0.mp3', C1: 'C1.mp3', 'D#1': 'Ds1.mp3', 'F#1': 'Fs1.mp3',
+      A1: 'A1.mp3', C2: 'C2.mp3', 'D#2': 'Ds2.mp3', 'F#2': 'Fs2.mp3',
+      A2: 'A2.mp3', C3: 'C3.mp3', 'D#3': 'Ds3.mp3', 'F#3': 'Fs3.mp3',
+      A3: 'A3.mp3', C4: 'C4.mp3', 'D#4': 'Ds4.mp3', 'F#4': 'Fs4.mp3',
+      A4: 'A4.mp3', C5: 'C5.mp3', 'D#5': 'Ds5.mp3', 'F#5': 'Fs5.mp3',
+      A5: 'A5.mp3', C6: 'C6.mp3', 'D#6': 'Ds6.mp3', 'F#6': 'Fs6.mp3',
+      A6: 'A6.mp3', C7: 'C7.mp3', 'D#7': 'Ds7.mp3', 'F#7': 'Fs7.mp3',
+      A7: 'A7.mp3', C8: 'C8.mp3',
+    },
+  },
+  guitar: {
+    baseUrl: `${INSTRUMENT_SAMPLES}/guitar-acoustic/`,
+    urls: {
+      A2: 'A2.mp3', A3: 'A3.mp3', A4: 'A4.mp3',
+      C3: 'C3.mp3', C4: 'C4.mp3', C5: 'C5.mp3',
+      E2: 'E2.mp3', E3: 'E3.mp3', E4: 'E4.mp3',
+      G2: 'G2.mp3', G3: 'G3.mp3', G4: 'G4.mp3',
+    },
+  },
+  bass: {
+    baseUrl: `${INSTRUMENT_SAMPLES}/bass-electric/`,
+    urls: {
+      A1: 'A1.mp3', A2: 'A2.mp3', A3: 'A3.mp3',
+      C2: 'C2.mp3', C3: 'C3.mp3',
+      E1: 'E1.mp3', E2: 'E2.mp3', E3: 'E3.mp3',
+      G1: 'G1.mp3', G2: 'G2.mp3',
+    },
+  },
+  violin: {
+    baseUrl: `${INSTRUMENT_SAMPLES}/violin/`,
+    urls: {
+      G3: 'G3.mp3', A3: 'A3.mp3', C4: 'C4.mp3', E4: 'E4.mp3', G4: 'G4.mp3',
+      A4: 'A4.mp3', C5: 'C5.mp3', E5: 'E5.mp3', G5: 'G5.mp3',
+      A5: 'A5.mp3', C6: 'C6.mp3', E6: 'E6.mp3',
+    },
+  },
+  cello: {
+    baseUrl: `${INSTRUMENT_SAMPLES}/cello/`,
+    urls: {
+      C2: 'C2.mp3', E2: 'E2.mp3', G2: 'G2.mp3',
+      A2: 'A2.mp3', C3: 'C3.mp3', E3: 'E3.mp3', G3: 'G3.mp3',
+      A3: 'A3.mp3', C4: 'C4.mp3', E4: 'E4.mp3', G4: 'G4.mp3',
+      A4: 'A4.mp3',
+    },
+  },
+};
 
 class AudioEngine {
   private synth: Tone.PolySynth | Tone.Sampler;
   private initialized: boolean = false;
   private currentSynthType: SynthType = 'sine';
-  private pianoSampler: Tone.Sampler | null = null;
+  // Samplers are expensive — cache each one so we don't re-download samples.
+  private samplerCache: Map<SynthType, Tone.Sampler> = new Map();
   private droneSynth: Tone.Synth | null = null;
   private droneActive: boolean = false;
   private playbackSpeed: number = 1; // 1 = normal, 0.5 = slow, 2 = fast
   private isPlaying: boolean = false;
+  private acousticSynth: Tone.PolySynth | null = null;
+  private feedbackSynth: Tone.PolySynth | null = null;
+  // Timestamp (ms, performance.now time base) after which the speakers are quiet again.
+  // Used to gate mic detection so sing mode doesn't pick up our own playback.
+  private playbackEndsAt: number = 0;
+
+  private markPlayback(durationSec: number) {
+    const endsAt = performance.now() + durationSec * 1000 + 200; // + 200ms tail for speaker decay
+    if (endsAt > this.playbackEndsAt) this.playbackEndsAt = endsAt;
+  }
+
+  isPlaybackActive(): boolean {
+    return performance.now() < this.playbackEndsAt;
+  }
 
   constructor() {
+    // Master limiter prevents clipping when multiple scale notes overlap (release tails stack).
+    // -1 dB ceiling leaves a touch of headroom; brick-wall style.
+    const limiter = new Tone.Limiter(-1);
+    Tone.getDestination().chain(limiter);
+
     this.synth = this.createSynth('sine');
     // Create a separate synth for the drone with a warm pad sound
     this.droneSynth = new Tone.Synth({
@@ -79,72 +198,88 @@ class AudioEngine {
   }
 
   private createSynth(type: SynthType): Tone.PolySynth | Tone.Sampler {
-    if (type === 'piano') {
-      // Use Salamander Grand Piano samples (free, high-quality)
-      // Hosted on unpkg CDN
-      if (!this.pianoSampler) {
-        this.pianoSampler = new Tone.Sampler({
-          urls: {
-            A0: "A0.mp3",
-            C1: "C1.mp3",
-            "D#1": "Ds1.mp3",
-            "F#1": "Fs1.mp3",
-            A1: "A1.mp3",
-            C2: "C2.mp3",
-            "D#2": "Ds2.mp3",
-            "F#2": "Fs2.mp3",
-            A2: "A2.mp3",
-            C3: "C3.mp3",
-            "D#3": "Ds3.mp3",
-            "F#3": "Fs3.mp3",
-            A3: "A3.mp3",
-            C4: "C4.mp3",
-            "D#4": "Ds4.mp3",
-            "F#4": "Fs4.mp3",
-            A4: "A4.mp3",
-            C5: "C5.mp3",
-            "D#5": "Ds5.mp3",
-            "F#5": "Fs5.mp3",
-            A5: "A5.mp3",
-            C6: "C6.mp3",
-            "D#6": "Ds6.mp3",
-            "F#6": "Fs6.mp3",
-            A6: "A6.mp3",
-            C7: "C7.mp3",
-            "D#7": "Ds7.mp3",
-            "F#7": "Fs7.mp3",
-            A7: "A7.mp3",
-            C8: "C8.mp3"
-          },
-          release: 1,
-          baseUrl: "https://tonejs.github.io/audio/salamander/",
-        }).toDestination();
-      }
-      return this.pianoSampler;
-    } else {
-      // Simple oscillator synth (sine or sawtooth)
-      return new Tone.PolySynth(Tone.Synth, {
-        oscillator: {
-          type: type,
-        },
-        envelope: {
-          attack: 0.02,
-          decay: 0.1,
-          sustain: 0.3,
-          release: 1,
-        },
+    // Sample-based instruments — cache per type so we don't re-download.
+    const samplerCfg = SAMPLER_CONFIGS[type];
+    if (samplerCfg) {
+      const cached = this.samplerCache.get(type);
+      if (cached) return cached;
+      const sampler = new Tone.Sampler({
+        urls: samplerCfg.urls,
+        baseUrl: samplerCfg.baseUrl,
+        release: samplerCfg.release ?? 0.6,
+      }).toDestination();
+      this.samplerCache.set(type, sampler);
+      return sampler;
+    }
+
+    // FM presets — mathematically generated, no download required.
+    if (type === 'epiano') {
+      return new Tone.PolySynth(Tone.FMSynth, {
+        volume: -6,
+        harmonicity: 3,
+        modulationIndex: 10,
+        oscillator: { type: 'sine' },
+        modulation: { type: 'square' },
+        envelope: { attack: 0.005, decay: 0.8, sustain: 0.1, release: 1.2 },
+        modulationEnvelope: { attack: 0.01, decay: 0.5, sustain: 0.2, release: 0.3 },
       }).toDestination();
     }
+
+    if (type === 'bells') {
+      return new Tone.PolySynth(Tone.FMSynth, {
+        volume: -10,
+        harmonicity: 3.01,
+        modulationIndex: 14,
+        oscillator: { type: 'sine' },
+        modulation: { type: 'sine' },
+        envelope: { attack: 0.001, decay: 1.4, sustain: 0, release: 1.4 },
+        modulationEnvelope: { attack: 0.002, decay: 0.5, sustain: 0, release: 0.5 },
+      }).toDestination();
+    }
+
+    if (type === 'pluck') {
+      // Tone.PluckSynth is monophonic and can't wrap in PolySynth; simulate a pluck
+      // with a polyphonic Synth that has a fast attack, no sustain, short release.
+      return new Tone.PolySynth(Tone.Synth, {
+        volume: -3,
+        oscillator: { type: 'triangle' },
+        envelope: { attack: 0.002, decay: 0.25, sustain: 0, release: 0.8 },
+      }).toDestination();
+    }
+
+    // Basic oscillator synths (sine, triangle, square, sawtooth). Short release so
+    // scale reference doesn't stack up into a distorted mush.
+    return new Tone.PolySynth(Tone.Synth, {
+      volume: -4,
+      oscillator: {
+        type: type as OscillatorType,
+      },
+      envelope: {
+        attack: 0.02,
+        decay: 0.1,
+        sustain: 0.25,
+        release: 0.55,
+      },
+    }).toDestination();
   }
 
   setSynthType(type: SynthType) {
     if (this.currentSynthType === type) return;
-    
-    if (this.currentSynthType !== 'piano' && this.synth) {
+
+    // Dispose the old synth unless it's a cached sampler — we keep samplers alive
+    // so samples don't re-download on every toggle.
+    const prev = this.currentSynthType;
+    const prevIsSampler = this.samplerCache.has(prev);
+    if (!prevIsSampler && this.synth) {
       this.synth.dispose();
     }
     this.synth = this.createSynth(type);
     this.currentSynthType = type;
+    console.log(`🎛 synth: ${prev} → ${type}`);
+  }
+
+  getSynthType(): SynthType {
+    return this.currentSynthType;
   }
 
   async initialize() {
@@ -235,6 +370,102 @@ class AudioEngine {
     }
     
     return [root, second];
+  }
+
+  async playNote(note: string, durationSec = 1): Promise<string[]> {
+    await this.initialize();
+    this.synth.triggerAttackRelease(note, durationSec);
+    this.markPlayback(durationSec);
+    return [note];
+  }
+
+  async playSequence(notes: string[], noteDurSec = 0.45, gapSec = 0.08): Promise<string[]> {
+    await this.initialize();
+    const now = Tone.now();
+    const step = noteDurSec + gapSec;
+    notes.forEach((note, i) => {
+      this.synth.triggerAttackRelease(note, noteDurSec, now + i * step);
+    });
+    this.markPlayback(notes.length * step);
+    return notes;
+  }
+
+  async startListening(onPitch: PitchListener): Promise<ListenHandle> {
+    await this.initialize();
+    // Share the AudioContext with Tone so iOS doesn't create a second one that quietly suspends.
+    const rawCtx = (Tone.context as unknown as { rawContext: AudioContext }).rawContext;
+    return startPitchDetect(rawCtx, onPitch, {
+      gate: () => !this.isPlaybackActive(),
+    });
+  }
+
+  private getAcousticSynth(): Tone.PolySynth {
+    if (!this.acousticSynth) {
+      this.acousticSynth = new Tone.PolySynth(Tone.Synth, {
+        oscillator: { type: 'sine' },
+        envelope: { attack: 0.08, decay: 0.1, sustain: 0.9, release: 0.3 },
+        volume: -6,
+      }).toDestination();
+    }
+    return this.acousticSynth;
+  }
+
+  async playAcoustic(
+    kind: Exclude<AcousticKind, 'match_pitch' | 'sing_sequence'>,
+    correctAnswer: string,
+    rootNote: string,
+    frozenSemis?: number, // pass the pre-chosen semis to make replay deterministic
+  ): Promise<{ notes: string[]; semis: number }> {
+    await this.initialize();
+    const synth = this.getAcousticSynth();
+    const octave = 4;
+    const rootLabel = `${rootNote}${octave}`;
+    const rootFreq = Tone.Frequency(rootLabel).toFrequency();
+    const now = Tone.now();
+
+    const centsToRatio = (cents: number) => Math.pow(2, cents / 1200);
+    const semiToRatio = (semi: number) => Math.pow(2, semi / 12);
+
+    switch (kind) {
+      case 'same_diff': {
+        // Sequential. same = unison, different = 2 semitones apart.
+        const semis = correctAnswer === 'same' ? 0 : 2;
+        const gap = this.getAdjustedTime(0.6);
+        const dur = this.getAdjustedTime(0.5);
+        synth.triggerAttackRelease(rootFreq, dur, now);
+        synth.triggerAttackRelease(rootFreq * semiToRatio(semis), dur, now + gap);
+        return { notes: [rootLabel, `${rootLabel}${semis ? `+${semis}st` : ''}`], semis };
+      }
+      case 'beating': {
+        // Harmonic. in_tune = perfect unison, beating = ~10 cent detune (audible slow beats).
+        const cents = correctAnswer === 'in_tune' ? 0 : 10;
+        const dur = this.getAdjustedTime(2.5);
+        synth.triggerAttackRelease(rootFreq, dur, now);
+        synth.triggerAttackRelease(rootFreq * centsToRatio(cents), dur, now);
+        return { notes: [rootLabel, `${rootLabel}${cents ? `+${cents}¢` : ''}`], semis: 0 };
+      }
+      case 'higher_lower': {
+        // Sequential, wide gap (3–9 semitones). Randomized once per question; reused on replay.
+        const sign = correctAnswer === 'higher' ? 1 : -1;
+        const semis = frozenSemis ?? sign * (3 + Math.floor(Math.random() * 7));
+        const gap = this.getAdjustedTime(0.6);
+        const dur = this.getAdjustedTime(0.5);
+        synth.triggerAttackRelease(rootFreq, dur, now);
+        synth.triggerAttackRelease(rootFreq * semiToRatio(semis), dur, now + gap);
+        return { notes: [rootLabel, `${rootLabel}${semis > 0 ? '+' : ''}${semis}st`], semis };
+      }
+      case 'consonance': {
+        // Harmonic. smooth = consonant interval, rough = dissonant. Frozen per question.
+        const smooth = [3, 4, 7, 9, 12]; // m3, M3, P5, M6, octave
+        const rough = [1, 2, 6, 11]; // m2, M2, tritone, M7
+        const pool = correctAnswer === 'smooth' ? smooth : rough;
+        const semis = frozenSemis ?? pool[Math.floor(Math.random() * pool.length)];
+        const dur = this.getAdjustedTime(2);
+        synth.triggerAttackRelease(rootFreq, dur, now);
+        synth.triggerAttackRelease(rootFreq * semiToRatio(semis), dur, now);
+        return { notes: [rootLabel, `${rootLabel}+${semis}st`], semis };
+      }
+    }
   }
 
   async playChord(rootNote: string, chordFormula: number[]) {
@@ -343,14 +574,15 @@ class AudioEngine {
     allNotes.forEach((note, index) => {
       this.synth.triggerAttackRelease(note, '8n', now + index * noteDelay);
     });
-    
+
     const duration = allNotes.length * noteDelay;
-    
+    this.markPlayback(duration);
+
     // Reset isPlaying after duration
     setTimeout(() => {
       this.isPlaying = false;
     }, duration * 1000 + 100);
-    
+
     return { notes: allNotes, duration };
   }
 
@@ -452,11 +684,12 @@ class AudioEngine {
       const noteIndex = NOTES.indexOf(noteName);
       const currentOctave = noteIndex < rootIndex ? octave + 1 : octave;
       const note = `${noteName}${currentOctave}`;
-      
+
       console.log(`🎵 Playing scale degree ${degree + 1} in ${context}:`, note);
-      
+
       const now = Tone.now();
       this.synth.triggerAttackRelease(note, '1n', now);
+      this.markPlayback(2); // '1n' at 120bpm ≈ 2s
       playedNotes.push(note);
     }
     // Harmonic context: play the triad or 7th chord built on that degree
@@ -514,7 +747,7 @@ class AudioEngine {
     await this.initialize();
     
     if (enable && !this.droneActive) {
-      const droneNote = `${rootNote}3`; // Lower octave for drone
+      const droneNote = `${rootNote}4`; // Same octave as the scale root — tonal center
       const now = Tone.now();
       this.droneSynth?.triggerAttack(droneNote, now + 0.1); // Small delay to avoid timing conflicts
       this.droneActive = true;
@@ -535,7 +768,7 @@ class AudioEngine {
       this.droneSynth?.triggerRelease(now);
       // Wait a bit then start new note
       setTimeout(() => {
-        const droneNote = `${newRootNote}3`;
+        const droneNote = `${newRootNote}4`;
         this.droneSynth?.triggerAttack(droneNote, Tone.now() + 0.1);
         console.log(`🎶 Drone switched to: ${droneNote}`);
       }, 150);
@@ -559,6 +792,36 @@ class AudioEngine {
   // Helper to get adjusted timing based on speed
   private getAdjustedTime(baseTime: number): number {
     return baseTime / this.playbackSpeed;
+  }
+
+  private getFeedbackSynth(): Tone.PolySynth {
+    if (!this.feedbackSynth) {
+      this.feedbackSynth = new Tone.PolySynth(Tone.Synth, {
+        oscillator: { type: 'triangle' },
+        envelope: { attack: 0.005, decay: 0.12, sustain: 0, release: 0.2 },
+        volume: -10,
+      }).toDestination();
+    }
+    return this.feedbackSynth;
+  }
+
+  async playCorrectChime() {
+    await this.initialize();
+    const synth = this.getFeedbackSynth();
+    const now = Tone.now();
+    // Short major triad arpeggio: C5 -> E5 -> G5
+    synth.triggerAttackRelease('C5', 0.12, now);
+    synth.triggerAttackRelease('E5', 0.12, now + 0.08);
+    synth.triggerAttackRelease('G5', 0.22, now + 0.16);
+  }
+
+  async playIncorrectBuzz() {
+    await this.initialize();
+    const synth = this.getFeedbackSynth();
+    const now = Tone.now();
+    // Descending tritone — dissonant, short, dampened
+    synth.triggerAttackRelease('B3', 0.18, now);
+    synth.triggerAttackRelease('F3', 0.26, now + 0.08);
   }
 }
 

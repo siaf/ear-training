@@ -1,0 +1,2829 @@
+<!DOCTYPE html><html lang="en"><head>
+
+
+<meta charset="utf-8">
+<title>Fifths · Brand Kit</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" type="image/png" sizes="32x32" href="favicons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="favicons/favicon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="favicons/favicon-180.png">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&amp;family=DM+Serif+Display:ital@0;1&amp;family=Instrument+Serif:ital@0;1&amp;family=Newsreader:opsz,wght@6..72,500;6..72,600;6..72,700&amp;family=Playfair+Display:wght@500;600;700&amp;family=Outfit:wght@400;500;600;700&amp;family=Inter:wght@400;500;600;700&amp;family=Manrope:wght@400;500;600;700&amp;family=DM+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+  :root {
+    --font-display: 'Fraunces', 'Georgia', serif;
+    --font-body: 'Outfit', system-ui, sans-serif;
+    --page:#fff8ef; --page-2:#fef1dd; --card:#fff;
+    --ink-1:#2a1d3a; --ink-2:#54466b; --ink-3:#8a7b9d; --ink-5:#e4dbed;
+    --coral:#ff8a6b; --mint:#b6e5cd; --lav:#c8b8ff; --butter:#ffd768; --sky:#a8d5ff;
+    --hair:#ebe1ef;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--page);color:var(--ink-1);font-family:var(--font-body);}
+  body{font-size:15px;line-height:1.5;}
+  .disp{font-family:var(--font-display);font-weight:700;font-variation-settings:'opsz' 144;letter-spacing:-0.02em;line-height:1;}
+  .mono{font-family:ui-monospace,'JetBrains Mono',monospace;}
+  a{color:inherit;}
+
+  .wrap{max-width:1240px;margin:0 auto;padding:72px 48px 120px;}
+  header{display:flex;align-items:flex-end;justify-content:space-between;gap:48px;padding-bottom:48px;border-bottom:1px solid var(--hair);margin-bottom:56px;}
+  header h1{margin:0;font-size:96px;}
+  header .eyebrow{font-family:var(--font-body);font-size:12px;letter-spacing:0.18em;text-transform:uppercase;color:var(--ink-3);margin-bottom:12px;}
+  header p{max-width:420px;color:var(--ink-2);font-size:16px;line-height:1.55;margin:0;}
+
+  section{margin-bottom:88px;}
+  h2{font-family:var(--font-display);font-weight:600;font-size:36px;margin:0 0 6px;letter-spacing:-0.01em;}
+  h2 + p.lead{margin:0 0 28px;color:var(--ink-3);font-size:14px;letter-spacing:0.04em;}
+  h3{font-family:var(--font-body);font-weight:600;font-size:12px;letter-spacing:0.16em;text-transform:uppercase;color:var(--ink-3);margin:0 0 12px;}
+
+  .grid{display:grid;gap:20px;}
+  .g-2{grid-template-columns:repeat(2,1fr);}
+  .g-3{grid-template-columns:repeat(3,1fr);}
+  .g-4{grid-template-columns:repeat(4,1fr);}
+  .g-6{grid-template-columns:repeat(6,1fr);}
+  @media (max-width:900px){.g-3,.g-4,.g-6{grid-template-columns:repeat(2,1fr);}}
+
+  .tile{background:var(--card);border-radius:20px;border:1px solid var(--hair);overflow:hidden;display:flex;flex-direction:column;}
+  .tile .bg{flex:1;display:flex;align-items:center;justify-content:center;padding:36px;min-height:180px;}
+  .tile .meta{padding:14px 18px;border-top:1px solid var(--hair);display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:12px;}
+  .tile .meta .name{font-weight:600;color:var(--ink-1);}
+  .tile .meta .sz{color:var(--ink-3);font-family:ui-monospace,monospace;}
+  .tile img{max-width:100%;max-height:260px;height:auto;display:block;}
+  .tile.dark .bg{background:#2a1d3a;}
+  .tile.light .bg{background:#fff8ef;}
+  .tile.paper .bg{background:#fef1dd;}
+
+  .swatch{border-radius:16px;padding:22px;min-height:150px;display:flex;flex-direction:column;justify-content:space-between;border:1px solid transparent;}
+  .swatch .hx{font-family:ui-monospace,monospace;font-size:12px;opacity:0.7;}
+  .swatch .nm{font-family:var(--font-display);font-weight:600;font-size:22px;margin-bottom:4px;}
+  .sw-dark{color:#fff8ef;}
+  .sw-light{color:#2a1d3a;border-color:var(--hair);}
+
+  .ico-row{display:flex;gap:18px;align-items:end;flex-wrap:wrap;}
+  .ico-row .ico{display:flex;flex-direction:column;align-items:center;gap:8px;}
+  .ico-row .ico .box{background:#fff;border:1px solid var(--hair);border-radius:14px;padding:10px;display:flex;align-items:center;justify-content:center;}
+  .ico-row .ico .lbl{font-size:11px;color:var(--ink-3);font-family:ui-monospace,monospace;}
+  .ico-row .ico img{display:block;}
+
+  .phone{background:var(--page);border:1px solid var(--hair);border-radius:28px;padding:32px 22px 40px;display:flex;flex-direction:column;align-items:center;gap:14px;box-shadow:0 8px 24px rgba(42,29,58,0.06);}
+  .phone .rail{width:120px;height:6px;background:rgba(255,255,255,0.2);border-radius:3px;margin-top:12px;}
+  .phone-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px 16px;width:100%;}
+  .phone-grid .app{display:flex;flex-direction:column;align-items:center;gap:8px;}
+  .phone-grid .app img{width:60px;height:60px;border-radius:14px;display:block;}
+  .phone-grid .app .nm{font-size:11px;color:rgba(255,255,255,0.85);font-family:var(--font-body);font-weight:500;}
+  .phone-grid .app.us img{box-shadow:0 4px 14px rgba(0,0,0,0.4);}
+
+  .type-card{background:var(--card);border:1px solid var(--hair);border-radius:20px;padding:28px 32px;}
+  .type-card .lab{font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--ink-3);margin-bottom:8px;}
+  .type-card .samp{font-size:56px;line-height:1.05;margin:0;}
+
+  .footer{margin-top:80px;padding-top:32px;border-top:1px solid var(--hair);display:flex;justify-content:space-between;color:var(--ink-3);font-size:13px;}
+
+  /* Dark mode section — scoped wrapper so we can render dark tokens inline */
+  .dm-wrap{background:#15101c;border-radius:28px;padding:48px;color:#f5eefa;border:1px solid #302740;}
+  .dm-wrap h3{color:#938099;}
+  .dm-row{display:grid;grid-template-columns:180px 1fr 1fr;gap:20px;padding:14px 0;border-bottom:1px solid #271e37;align-items:center;}
+  .dm-row:last-child{border-bottom:none;}
+  .dm-row .tk{font-family:ui-monospace,monospace;font-size:12px;color:#cfc1dd;}
+  .dm-cell{display:flex;align-items:center;gap:12px;font-family:ui-monospace,monospace;font-size:12px;}
+  .dm-cell .chip{width:40px;height:40px;border-radius:10px;border:1px solid rgba(255,255,255,0.08);flex-shrink:0;}
+  .dm-cell .hex{color:inherit;opacity:0.7;}
+  .dm-head{display:grid;grid-template-columns:180px 1fr 1fr;gap:20px;padding:0 0 12px;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:#6b5a78;border-bottom:1px solid #302740;}
+  .dm-surface-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:20px;}
+  .dm-surface{border-radius:16px;padding:20px;min-height:120px;display:flex;flex-direction:column;justify-content:space-between;border:1px solid rgba(255,255,255,0.05);}
+  .dm-surface .lbl{font-family:var(--font-display);font-weight:600;font-size:18px;margin-bottom:4px;}
+  .dm-surface .hx{font-family:ui-monospace,monospace;font-size:11px;opacity:0.55;}
+  .dm-accent-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:20px;}
+  .dm-accent{border-radius:18px;padding:20px 22px;min-height:120px;display:flex;flex-direction:column;justify-content:space-between;}
+  .dm-accent .nm{font-family:var(--font-display);font-weight:600;font-size:20px;}
+  .dm-accent .meta{font-family:ui-monospace,monospace;font-size:11px;opacity:0.75;line-height:1.5;}
+
+  .dm-rules{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:32px;}
+  .dm-rule{border-radius:18px;padding:22px 24px;border:1px solid #302740;}
+  .dm-rule.do{background:#1e1729;}
+  .dm-rule.dont{background:#1a0f1a;border-color:#3e1e2e;}
+  .dm-rule .bad{color:#ff8a8a;font-family:var(--font-body);font-weight:700;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;margin-bottom:10px;}
+  .dm-rule .gd{color:#8ae5b6;font-family:var(--font-body);font-weight:700;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;margin-bottom:10px;}
+  .dm-rule h4{font-family:var(--font-display);font-weight:600;font-size:18px;margin:0 0 6px;color:#f5eefa;}
+  .dm-rule p{margin:0;font-size:13px;color:#cfc1dd;line-height:1.55;}
+
+  .dm-pairs{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:24px;}
+  .dm-pair{border-radius:20px;overflow:hidden;border:1px solid #302740;}
+  .dm-pair-head{padding:14px 20px;font-family:var(--font-body);font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:#938099;border-bottom:1px solid #302740;}
+  .dm-pair-body{padding:28px;min-height:200px;}
+  .dm-pair.light .dm-pair-body{background:#fff8ef;color:#2a1d3a;}
+  .dm-pair.dark .dm-pair-body{background:#15101c;color:#f5eefa;}
+  .dm-pair-ui{display:flex;flex-direction:column;gap:14px;}
+  .dm-btn{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:999px;font-family:var(--font-body);font-weight:600;font-size:13px;width:fit-content;}
+  .dm-card-mini{padding:16px 18px;border-radius:14px;}
+  .dm-card-mini .t{font-family:var(--font-display);font-style:italic;font-size:16px;font-weight:600;margin-bottom:4px;}
+  .dm-card-mini .s{font-size:12px;opacity:0.7;}
+
+  /* Generic section blocks */
+  .block{background:var(--card);border:1px solid var(--hair);border-radius:20px;padding:28px 32px;}
+  .block + .block{margin-top:20px;}
+  .block h3{margin-top:0;}
+  .label{font-family:var(--font-body);font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--ink-3);}
+  .mono-sm{font-family:ui-monospace,monospace;font-size:12px;color:var(--ink-3);}
+
+  /* Spacing */
+  .spacing-row{display:flex;align-items:flex-end;gap:20px;flex-wrap:wrap;margin-top:8px;}
+  .spacing-row .step{display:flex;flex-direction:column;align-items:center;gap:8px;}
+  .spacing-row .bar{background:var(--coral);border-radius:4px;width:44px;}
+  .spacing-row .v{font-family:ui-monospace,monospace;font-size:11px;color:var(--ink-3);}
+  .spacing-row .n{font-family:var(--font-display);font-weight:600;font-size:14px;}
+
+  .radii-row{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end;margin-top:8px;}
+  .radii-row .r{display:flex;flex-direction:column;align-items:center;gap:8px;}
+  .radii-row .sh{width:92px;height:92px;background:var(--coral);}
+  .radii-row .tag{font-family:ui-monospace,monospace;font-size:11px;color:var(--ink-3);}
+  .radii-row .nm{font-family:var(--font-display);font-weight:600;font-size:14px;}
+
+  .shadow-row{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:8px;}
+  .shadow-card{background:#fff;border-radius:18px;padding:22px;min-height:140px;display:flex;flex-direction:column;justify-content:space-between;}
+  .sh-sm{box-shadow:0 1px 2px rgba(42,29,58,0.06), 0 2px 6px rgba(42,29,58,0.05);}
+  .sh-md{box-shadow:0 4px 14px rgba(42,29,58,0.10), 0 2px 5px rgba(42,29,58,0.06);}
+  .sh-lg{box-shadow:0 16px 40px rgba(42,29,58,0.14), 0 6px 12px rgba(42,29,58,0.08);}
+
+  /* Bean buttons (recreated from primitives.tsx) */
+  .bean{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-family:var(--font-body);font-weight:600;border-radius:999px;border:1.5px solid transparent;cursor:pointer;white-space:nowrap;}
+  .bean.sm{height:36px;padding:0 18px;font-size:13px;}
+  .bean.md{height:46px;padding:0 24px;font-size:14.5px;}
+  .bean.lg{height:58px;padding:0 30px;font-size:16px;}
+  .bean.ink{background:#2a1d3a;color:#fff;border-color:#2a1d3a;box-shadow:0 4px 14px rgba(42,29,58,0.10), 0 2px 5px rgba(42,29,58,0.06);}
+  .bean.coral{background:#ff8a6b;color:#fff;border-color:#ff8a6b;box-shadow:0 6px 16px rgba(255,138,107,0.30), 0 2px 4px rgba(198,70,50,0.12);}
+  .bean.mint{background:#b6e5cd;color:#2f7a5a;border-color:#b6e5cd;}
+  .bean.lav{background:#c8b8ff;color:#5b3fb3;border-color:#c8b8ff;}
+  .bean.butter{background:#ffd768;color:#9a6f00;border-color:#ffd768;}
+  .bean.sky{background:#a8d5ff;color:#2867b2;border-color:#a8d5ff;}
+  .bean.soft{background:#fff;color:#2a1d3a;border-color:var(--hair);}
+  .bean.ghost{background:transparent;color:#54466b;}
+
+  /* ColorPill */
+  .cpill{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:999px;font-family:var(--font-body);font-weight:600;font-size:11.5px;letter-spacing:0.2px;text-transform:uppercase;}
+  .cpill.mint{background:#d5f0e1;color:#2f7a5a;}
+  .cpill.coral{background:#ffe1d4;color:#c64632;}
+  .cpill.lav{background:#e4daff;color:#5b3fb3;}
+  .cpill.butter{background:#fff0c1;color:#9a6f00;}
+  .cpill.sky{background:#dcecff;color:#2867b2;}
+  .cpill.ink{background:#2a1d3a;color:#fff;}
+
+  /* KeyChip — note tile */
+  .keychip{width:48px;height:48px;border-radius:17px;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:600;font-size:19px;line-height:1;color:#2a1d3a;border:1.5px solid transparent;position:relative;}
+  .keychip.soft{background:#fef1dd;}
+  .keychip.mint{background:#b6e5cd;}
+  .keychip.lav{background:#c8b8ff;}
+  .keychip.coral{background:#ff8a6b;color:#fff;}
+  .keychip.butter{background:#ffd768;}
+  .keychip.sky{background:#a8d5ff;}
+  .keychip.active{background:#2a1d3a;color:#fff;border-color:#2a1d3a;box-shadow:0 4px 12px rgba(42,29,58,0.15);}
+  /* accidentals + superscripts shared across notation chips */
+  .keychip sup, .degchip sup, .romanchip sup, .ivlchip sup, .chordchip sup{font-family:var(--font-display);font-size:0.55em;font-weight:600;line-height:1;margin-left:1px;vertical-align:super;}
+  .keychip sub, .degchip sub, .romanchip sub, .chordchip sub{font-family:var(--font-display);font-size:0.55em;font-weight:600;line-height:1;margin-left:1px;vertical-align:sub;}
+  .acc{font-family:var(--font-display);font-weight:500;display:inline-block;transform:translateY(-1px);}
+
+  /* Degree chip — scale degree (1, 2, b3, #4, 5, b7…) */
+  .degchip{min-width:48px;height:48px;padding:0 10px;border-radius:17px;display:inline-flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:600;font-size:19px;line-height:1;color:#2a1d3a;background:#fef1dd;border:1.5px solid transparent;}
+  .degchip.tonic{background:#2a1d3a;color:#fff;}
+  .degchip.alt{background:#fff;border-color:#e4dbe8;}
+  .degchip .acc{font-size:0.8em;margin-right:1px;opacity:0.85;line-height:1;transform:none;}
+
+  /* Roman chip — harmonic function (I, ii, iii, IV, V, vi, vii°) */
+  .romanchip{min-width:54px;height:48px;padding:0 12px;border-radius:17px;display:inline-flex;align-items:center;justify-content:center;gap:0;font-family:var(--font-display);font-weight:600;font-size:22px;line-height:1;color:#2a1d3a;background:#fff;border:1.5px solid #e4dbe8;letter-spacing:0.01em;}
+  .romanchip sup{font-family:var(--font-display);font-size:0.55em;font-weight:600;line-height:1;margin-left:2px;position:relative;top:-0.5em;}
+  .romanchip.tonic{background:#b6e5cd;border-color:#b6e5cd;}
+  .romanchip.dom{background:#ff8a6b;color:#fff;border-color:#ff8a6b;}
+  .romanchip.sub{background:#a8d5ff;border-color:#a8d5ff;}
+  .romanchip.dim{background:#fff;border-color:#2a1d3a;}
+
+  /* Interval chip — quality + number (P5, M3, m7, TT) */
+  .ivlchip{min-width:54px;height:48px;padding:0 12px;border-radius:17px;display:inline-flex;align-items:center;justify-content:center;gap:2px;font-family:var(--font-display);font-weight:600;font-size:17px;color:#2a1d3a;background:#fff;border:1.5px solid #e4dbe8;}
+  .ivlchip .q{font-family:var(--font-display);font-weight:700;font-style:italic;font-size:18px;letter-spacing:0.01em;}
+  .ivlchip .n{font-family:var(--font-display);font-weight:600;font-size:20px;}
+  .ivlchip.perf{background:#dcecff;border-color:#dcecff;}
+  .ivlchip.maj{background:#fff0c1;border-color:#fff0c1;}
+  .ivlchip.min{background:#e4daff;border-color:#e4daff;}
+  .ivlchip.tt{background:#ff8a6b;color:#fff;border-color:#ff8a6b;}
+
+  /* Chord chip — letter + quality + extension (Cmaj7, Dm7, G7, F#°) */
+  .chordchip{min-width:64px;height:48px;padding:0 14px;border-radius:17px;display:inline-flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:600;font-size:20px;line-height:1;color:#2a1d3a;background:#fff;border:1.5px solid #e4dbe8;letter-spacing:0.005em;}
+  .chordchip .root{font-weight:700;line-height:1;}
+  .chordchip .qual{font-size:0.72em;font-weight:600;font-style:italic;margin-left:1px;letter-spacing:0.02em;line-height:1;display:inline-block;}
+  .chordchip .ext{font-size:0.58em;font-weight:600;margin-left:2px;line-height:1;letter-spacing:0.02em;align-self:flex-start;padding-top:0.35em;}
+  .chordchip.tonic{background:#b6e5cd;border-color:#b6e5cd;}
+  .chordchip.dom{background:#ff8a6b;color:#fff;border-color:#ff8a6b;}
+  .chordchip.sub{background:#a8d5ff;border-color:#a8d5ff;}
+  .chordchip.min-q{background:#e4daff;border-color:#e4daff;}
+  .chordchip.dim-q{background:#fff;border-color:#2a1d3a;}
+
+  /* Shared: legend row */
+  .chiprow{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+  .chiplabel{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--ink-3);min-width:120px;display:inline-block;padding-top:16px;}
+  .chip-caption{margin:0 0 18px;color:var(--ink-2);font-size:13px;max-width:640px;line-height:1.6;}
+  .chip-group{display:grid;grid-template-columns:170px 1fr;gap:14px 20px;align-items:center;padding:14px 0;border-top:1px dashed var(--hair);}
+  .chip-group:first-of-type{border-top:none;padding-top:4px;}
+  .chip-group .lbl{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--ink-3);}
+  .chip-group .lbl b{font-family:var(--mono);color:var(--ink-1);font-weight:600;display:block;font-size:11px;letter-spacing:0.08em;margin-bottom:2px;}
+
+  /* Path nodes */
+  .path-node{display:inline-flex;flex-direction:column;align-items:center;gap:6px;}
+  .path-node .circle{width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:600;font-size:32px;line-height:1;border:3px solid #2a1d3a;}
+  .path-node .circle svg{width:30px;height:30px;display:block;}
+  .path-node.done .circle{background:#b6e5cd;color:#fff;box-shadow:0 6px 0 #2f7a5a, 0 10px 20px rgba(42,29,58,0.18);}
+  .path-node.current .circle{background:#ff8a6b;color:#fff;box-shadow:0 6px 0 #c64632, 0 10px 24px rgba(255,138,107,0.35);}
+  .path-node.locked .circle{background:#fff;color:#b7acc4;border-color:#e4dbed;box-shadow:0 5px 0 rgba(42,29,58,0.10);}
+  .path-node .plate{padding:4px 12px;border-radius:999px;font-family:var(--font-body);font-size:12px;font-weight:600;white-space:nowrap;}
+  .path-node.current .plate{background:#2a1d3a;color:#fff;box-shadow:0 4px 12px rgba(42,29,58,0.2);}
+  .path-node:not(.current) .plate{background:rgba(255,255,255,0.85);color:#2a1d3a;border:1px solid var(--hair);}
+
+  /* Unit banner */
+  .unit-banner{display:inline-flex;align-items:center;gap:12px;padding:12px 22px;border-radius:999px;background:#c8b8ff;color:#5b3fb3;font-family:var(--font-display);font-style:italic;font-weight:600;font-size:17px;border:2px solid #2a1d3a;box-shadow:0 3px 0 #5b3fb3, 0 8px 16px rgba(42,29,58,0.1);}
+  .unit-banner .dot{width:8px;height:8px;border-radius:50%;background:#2a1d3a;}
+
+  /* Progress bar */
+  .pbar{position:relative;height:10px;background:#fde6c4;border-radius:999px;overflow:hidden;}
+  .pbar .fill{height:100%;background:linear-gradient(90deg,#c8b8ff,#ff8a6b);border-radius:999px;}
+  .pbar .target{position:absolute;top:-2px;bottom:-2px;width:2px;background:#2a1d3a;border-radius:2px;}
+
+  /* Segment (wave / lesson ticks) */
+  .ticks{display:flex;gap:3px;}
+  .ticks .t{flex:1;height:5px;border-radius:3px;max-width:20px;}
+  .ticks .t.done{background:#ff8a6b;}
+  .ticks .t.cur{background:#2a1d3a;}
+  .ticks .t.future{background:#e4dbed;}
+
+  /* Scale banner */
+  .scale-banner{background:linear-gradient(90deg,#c8b8ff,#a8d5ff);border-radius:999px;padding:10px 18px;display:inline-flex;align-items:center;gap:10px;box-shadow:0 1px 2px rgba(42,29,58,0.06), 0 2px 6px rgba(42,29,58,0.05);}
+  .scale-banner .root{width:32px;height:32px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:600;font-size:13px;color:#5b3fb3;}
+  .scale-banner .txt{font-size:12px;color:var(--ink-1);}
+
+  /* Mastery heatmap tile */
+  .master-tile{min-width:82px;padding:10px 12px;border-radius:10px;font-family:var(--font-body);font-size:11px;font-weight:600;border:1px solid var(--hair);display:flex;flex-direction:column;gap:2px;}
+  .master-tile .pct{font-family:ui-monospace,monospace;font-size:10px;}
+  .master-tile.hi{background:#b6e5cd;color:#2f7a5a;}
+  .master-tile.mid{background:#ffd768;color:#9a6f00;}
+  .master-tile.lo{background:#ff8a6b;color:#c64632;}
+
+  /* Wave chart sample */
+  .wave-card{background:#fff;border:1px solid var(--hair);border-radius:18px;padding:22px;}
+  .wave-card .val{font-family:var(--font-display);font-weight:600;font-size:36px;color:var(--ink-1);}
+  .wave-card .lab2{font-family:var(--font-body);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--ink-3);}
+
+  /* Stat tile */
+  .stat-tile{background:#fff;border:1px solid var(--hair);border-radius:18px;padding:20px 22px;display:flex;flex-direction:column;gap:4px;}
+  .stat-tile .big{font-family:var(--font-display);font-weight:600;font-size:40px;line-height:1;color:var(--ink-1);}
+  .stat-tile .sub{font-family:var(--font-body);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--ink-3);}
+
+  /* Play button */
+  .play-btn{width:88px;height:88px;border-radius:50%;background:#ff8a6b;color:#fff;border:3px solid #2a1d3a;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 0 #c64632, 0 14px 30px rgba(255,138,107,0.4);}
+  .play-btn svg{width:38px;height:38px;display:block;margin-left:4px;}
+
+  /* Bottom tabs mock */
+  .tabs-mock{background:rgba(255,248,239,0.92);border-top:1px solid var(--hair);backdrop-filter:blur(14px);padding:6px 8px;display:grid;grid-template-columns:repeat(3,1fr);gap:4px;border-radius:0 0 24px 24px;}
+  .tabs-mock .tab{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px 4px;border-radius:14px;min-height:52px;justify-content:center;}
+  .tabs-mock .tab .ic{font-family:var(--font-display);font-weight:600;font-size:22px;line-height:1;display:inline-flex;align-items:center;justify-content:center;height:22px;}
+  .tabs-mock .tab .ic svg{width:20px;height:20px;display:block;}
+  .tabs-mock .tab .lb{font-family:var(--font-body);font-size:10px;font-weight:600;letter-spacing:0.3px;text-transform:uppercase;}
+  .tabs-mock .tab.active.path{background:#ff8a6b;color:#c64632;}
+  .tabs-mock .tab.active.stats{background:#c8b8ff;color:#5b3fb3;}
+  .tabs-mock .tab.active.settings{background:#b6e5cd;color:#2f7a5a;}
+  .tabs-mock .tab:not(.active){color:#8a7b9d;}
+
+  /* Interval table */
+  .int-table{width:100%;border-collapse:collapse;}
+  .int-table th{text-align:left;font-family:var(--font-body);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--ink-3);padding:0 12px 10px;font-weight:600;border-bottom:1px solid var(--hair);}
+  .int-table td{padding:10px 12px;border-bottom:1px solid var(--hair);font-size:13px;vertical-align:middle;}
+  .int-table td.name{font-family:var(--font-display);font-weight:600;font-size:15px;}
+  .int-table td.mono{font-family:ui-monospace,monospace;font-size:12px;color:var(--ink-2);}
+
+  /* Level type legend */
+  .ltype-row{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;}
+  .ltype{background:#fff;border:1px solid var(--hair);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:4px;}
+  .ltype .gly{font-family:var(--font-display);font-weight:600;font-size:28px;color:var(--ink-1);margin-bottom:4px;}
+  .ltype .nm{font-family:var(--font-display);font-weight:600;font-size:15px;}
+  .ltype .de{font-size:11.5px;color:var(--ink-3);line-height:1.45;}
+
+  /* Streak counter */
+  .streak{display:inline-flex;align-items:center;gap:10px;padding:8px 16px;background:#ffe1d4;border-radius:999px;}
+  .streak .flame{font-size:18px;display:inline-flex;align-items:center;color:#c64632;}
+  .streak .flame svg{width:16px;height:18px;display:block;}
+  .streak .nmb{font-family:var(--font-display);font-weight:600;font-size:18px;color:#c64632;}
+  .streak .lb{font-family:var(--font-body);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:#c64632;opacity:0.8;}
+
+  /* Rhythm strip sample */
+  .rhythm{display:flex;align-items:flex-end;gap:2px;height:56px;}
+  .rhythm .bar{flex:1;border-radius:4px;min-width:6px;}
+
+  .divider{height:1px;background:var(--hair);margin:32px 0;}
+
+  /* ===== Illustration Guide (mascots) ===== */
+
+  :root {
+    --page:#fff8ef; --page-2:#fef1dd; --page-3:#fde6c4; --card:#fff;
+    --ink-1:#2a1d3a; --ink-2:#54466b; --ink-3:#8a7b9d; --ink-4:#b7acc4; --ink-5:#e4dbed;
+    --coral:#ff8a6b; --coral-ink:#c64632; --coral-soft:#ffe1d4;
+    --mint:#b6e5cd;  --mint-ink:#2f7a5a;  --mint-soft:#d5f0e1;
+    --lav:#c8b8ff;   --lav-ink:#5b3fb3;   --lav-soft:#e4daff;
+    --butter:#ffd768;--butter-ink:#9a6f00;--butter-soft:#fff0c1;
+    --sky:#a8d5ff;   --sky-ink:#2867b2;   --sky-soft:#dcecff;
+    --hair:#ebe1ef;
+
+    --accent: var(--coral);
+    --accent-ink: var(--coral-ink);
+    --offset: 5px;
+  }
+  html[data-theme="dark"] {
+    --page:#15101c; --page-2:#1e1729; --page-3:#271e37; --card:#1e1729;
+    --ink-1:#f5eefa; --ink-2:#cfc1dd; --ink-3:#938099; --ink-4:#5b4d6c; --ink-5:#352a44;
+    --hair:#302740;
+    --coral-ink:#ffcebd;
+    --lav-ink:#e4daff; --mint-ink:#b6e5cd; --butter-ink:#ffe49b; --sky-ink:#cce1ff;
+  }
+
+  * {box-sizing:border-box;}
+  html, body {margin:0;padding:0;background:var(--page);color:var(--ink-1);font-family:var(--font-body);}
+  body {font-size:15px;line-height:1.5;}
+  .illust .disp {font-family:var(--font-display);font-weight:700;font-variation-settings:'opsz' 144;letter-spacing:-0.02em;line-height:1;}
+  .illust .italic {font-style:italic;}
+  .illust .mono {font-family:ui-monospace,'JetBrains Mono',monospace;}
+  .illust a {color:inherit;}
+
+  .illust .wrap {max-width:1240px;margin:0 auto;padding:72px 48px 120px;}
+  .illust header.top {display:flex;align-items:flex-end;justify-content:space-between;gap:48px;padding-bottom:48px;border-bottom:1px solid var(--hair);margin-bottom:56px;}
+  .illust header.top h1 {margin:0;font-size:96px;}
+  .illust header.top .eyebrow {font-family:var(--font-body);font-size:12px;letter-spacing:0.18em;text-transform:uppercase;color:var(--ink-3);margin-bottom:12px;}
+  .illust header.top p {max-width:460px;color:var(--ink-2);font-size:16px;line-height:1.55;margin:0;}
+  .illust header.top .back {font-family:var(--font-body);font-size:12px;letter-spacing:0.16em;text-transform:uppercase;color:var(--ink-3);text-decoration:none;display:inline-flex;align-items:center;gap:8px;margin-bottom:18px;}
+  .illust header.top .back:hover {color:var(--accent-ink);}
+
+  .illust section {margin-bottom:88px;}
+  .illust h2 {font-family:var(--font-display);font-weight:600;font-size:36px;margin:0 0 6px;letter-spacing:-0.01em;}
+  .illust h2 + p.lead {margin:0 0 28px;color:var(--ink-3);font-size:14px;letter-spacing:0.04em;max-width:720px;}
+  .illust h3 {font-family:var(--font-body);font-weight:600;font-size:12px;letter-spacing:0.16em;text-transform:uppercase;color:var(--ink-3);margin:0 0 12px;}
+  .illust h4 {font-family:var(--font-display);font-weight:600;font-size:20px;margin:0 0 4px;color:var(--ink-1);}
+
+  .illust .grid {display:grid;gap:20px;}
+  .illust .g-2 {grid-template-columns:repeat(2,1fr);}
+  .illust .g-3 {grid-template-columns:repeat(3,1fr);}
+  .illust .g-4 {grid-template-columns:repeat(4,1fr);}
+  @media (max-width:900px){.illust .g-3, .illust .g-4 {grid-template-columns:repeat(2,1fr);}}
+
+  /* Generic block */
+  .illust .block {background:var(--card);border:1px solid var(--hair);border-radius:20px;padding:28px 32px;}
+  .illust .label {font-family:var(--font-body);font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--ink-3);}
+  .illust .mono-sm {font-family:ui-monospace,monospace;font-size:12px;color:var(--ink-3);}
+
+  /* Tags */
+  .illust .tag {display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-family:var(--font-body);font-weight:700;font-size:10.5px;letter-spacing:0.18em;text-transform:uppercase;}
+  .illust .tag.do {background:#d5f0e1;color:var(--mint-ink);}
+  .illust .tag.dont {background:#ffe1dc;color:#b33b3b;}
+  html[data-theme="dark"] .tag.do {background:#1e3b2c;color:#8ae5b6;}
+  html[data-theme="dark"] .tag.dont {background:#3a1e24;color:#ff8a8a;}
+
+  /* Mascot hero card */
+  .illust .masc {background:var(--card);border:1px solid var(--hair);border-radius:24px;padding:32px;}
+  .illust .masc-head {display:flex;align-items:baseline;justify-content:space-between;gap:24px;margin-bottom:24px;flex-wrap:wrap;}
+  .illust .masc-head .nm {font-family:var(--font-display);font-weight:600;font-size:28px;letter-spacing:-0.01em;}
+  .illust .masc-head .role {font-family:var(--font-body);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--ink-3);font-weight:600;}
+  .illust .masc-body {display:grid;grid-template-columns:1.1fr 1fr;gap:28px;}
+  @media (max-width:900px){.illust .masc-body {grid-template-columns:1fr;}}
+  .illust .masc-hero {border-radius:18px;min-height:360px;display:flex;align-items:center;justify-content:center;padding:20px;position:relative;overflow:hidden;}
+  .illust .masc-hero img {display:block;width:100%;max-width:340px;height:auto;}
+
+  .illust .masc-bd {display:flex;flex-direction:column;gap:16px;}
+  .illust .masc-bd h4 {font-family:var(--font-display);font-size:17px;font-weight:600;margin:0 0 4px;}
+  .illust .masc-bd ul {margin:0;padding:0 0 0 18px;color:var(--ink-2);font-size:13.5px;line-height:1.7;}
+  .illust .masc-bd .quote {font-family:var(--font-display);font-style:italic;font-weight:600;font-size:17px;color:var(--ink-1);border-left:3px solid var(--accent);padding:2px 0 2px 14px;margin:2px 0;}
+
+  /* Lineup cell */
+  .illust .lineup {display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+  @media (max-width:900px){.illust .lineup {grid-template-columns:repeat(2,1fr);}}
+  .illust .lup {border-radius:16px;padding:18px;display:flex;flex-direction:column;align-items:center;gap:12px;border:1px solid var(--hair);}
+  .illust .lup img {width:100%;max-width:180px;height:auto;display:block;}
+  .illust .lup .nm {font-family:var(--font-display);font-weight:600;font-size:20px;}
+  .illust .lup .sub {font-family:ui-monospace,monospace;font-size:11px;color:var(--ink-3);text-align:center;margin-top:-4px;}
+
+  /* Color badges */
+  .illust .chip {display:inline-flex;align-items:center;gap:8px;padding:5px 12px;border-radius:999px;font-family:var(--font-body);font-size:11px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;}
+  .illust .chip.coral {background:var(--coral-soft);color:var(--coral-ink);}
+  .illust .chip.mint {background:var(--mint-soft);color:var(--mint-ink);}
+  .illust .chip.butter {background:var(--butter-soft);color:var(--butter-ink);}
+  .illust .chip.sky {background:var(--sky-soft);color:var(--sky-ink);}
+  html[data-theme="dark"] .chip.coral {background:#3a1f17;}
+  html[data-theme="dark"] .chip.mint {background:#1e3b2c;}
+  html[data-theme="dark"] .chip.butter {background:#2d2108;}
+  html[data-theme="dark"] .chip.sky {background:#0f2538;}
+
+  /* Expression grid */
+  .illust .expr {background:var(--page-2);border:1px solid var(--hair);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;}
+  .illust .expr .stg {padding:14px;display:flex;align-items:center;justify-content:center;min-height:150px;background:var(--coral-soft);}
+  .illust .expr .stg img {width:100%;max-width:160px;height:auto;}
+  .illust .expr .mt {padding:10px 14px;border-top:1px solid var(--hair);display:flex;justify-content:space-between;align-items:center;font-size:12px;background:var(--card);}
+  .illust .expr .mt .n {font-weight:600;color:var(--ink-1);}
+  .illust .expr .mt .s {color:var(--ink-3);font-family:ui-monospace,monospace;font-size:11px;}
+
+  /* Matrix table */
+  .illust table.roles {width:100%;border-collapse:collapse;font-size:13.5px;}
+  .illust table.roles th {padding:10px 14px;border-bottom:1px solid var(--hair);text-align:left;color:var(--ink-3);font-family:var(--font-body);font-weight:600;font-size:11px;letter-spacing:0.14em;text-transform:uppercase;}
+  .illust table.roles td {padding:12px 14px;border-bottom:1px solid var(--hair);color:var(--ink-2);}
+  .illust table.roles td.who {font-weight:600;font-family:var(--font-display);}
+  .illust table.roles tr:last-child td {border-bottom:none;}
+
+  /* Usage rule rows */
+  .illust .sum {display:grid;grid-template-columns:repeat(2,1fr);gap:14px;}
+  @media (max-width:800px){.illust .sum {grid-template-columns:1fr;}}
+  .illust .sum .row {display:flex;gap:14px;align-items:flex-start;padding:16px 18px;border-radius:14px;border:1px solid var(--hair);background:var(--card);}
+  .illust .sum .row .dot {flex:0 0 auto;width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;}
+  .illust .sum .row .dot svg{width:18px;height:18px;display:block;}
+  .illust .sum .row.do .dot {background:var(--mint);color:var(--mint-ink);}
+  .illust .sum .row.dont .dot {background:#ffe1dc;color:#b33b3b;}
+  html[data-theme="dark"] .sum .row.dont .dot {background:#3a1e24;color:#ff8a8a;}
+
+  /* Voice & copy sample serif */
+  .serif{font-family:var(--font-display);}
+
+  /* Dark mode container overrides — cards that had hardcoded #fff */
+  html[data-theme="dark"] .stat-tile,
+  html[data-theme="dark"] .ltype,
+  html[data-theme="dark"] .shadow-card,
+  html[data-theme="dark"] .wave-card,
+  html[data-theme="dark"] .ico-row .ico .box { background: var(--card); border-color: var(--hair); color: var(--ink-1); }
+  html[data-theme="dark"] .path-node.locked .circle { background: var(--page-2); color: var(--ink-3); border-color: var(--ink-5); }
+  html[data-theme="dark"] .scale-banner .root { background: var(--card); color: var(--ink-1); }
+  html[data-theme="dark"] .bean.soft { background: var(--card); color: var(--ink-1); border-color: var(--hair); }
+  html[data-theme="dark"] .degchip.alt,
+  html[data-theme="dark"] .romanchip.dim,
+  html[data-theme="dark"] .chordchip.dim-q { background: var(--card); color: var(--ink-1); border-color: var(--hair); }
+  html[data-theme="dark"] .ivlchip { background: var(--card); color: var(--ink-1); border-color: var(--hair); }
+  html[data-theme="dark"] .degchip.tonic { background: var(--ink-1); color: var(--page); }
+  .illust .sum .row b {font-family:var(--font-body);font-weight:700;color:var(--ink-1);}
+  .illust .sum .row p {margin:2px 0 0;font-size:13.5px;color:var(--ink-2);line-height:1.55;}
+
+  /* Ticker */
+  .illust .ticker {display:flex;gap:8px;align-items:center;font-family:ui-monospace,monospace;font-size:11px;color:var(--ink-3);margin-bottom:36px;flex-wrap:wrap;}
+  .illust .ticker .sep {opacity:0.5;}
+
+  /* Quote duos — big pullquote for each mascot */
+  .illust .pullq {display:grid;grid-template-columns:120px 1fr;gap:24px;align-items:center;padding:24px;border-radius:18px;border:1px solid var(--hair);background:var(--card);}
+  .illust .pullq img {width:100%;max-width:120px;height:auto;display:block;}
+  .illust .pullq .q {font-family:var(--font-display);font-style:italic;font-size:22px;font-weight:600;line-height:1.3;color:var(--ink-1);}
+  .illust .pullq .attrib {font-family:ui-monospace,monospace;font-size:11px;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.14em;margin-top:6px;}
+
+  /* Do/Don't mascot pair */
+  .illust .mpair {display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+  @media (max-width:800px){.illust .mpair {grid-template-columns:1fr;}}
+  .illust .mtile {border:1px solid var(--hair);border-radius:20px;overflow:hidden;display:flex;flex-direction:column;background:var(--card);}
+  .illust .mtile .stg {padding:24px;min-height:240px;display:flex;align-items:center;justify-content:center;}
+  .illust .mtile .stg img {width:100%;max-width:220px;height:auto;}
+  .illust .mtile.do {border-color:var(--mint);}
+  .illust .mtile.dont {border-color:#ecd4d4;}
+  .illust .mtile.dont .stg {background:#fff6f3;filter:saturate(0.35) contrast(0.85);}
+  html[data-theme="dark"] .mtile.dont .stg {background:#1c1018;}
+  .illust .mtile .mt {padding:14px 18px;border-top:1px solid var(--hair);display:flex;gap:12px;align-items:center;font-size:13px;color:var(--ink-2);}
+  .illust .mtile .mt p {margin:0;}
+
+  /* Scale row */
+  .illust .scale {display:flex;align-items:flex-end;gap:20px;justify-content:center;padding:32px 20px;flex-wrap:wrap;background:var(--page-2);border-radius:16px;border:1px solid var(--hair);}
+  .illust .scale .pt {display:flex;flex-direction:column;align-items:center;gap:10px;}
+  .illust .scale .pt img {display:block;}
+  .illust .scale .pt .sz {font-family:ui-monospace,monospace;font-size:11px;color:var(--ink-3);}
+
+  /* Do-dont placement */
+  .illust .placement {display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+  @media (max-width:800px){.illust .placement {grid-template-columns:1fr;}}
+  .illust .phone {aspect-ratio:9/16;max-height:440px;margin:0 auto;background:var(--page);border:1.5px solid var(--ink-1);border-radius:22px;padding:18px;position:relative;overflow:hidden;display:flex;flex-direction:column;gap:10px;}
+  .illust .phone .statusbar {height:14px;display:flex;justify-content:space-between;align-items:center;font-family:ui-monospace,monospace;font-size:9px;color:var(--ink-3);}
+  .illust .phone .phtitle {font-family:var(--font-display);font-weight:600;font-size:18px;margin:6px 0 4px;}
+  .illust .phone .phbody {flex:1;display:flex;flex-direction:column;gap:10px;}
+  .illust .phone .row {display:flex;gap:8px;align-items:center;}
+  .illust .phone .rect {background:var(--card);border:1px solid var(--hair);border-radius:10px;padding:10px 12px;font-size:11px;color:var(--ink-2);flex:1;}
+  .illust .phone .mascot-slot {display:flex;justify-content:center;padding:6px;}
+  .illust .phone .mascot-slot img {max-width:100px;height:auto;}
+  .illust .phone .mascot-slot.stacked img {max-width:80px;}
+  .illust .phone .bubble {background:var(--card);border:1px solid var(--hair);border-radius:14px;padding:10px 12px;font-size:11px;color:var(--ink-2);position:relative;}
+  .illust .phone .btn {background:var(--ink-1);color:#fff;border-radius:10px;padding:8px 12px;text-align:center;font-size:11px;font-weight:600;}
+  .illust .phone .caption {font-family:ui-monospace,monospace;font-size:9px;color:var(--ink-3);text-align:center;margin-top:6px;}
+
+  /* Footer */
+  .illust .footer {margin-top:80px;padding-top:32px;border-top:1px solid var(--hair);display:flex;justify-content:space-between;color:var(--ink-3);font-size:13px;font-family:var(--font-body);}
+
+  /* Tweaks panel */
+  .illust .tweaks {position:fixed;right:20px;bottom:20px;width:300px;background:var(--card);border:1px solid var(--hair);border-radius:18px;box-shadow:0 16px 40px rgba(42,29,58,0.18), 0 6px 12px rgba(42,29,58,0.08);padding:18px 20px;z-index:50;display:none;font-family:var(--font-body);}
+  .illust .tweaks.open {display:block;}
+  .illust .tweaks h3 {margin:0 0 12px;}
+  .illust .tweaks .row {display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0;border-top:1px solid var(--hair);}
+  .illust .tweaks .row:first-of-type {border-top:none;}
+  .illust .tweaks label {font-size:12.5px;color:var(--ink-2);font-weight:600;}
+  .illust .tweaks select {font-family:var(--font-body);font-size:12px;padding:5px 8px;border-radius:8px;border:1px solid var(--hair);background:var(--card);color:var(--ink-1);}
+  .illust .tweaks .toggle {position:relative;width:40px;height:22px;background:var(--ink-5);border-radius:999px;cursor:pointer;transition:background .2s;}
+  .illust .tweaks .toggle.on {background:var(--accent);}
+  .illust .tweaks .toggle .knob {position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .2s;}
+  .illust .tweaks .toggle.on .knob {left:20px;}
+
+  /* Mascot background color classes (tint stages to each mascot's palette) */
+  .illust .bg-coral {background:var(--coral-soft);}
+  .illust .bg-mint {background:var(--mint-soft);}
+  .illust .bg-butter {background:var(--butter-soft);}
+  .illust .bg-sky {background:var(--sky-soft);}
+  html[data-theme="dark"] .bg-coral {background:#3a1f17;}
+  html[data-theme="dark"] .bg-mint {background:#1e3b2c;}
+  html[data-theme="dark"] .bg-butter {background:#2d2108;}
+  html[data-theme="dark"] .bg-sky {background:#0f2538;}
+
+</style>
+</head>
+<body data-cc-id="cc-1" style="cursor: crosshair;">
+<div class="wrap">
+
+<header>
+  <div style="display:flex;align-items:center;gap:28px;">
+    <img src="logos/logo-horizontal-light.png" alt="Fifths" style="height:120px;width:auto;display:block;">
+  </div>
+  <div style="text-align:right;">
+    <div class="eyebrow">Brand Kit · v1</div>
+    <p style="margin-top:8px;">Everything you need to ship the app. Logos, icons, favicons and color tokens — generated from the prototype.</p>
+  </div>
+</header>
+
+<section>
+  <h2 class="disp">Primary logo</h2>
+  <p class="lead">Coral wave + display serif wordmark. Use horizontal by default.</p>
+  <div class="grid g-2">
+    <div class="tile light"><div class="bg"><img src="logos/logo-horizontal-light.png" alt="horizontal light"></div><div class="meta"><span class="name">Horizontal / Light</span><span class="sz">logo-horizontal-light.png</span></div></div>
+    <div class="tile dark"><div class="bg"><img src="logos/logo-horizontal-dark.png" alt="horizontal dark"></div><div class="meta"><span class="name">Horizontal / Dark</span><span class="sz">logo-horizontal-dark.png</span></div></div>
+  </div>
+</section>
+
+<section>
+  <h2 class="disp">Stacked &amp; wordmark</h2>
+  <p class="lead">Stacked for square placements; wordmark alone when the mark is already in context.</p>
+  <div class="grid g-4">
+    <div class="tile light"><div class="bg"><img src="logos/logo-stacked-light.png" alt="stacked light"></div><div class="meta"><span class="name">Stacked / Light</span></div></div>
+    <div class="tile dark"><div class="bg"><img src="logos/logo-stacked-dark.png" alt="stacked dark"></div><div class="meta"><span class="name">Stacked / Dark</span></div></div>
+    <div class="tile light"><div class="bg"><img src="logos/logo-wordmark-light.png" alt="wordmark light"></div><div class="meta"><span class="name">Wordmark / Light</span></div></div>
+    <div class="tile dark"><div class="bg"><img src="logos/logo-wordmark-dark.png" alt="wordmark dark"></div><div class="meta"><span class="name">Wordmark / Dark</span></div></div>
+  </div>
+</section>
+
+<section>
+  <h2 class="disp">Monochrome</h2>
+  <p class="lead">For single-ink contexts — print, embossing, UI accents.</p>
+  <div class="grid g-2">
+    <div class="tile light"><div class="bg"><img src="logos/logo-horizontal-mono-ink.png" alt="mono ink"></div><div class="meta"><span class="name">Mono / Ink on paper</span></div></div>
+    <div class="tile dark"><div class="bg"><img src="logos/logo-horizontal-mono-paper.png" alt="mono paper"></div><div class="meta"><span class="name">Mono / Paper on ink</span></div></div>
+  </div>
+</section>
+
+<section>
+  <h2 class="disp">App icon</h2>
+  <p class="lead">iOS 1024, Android Play Store 512, and on-device preview.</p>
+  <div class="grid g-3">
+    <div class="tile light"><div class="bg" style="background:linear-gradient(160deg,#fef1dd,#fff8ef);"><img src="icons/icon-ios-1024.png" alt="iOS icon" style="width:220px;height:220px;border-radius:48px;box-shadow:0 20px 50px rgba(42,29,58,0.18);"></div><div class="meta"><span class="name">iOS · Light</span><span class="sz">1024 × 1024</span></div></div>
+    <div class="tile dark"><div class="bg"><img src="icons/icon-ios-dark-1024.png" alt="iOS dark icon" style="width:220px;height:220px;border-radius:48px;box-shadow:0 20px 50px rgba(0,0,0,0.5);"></div><div class="meta"><span class="name">iOS · Dark</span><span class="sz">1024 × 1024</span></div></div>
+    <div class="tile" style="background:#2a1d3a;"><div class="bg" style="background:#2a1d3a;"><img src="icons/icon-ios-tinted-1024.png" alt="iOS tinted" style="width:220px;height:220px;border-radius:48px;"></div><div class="meta" style="background:#2a1d3a;color:#fff8ef;border-color:#3e2f52;"><span class="name" style="color:#fff8ef;">iOS · Tinted</span><span class="sz" style="color:#8a7b9d;">1024 × 1024</span></div></div>
+    <div class="tile light"><div class="bg"><img src="icons/icon-android-playstore-512.png" alt="Android" style="width:200px;height:200px;border-radius:100px;box-shadow:0 12px 30px rgba(42,29,58,0.14);"></div><div class="meta"><span class="name">Android · Play Store</span><span class="sz">512 × 512</span></div></div>
+    <div class="tile light"><div class="bg" style="position:relative;"><img src="icons/icon-android-adaptive-bg.png" alt="adaptive bg" style="width:180px;height:180px;border-radius:100px;position:absolute;"><img src="icons/icon-android-adaptive-fg.png" alt="adaptive fg" style="width:180px;height:180px;border-radius:100px;position:relative;"></div><div class="meta"><span class="name">Android · Adaptive</span><span class="sz">fg + bg</span></div></div>
+    <div class="tile dark"><div class="bg"><img src="icons/icon-android-mono-fg.png" alt="android mono" style="width:180px;height:180px;"></div><div class="meta"><span class="name">Android · Themed</span><span class="sz">monochrome fg</span></div></div>
+  </div>
+</section>
+
+<section>
+  <h2 class="disp">On device</h2>
+  <p class="lead">How the icon sits beside stock apps on the home screen.</p>
+  <div class="grid g-2">
+    <div class="phone">
+      <div class="phone-grid">
+        <div class="app us"><img src="icons/icon-ios-1024.png"><span class="nm" data-cc-id="cc-2" style="color: rgb(42, 29, 58);">Fifths</span></div>
+        <div class="app"><img src="data:image/svg+xml;utf8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 60 60%22%3E%3Crect width=%2260%22 height=%2260%22 rx=%2214%22 fill=%22%2334c759%22/%3E%3C/svg%3E"><span class="nm" data-cc-id="cc-6" style="color: rgb(42, 29, 58);">Messages</span></div>
+        <div class="app"><img src="data:image/svg+xml;utf8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 60 60%22%3E%3Crect width=%2260%22 height=%2260%22 rx=%2214%22 fill=%22%231e6fff%22/%3E%3Cpath d=%22M15 22h30v16H15z%22 fill=%22%23fff%22 opacity=%22.9%22/%3E%3C/svg%3E"><span class="nm" data-cc-id="cc-5" style="color: rgb(42, 29, 58);">Mail</span></div>
+        <div class="app"><img src="data:image/svg+xml;utf8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 60 60%22%3E%3Crect width=%2260%22 height=%2260%22 rx=%2214%22 fill=%22%23000%22/%3E%3Ccircle cx=%2230%22 cy=%2230%22 r=%2212%22 fill=%22%23fff%22/%3E%3C/svg%3E"><span class="nm" data-cc-id="cc-4" style="color: rgb(42, 29, 58);">Camera</span></div>
+      </div>
+      <div class="rail"></div>
+    </div>
+    <div class="phone" style="background:linear-gradient(180deg,#fef1dd,#fde6c4);">
+      <div class="phone-grid">
+        <div class="app us"><img src="icons/icon-ios-1024.png"><span class="nm" style="color:#2a1d3a;">Fifths</span></div>
+        <div class="app"><img src="data:image/svg+xml;utf8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 60 60%22%3E%3Crect width=%2260%22 height=%2260%22 rx=%2214%22 fill=%22%23ff9500%22/%3E%3C/svg%3E"><span class="nm" style="color:#2a1d3a;">Phone</span></div>
+        <div class="app"><img src="data:image/svg+xml;utf8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 60 60%22%3E%3Crect width=%2260%22 height=%2260%22 rx=%2214%22 fill=%22%23ff2d55%22/%3E%3C/svg%3E"><span class="nm" style="color:#2a1d3a;">Music</span></div>
+        <div class="app"><img src="data:image/svg+xml;utf8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 60 60%22%3E%3Crect width=%2260%22 height=%2260%22 rx=%2214%22 fill=%22%2334c759%22/%3E%3C/svg%3E"><span class="nm" style="color: rgb(42, 29, 58);" data-cc-id="cc-3">Notes</span></div>
+      </div>
+      <div class="rail" style="background:rgba(42,29,58,0.2);"></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2 class="disp">Favicons</h2>
+  <p class="lead">Pre-sized PNGs for the browser tab, mobile home-screen, and social embeds.</p>
+  <div class="tile light" style="padding:32px;">
+    <div class="ico-row" style="justify-content:center;">
+      <div class="ico"><div class="box"><img src="favicons/favicon-16.png" width="16" height="16"></div><div class="lbl">16</div></div>
+      <div class="ico"><div class="box"><img src="favicons/favicon-32.png" width="32" height="32"></div><div class="lbl">32</div></div>
+      <div class="ico"><div class="box"><img src="favicons/favicon-48.png" width="48" height="48"></div><div class="lbl">48</div></div>
+      <div class="ico"><div class="box"><img src="favicons/favicon-64.png" width="64" height="64"></div><div class="lbl">64</div></div>
+      <div class="ico"><div class="box"><img src="favicons/favicon-128.png" width="128" height="128"></div><div class="lbl">128</div></div>
+      <div class="ico"><div class="box"><img src="favicons/favicon-180.png" width="180" height="180"></div><div class="lbl">180 (apple-touch)</div></div>
+      <div class="ico"><div class="box"><img src="favicons/favicon-192.png" width="192" height="192"></div><div class="lbl">192 (android)</div></div>
+      <div class="ico"><div class="box"><img src="favicons/favicon-256.png" width="200" height="200" style="width:200px;height:200px;"></div><div class="lbl">256</div></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2 class="disp">Color</h2>
+  <p class="lead">Coral leads; ink and paper ground it; four accents for categories.</p>
+  <div class="grid g-4">
+    <div class="swatch sw-light" style="background:#fff8ef;"><div><div class="nm">Paper</div><div class="hx">Background</div></div><div class="hx">#fff8ef</div></div>
+    <div class="swatch sw-dark" style="background:#2a1d3a;"><div><div class="nm">Ink</div><div class="hx">Primary text</div></div><div class="hx">#2a1d3a</div></div>
+    <div class="swatch sw-light" style="background:#ff8a6b;color:#2a1d3a;"><div><div class="nm">Coral</div><div class="hx">Accent</div></div><div class="hx">#ff8a6b</div></div>
+    <div class="swatch sw-light" style="background:#b6e5cd;"><div><div class="nm">Mint</div><div class="hx">Category</div></div><div class="hx">#b6e5cd</div></div>
+    <div class="swatch sw-light" style="background:#c8b8ff;"><div><div class="nm">Lavender</div><div class="hx">Category</div></div><div class="hx">#c8b8ff</div></div>
+    <div class="swatch sw-light" style="background:#ffd768;"><div><div class="nm">Butter</div><div class="hx">Category</div></div><div class="hx">#ffd768</div></div>
+    <div class="swatch sw-light" style="background:#a8d5ff;"><div><div class="nm">Sky</div><div class="hx">Category</div></div><div class="hx">#a8d5ff</div></div>
+    <div class="swatch sw-light" style="background:#fef1dd;"><div><div class="nm">Paper 2</div><div class="hx">Surface</div></div><div class="hx">#fef1dd</div></div>
+  </div>
+</section>
+
+<section>
+  <h2 class="disp">Typography</h2>
+  <p class="lead">A high-contrast serif for display &amp; headlines. A clean sans for UI &amp; body.</p>
+  <div class="grid g-2">
+    <div class="type-card">
+      <div class="lab">Display · 600–700</div>
+      <p class="disp samp">Practice in fifths.</p>
+    </div>
+    <div class="type-card">
+      <div class="lab">UI · 400–600</div>
+      <p class="samp" style="font-family:var(--font-body);font-weight:500;font-size:32px;line-height:1.25;letter-spacing:-0.01em;">Three minutes a day. That's all it takes to build an ear.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2 class="disp">Spacing &amp; shape</h2>
+  <p class="lead">A loose 4pt scale, four radii, three elevations. Enough rhythm to feel composed without rigidity.</p>
+
+  <div class="block">
+    <h3>Spacing scale</h3>
+    <p style="margin:0 0 18px;color:var(--ink-2);font-size:13px;max-width:620px;">Most layout uses 8 / 12 / 16 / 22 for gaps and 36 / 48 for section breathing room. Screen side padding on phone is <span class="mono-sm" style="color:var(--ink-1);">22px</span>.</p>
+    <div class="spacing-row">
+      <div class="step"><div class="bar" style="height:4px;"></div><div class="n">4</div><div class="v">xxs</div></div>
+      <div class="step"><div class="bar" style="height:8px;"></div><div class="n">8</div><div class="v">xs · icon gap</div></div>
+      <div class="step"><div class="bar" style="height:12px;"></div><div class="n">12</div><div class="v">sm · inline</div></div>
+      <div class="step"><div class="bar" style="height:16px;"></div><div class="n">16</div><div class="v">md · card pad</div></div>
+      <div class="step"><div class="bar" style="height:22px;"></div><div class="n">22</div><div class="v">lg · screen pad</div></div>
+      <div class="step"><div class="bar" style="height:36px;"></div><div class="n">36</div><div class="v">xl · section</div></div>
+      <div class="step"><div class="bar" style="height:48px;"></div><div class="n">48</div><div class="v">2xl · page</div></div>
+    </div>
+  </div>
+
+  <div class="block">
+    <h3>Radii</h3>
+    <p style="margin:0 0 18px;color:var(--ink-2);font-size:13px;max-width:620px;">Chips &amp; buttons are fully pill-shaped (<span class="mono-sm" style="color:var(--ink-1);">--r-full</span>). Cards use <span class="mono-sm" style="color:var(--ink-1);">--r-md</span> (18). Never mix sharp corners into the UI.</p>
+    <div class="radii-row">
+      <div class="r"><div class="sh" style="border-radius:10px;"></div><div class="nm">sm</div><div class="tag">10px · inputs</div></div>
+      <div class="r"><div class="sh" style="border-radius:18px;"></div><div class="nm">md</div><div class="tag">18px · cards</div></div>
+      <div class="r"><div class="sh" style="border-radius:26px;"></div><div class="nm">lg</div><div class="tag">26px · sheets</div></div>
+      <div class="r"><div class="sh" style="border-radius:34px;"></div><div class="nm">xl</div><div class="tag">34px · hero</div></div>
+      <div class="r"><div class="sh" style="border-radius:999px;"></div><div class="nm">full</div><div class="tag">pill</div></div>
+    </div>
+  </div>
+
+  <div class="block">
+    <h3>Elevation</h3>
+    <p style="margin:0 0 18px;color:var(--ink-2);font-size:13px;max-width:620px;">Shadows are warm-purple, not neutral black. Never stack shadows on dark mode — use hairlines instead.</p>
+    <div class="shadow-row">
+      <div class="shadow-card sh-sm"><span class="label">sh-sm</span><span class="mono-sm">chips, ghost cards, bottom-tabs</span></div>
+      <div class="shadow-card sh-md"><span class="label">sh-md</span><span class="mono-sm">floating primary buttons, headers</span></div>
+      <div class="shadow-card sh-lg"><span class="label">sh-lg</span><span class="mono-sm">modals, sheets, paywall hero</span></div>
+    </div>
+  </div>
+
+  <div class="block">
+    <h3>Offset shadow (cartoon)</h3>
+    <p style="margin:0 0 18px;color:var(--ink-2);font-size:13px;max-width:620px;">Path nodes and unit banners use a <strong>hard offset shadow</strong> — a solid 3–6px vertical slab of the darker ink tone behind the element. It's what gives the UI its playful "sticker" feel.</p>
+    <div style="display:flex;gap:22px;flex-wrap:wrap;align-items:flex-end;padding:14px 0 4px;">
+      <div class="path-node done"><div class="circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 12.5 10 17.5 19 7"/></svg></div><div class="plate">Do–Re</div></div>
+      <div class="path-node current"><div class="circle">♪</div><div class="plate">P5 intro</div></div>
+      <div class="unit-banner"><span class="dot"></span>UNIT · Diatonic</div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2 class="disp">Components</h2>
+  <p class="lead">Building blocks used everywhere. Every interactive element is a "Bean" — pill-shaped, color-toned, confident.</p>
+
+  <div class="block">
+    <h3>Bean · button tones</h3>
+    <p style="margin:0 0 18px;color:var(--ink-2);font-size:13px;max-width:640px;">Primary action is <strong>coral</strong>. Secondary is <strong>ink</strong>. Categorical tones (mint/lav/butter/sky) tie to curriculum segments. <strong>Soft</strong> is the neutral; <strong>ghost</strong> for tertiary actions.</p>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;">
+      <button class="bean md coral">Play reference</button>
+      <button class="bean md ink">Continue</button>
+      <button class="bean md soft">Skip</button>
+      <button class="bean md mint">Mint</button>
+      <button class="bean md lav">Lavender</button>
+      <button class="bean md butter">Butter</button>
+      <button class="bean md sky">Sky</button>
+      <button class="bean md ghost">Ghost</button>
+    </div>
+    <div class="divider"></div>
+    <h3>Sizes</h3>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;">
+      <button class="bean sm coral">Small · 36px</button>
+      <button class="bean md coral">Medium · 46px</button>
+      <button class="bean lg coral">Large · 58px</button>
+    </div>
+    <p style="margin:14px 0 0;color:var(--ink-3);font-size:12px;font-family:ui-monospace,monospace;">radius = height / 2 · border 1.5px · translateY(-1px) on hover</p>
+  </div>
+
+  <div class="block">
+    <h3>ColorPill · categorical chip</h3>
+    <p style="margin:0 0 18px;color:var(--ink-2);font-size:13px;max-width:640px;">Tiny uppercase label chip. Used for accuracy scores, category tags, status. Background uses the <strong>soft</strong> tint; text uses the <strong>ink</strong>.</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <span class="cpill mint">mint</span>
+      <span class="cpill coral">coral</span>
+      <span class="cpill lav">lavender</span>
+      <span class="cpill butter">butter · 87%</span>
+      <span class="cpill sky">sky</span>
+      <span class="cpill ink">ink</span>
+    </div>
+  </div>
+
+  <div class="block">
+    <h3>Music notation · the chip family</h3>
+    <p class="chip-caption">Five consistent chip shapes for the five ways we refer to music in the UI. Same 48px height, same 17px radius, same display-font weight — the <em>system</em> reads even when the label changes. Color carries function, not identity.</p>
+
+    <!-- Row 1: Note names -->
+    <div class="chip-group">
+      <div class="lbl"><b>01 · Notes</b>pitch · scale roots</div>
+      <div class="chiprow">
+        <div class="keychip soft">C</div>
+        <div class="keychip mint">D</div>
+        <div class="keychip lav">E</div>
+        <div class="keychip butter">F</div>
+        <div class="keychip sky">G</div>
+        <div class="keychip coral">A</div>
+        <div class="keychip active">B</div>
+      </div>
+    </div>
+
+    <!-- Row 2: Scale degrees -->
+    <div class="chip-group">
+      <div class="lbl"><b>02 · Scale&nbsp;degrees</b>key-relative · 1–7</div>
+      <div class="chiprow">
+        <div class="degchip tonic">1</div>
+        <div class="degchip">2</div>
+        <div class="degchip"><span class="acc">♭</span>3</div>
+        <div class="degchip">3</div>
+        <div class="degchip">4</div>
+        <div class="degchip alt"><span class="acc">♯</span>4</div>
+        <div class="degchip">5</div>
+        <div class="degchip"><span class="acc">♭</span>6</div>
+        <div class="degchip"><span class="acc">♭</span>7</div>
+      </div>
+    </div>
+
+    <!-- Row 3: Roman numerals -->
+    <div class="chip-group">
+      <div class="lbl"><b>03 · Roman&nbsp;numerals</b>function · harmony</div>
+      <div class="chiprow">
+        <div class="romanchip tonic">I</div>
+        <div class="romanchip">ii</div>
+        <div class="romanchip">iii</div>
+        <div class="romanchip sub">IV</div>
+        <div class="romanchip dom">V<sup>7</sup></div>
+        <div class="romanchip">vi</div>
+        <div class="romanchip dim">vii<sup>°</sup></div>
+      </div>
+    </div>
+
+    <!-- Row 4: Intervals -->
+    <div class="chip-group">
+      <div class="lbl"><b>04 · Intervals</b>distance · quality</div>
+      <div class="chiprow">
+        <div class="ivlchip min"><span class="q">m</span><span class="n">2</span></div>
+        <div class="ivlchip maj"><span class="q">M</span><span class="n">3</span></div>
+        <div class="ivlchip perf"><span class="q">P</span><span class="n">4</span></div>
+        <div class="ivlchip tt">TT</div>
+        <div class="ivlchip perf"><span class="q">P</span><span class="n">5</span></div>
+        <div class="ivlchip maj"><span class="q">M</span><span class="n">6</span></div>
+        <div class="ivlchip min"><span class="q">m</span><span class="n">7</span></div>
+        <div class="ivlchip perf"><span class="q">P</span><span class="n">8</span></div>
+      </div>
+    </div>
+
+    <!-- Row 5: Chords -->
+    <div class="chip-group">
+      <div class="lbl"><b>05 · Chords</b>root · quality · ext</div>
+      <div class="chiprow">
+        <div class="chordchip tonic"><span class="root">C</span></div>
+        <div class="chordchip min-q"><span class="root">D</span><span class="qual">m</span></div>
+        <div class="chordchip min-q"><span class="root">E</span><span class="qual">m</span></div>
+        <div class="chordchip sub"><span class="root">F</span><span class="ext">maj7</span></div>
+        <div class="chordchip dom"><span class="root">G</span><span class="ext">7</span></div>
+        <div class="chordchip min-q"><span class="root">A</span><span class="qual">m</span></div>
+        <div class="chordchip dim-q"><span class="root">B</span><span class="qual">°</span></div>
+      </div>
+    </div>
+
+    <p style="margin:20px 0 0;padding:14px 16px;background:#fef1dd;border-radius:12px;color:var(--ink-2);font-size:13px;line-height:1.6;max-width:780px;"><b style="color:var(--ink-1);">System rules.</b> Accidentals (♭, ♯, °) always use the proper glyph — never plain b/# in copy. Roman numerals: upper-case = major, lower-case = minor, ° = diminished, <sup>7</sup> = dominant. Intervals: P = perfect, M = major, m = minor, TT = tritone. Chord formula: <span class="mono" style="font-size:12px;">root&nbsp;+&nbsp;quality&nbsp;+&nbsp;extension</span> with no spaces — e.g. <span class="mono" style="font-size:12px;">Cmaj7</span>, <span class="mono" style="font-size:12px;">Dm</span>, <span class="mono" style="font-size:12px;">G7</span>, <span class="mono" style="font-size:12px;">F♯m7♭5</span>. Row 05 shows the full diatonic set in C major.</p>
+  </div>
+
+  <div class="block">
+    <h3>Top header · lockup + bean</h3>
+    <p style="margin:0 0 14px;color:var(--ink-2);font-size:13px;max-width:640px;">The only fixed chrome on most screens. Brand mark + wordmark at 17–20px, ink-on-paper. Right side: a <span class="mono-sm">ghost</span> bean for secondary actions, a <span class="mono-sm">coral</span> bean for the single primary CTA.</p>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 22px;background:var(--card);border:1px solid var(--hair);border-radius:18px;">
+      <div style="display:flex;align-items:center;gap:8px;"><img src="favicons/favicon-32.png" style="width:26px;height:26px;border-radius:6px;"><span style="font-family:var(--font-display);font-weight:600;font-size:17px;letter-spacing:-0.2px;">Fifths</span></div>
+      <div style="display:flex;gap:8px;"><button class="bean sm ghost" style="border-color:var(--hair);">Settings</button><button class="bean sm coral">Continue</button></div>
+    </div>
+  </div>
+
+  <div class="block">
+    <h3>Bottom nav · 3 destinations</h3>
+    <p style="margin:0 0 14px;color:var(--ink-2);font-size:13px;max-width:640px;">Glass over paper. One destination is always active; the active tab takes its own tone — <span class="mono-sm" style="color:#c64632;">coral</span> for Path, <span class="mono-sm" style="color:#5b3fb3;">lav</span> for Stats, <span class="mono-sm" style="color:#2f7a5a;">mint</span> for Settings. Never more than three.</p>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+      <div>
+        <div style="max-width:100%;border:1px solid var(--hair);border-radius:20px;overflow:hidden;">
+          <div style="height:90px;background:linear-gradient(180deg,#fff8ef,#fef1dd);"></div>
+          <div class="tabs-mock" style="border-radius:0;">
+            <div class="tab active path"><span class="ic">♪</span><span class="lb">path</span></div>
+            <div class="tab stats"><span class="ic">∿</span><span class="lb">stats</span></div>
+            <div class="tab settings"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span><span class="lb">settings</span></div>
+          </div>
+        </div>
+        <div class="mono-sm" style="margin-top:8px;color:var(--ink-3);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;">Path · active</div>
+      </div>
+      <div>
+        <div style="max-width:100%;border:1px solid var(--hair);border-radius:20px;overflow:hidden;">
+          <div style="height:90px;background:linear-gradient(180deg,#fff8ef,#fef1dd);"></div>
+          <div class="tabs-mock" style="border-radius:0;">
+            <div class="tab path"><span class="ic">♪</span><span class="lb">path</span></div>
+            <div class="tab active stats"><span class="ic">∿</span><span class="lb">stats</span></div>
+            <div class="tab settings"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span><span class="lb">settings</span></div>
+          </div>
+        </div>
+        <div class="mono-sm" style="margin-top:8px;color:var(--ink-3);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;">Stats · active</div>
+      </div>
+      <div>
+        <div style="max-width:100%;border:1px solid var(--hair);border-radius:20px;overflow:hidden;">
+          <div style="height:90px;background:linear-gradient(180deg,#fff8ef,#fef1dd);"></div>
+          <div class="tabs-mock" style="border-radius:0;">
+            <div class="tab path"><span class="ic">♪</span><span class="lb">path</span></div>
+            <div class="tab stats"><span class="ic">∿</span><span class="lb">stats</span></div>
+            <div class="tab active settings"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span><span class="lb">settings</span></div>
+          </div>
+        </div>
+        <div class="mono-sm" style="margin-top:8px;color:var(--ink-3);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;">Settings · active</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="block">
+    <h3>Card</h3>
+    <p style="margin:0 0 14px;color:var(--ink-2);font-size:13px;">The workhorse container. White on paper, 1px hairline, 18px radius, 20–28px internal padding.</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div style="background:var(--card);border:1px solid var(--hair);border-radius:18px;padding:22px;">
+        <span class="cpill coral" style="margin-bottom:12px;">interval</span>
+        <div style="font-family:var(--font-display);font-weight:600;font-size:22px;letter-spacing:-0.01em;margin:6px 0 4px;">Perfect fifth</div>
+        <div style="color:var(--ink-3);font-size:13px;">Stable, open — the backbone of tonal music.</div>
+      </div>
+      <div style="background:var(--card);border:1px solid var(--hair);border-radius:18px;padding:22px;">
+        <span class="label">session summary</span>
+        <div style="font-family:var(--font-display);font-weight:600;font-size:40px;margin:4px 0;">87%</div>
+        <div style="color:var(--ink-3);font-size:13px;">14 of 16 correct · 3m 12s</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2 class="disp">Musical elements</h2>
+  <p class="lead">The vocabulary of the learning path — level types, audio context, interval naming.</p>
+
+  <div class="block">
+    <h3>Level types</h3>
+    <p style="margin:0 0 18px;color:var(--ink-2);font-size:13px;max-width:640px;">Every level has a <strong>type</strong> that drives the glyph shown on its path node. Keep these glyphs consistent everywhere they appear.</p>
+    <div class="ltype-row">
+      <div class="ltype"><div class="gly">●</div><div class="nm">Scale degree</div><div class="de">"Find the 3rd" — diatonic pitch in a key.</div></div>
+      <div class="ltype"><div class="gly">♪</div><div class="nm">Interval</div><div class="de">Two notes · name the distance.</div></div>
+      <div class="ltype"><div class="gly">△</div><div class="nm">Triad</div><div class="de">Major, minor, diminished, augmented.</div></div>
+      <div class="ltype"><div class="gly">✦</div><div class="nm">7th chord</div><div class="de">Four-note chords · maj7, m7, dom7, dim7.</div></div>
+      <div class="ltype"><div class="gly">♬</div><div class="nm">Mode</div><div class="de">Ionian through Locrian.</div></div>
+    </div>
+    <p style="margin:20px 0 0;color:var(--ink-3);font-size:12px;font-family:ui-monospace,monospace;display:flex;gap:18px;align-items:center;flex-wrap:wrap;">
+      <span style="display:inline-flex;align-items:center;gap:6px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2.2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>locked</span>
+      <span style="display:inline-flex;align-items:center;gap:6px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14a8 8 0 0 1 16 0"/><rect x="3.5" y="13.5" width="4.5" height="7" rx="1.2"/><rect x="16" y="13.5" width="4.5" height="7" rx="1.2"/></svg>foundations (listening)</span>
+      <span style="display:inline-flex;align-items:center;gap:6px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 L22 12 L12 22 L2 12 Z"/></svg>acoustic fallback</span>
+    </p>
+  </div>
+
+  <div class="block">
+    <h3>Path nodes · three states</h3>
+    <p style="margin:0 0 22px;color:var(--ink-2);font-size:13px;max-width:640px;">The main navigation is a meandering river of circular nodes, with a horizontal drift of ±60px on phone and ±100px on desktop. Current node breathes on a 2.4s sine.</p>
+    <div style="display:flex;gap:40px;align-items:flex-end;flex-wrap:wrap;">
+      <div class="path-node done"><div class="circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 12.5 10 17.5 19 7"/></svg></div><div class="plate">Do–Re–Mi</div><span class="mono-sm" style="font-size:10px;letter-spacing:0.14em;text-transform:uppercase;">done</span></div>
+      <div class="path-node current">
+        <div class="circle">♪</div>
+        <div class="plate">P5 intro</div>
+        <div style="font-family:var(--font-body);font-size:10px;color:var(--coral-ink);font-weight:600;letter-spacing:0.3px;text-transform:uppercase;">next up · target 80%</div>
+      </div>
+      <div class="path-node locked"><div class="circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2.2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></div><div class="plate">Triads</div><span class="mono-sm" style="font-size:10px;letter-spacing:0.14em;text-transform:uppercase;">locked</span></div>
+    </div>
+  </div>
+
+  <div class="block">
+    <h3>Unit banner</h3>
+    <p style="margin:0 0 18px;color:var(--ink-2);font-size:13px;">Marks a new curriculum segment. Tone matches <span class="mono-sm" style="color:var(--ink-1);">segment.color</span> via <span class="mono-sm" style="color:var(--ink-1);">segmentColor()</span>.</p>
+    <div style="display:flex;flex-direction:column;gap:12px;align-items:flex-start;">
+      <div class="unit-banner" style="background:#b6e5cd;color:#2f7a5a;box-shadow:0 3px 0 #2f7a5a, 0 8px 16px rgba(42,29,58,0.1);"><span class="dot"></span>UNIT · Foundations</div>
+      <div class="unit-banner" style="background:#ff8a6b;color:#c64632;box-shadow:0 3px 0 #c64632, 0 8px 16px rgba(42,29,58,0.1);"><span class="dot"></span>UNIT · Diatonic degrees</div>
+      <div class="unit-banner"><span class="dot"></span>UNIT · Intervals</div>
+      <div class="unit-banner" style="background:#ffd768;color:#9a6f00;box-shadow:0 3px 0 #9a6f00, 0 8px 16px rgba(42,29,58,0.1);"><span class="dot"></span>UNIT · Triads &amp; 7ths</div>
+      <div class="unit-banner" style="background:#a8d5ff;color:#2867b2;box-shadow:0 3px 0 #2867b2, 0 8px 16px rgba(42,29,58,0.1);"><span class="dot"></span>UNIT · Modes</div>
+    </div>
+  </div>
+
+  <div class="block">
+    <h3>Scale context banner</h3>
+    <p style="margin:0 0 14px;color:var(--ink-2);font-size:13px;">Shown at top of Practice. Lav→sky gradient. Root note sits in a white keychip. Tells the ear what key it's in.</p>
+    <div class="scale-banner"><div class="root">D</div><div class="txt"><strong>D major</strong> · tonic on D · diatonic exercises</div></div>
+  </div>
+
+  <div class="block">
+    <h3>Play-reference button</h3>
+    <p style="margin:0 0 20px;color:var(--ink-2);font-size:13px;">The primary action during Practice. Coral fill, ink stroke, cartoon offset shadow. 88px on phone, 104px on tablet+.</p>
+    <div style="display:flex;gap:24px;align-items:center;">
+      <div class="play-btn"><svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M8 5.2 L19 12 L8 18.8 Z"/></svg></div>
+      <div>
+        <div class="label" style="margin-bottom:6px;">states</div>
+        <div style="display:flex;gap:8px;">
+          <button class="bean sm coral">play ref</button>
+          <button class="bean sm ink">replay</button>
+          <button class="bean sm soft" style="display:inline-flex;align-items:center;gap:6px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.34-5.66"/><polyline points="20 4 20 9 15 9"/></svg>slower</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="block">
+    <h3>Interval naming</h3>
+    <p style="margin:0 0 18px;color:var(--ink-2);font-size:13px;">Use the full name in UI copy ("Perfect fifth"), the <strong>short code</strong> in mono contexts and chips ("P5"). Quality always lowercase; quantity always ordinal or cardinal.</p>
+    <table class="int-table">
+      <thead><tr><th>Name</th><th>Short</th><th>Semitones</th><th>Category</th></tr></thead>
+      <tbody>
+        <tr><td class="name">Minor second</td><td class="mono">m2</td><td class="mono">1</td><td><span class="cpill coral">dissonant</span></td></tr>
+        <tr><td class="name">Major second</td><td class="mono">M2</td><td class="mono">2</td><td><span class="cpill butter">step</span></td></tr>
+        <tr><td class="name">Minor third</td><td class="mono">m3</td><td class="mono">3</td><td><span class="cpill lav">consonant</span></td></tr>
+        <tr><td class="name">Major third</td><td class="mono">M3</td><td class="mono">4</td><td><span class="cpill lav">consonant</span></td></tr>
+        <tr><td class="name">Perfect fourth</td><td class="mono">P4</td><td class="mono">5</td><td><span class="cpill mint">perfect</span></td></tr>
+        <tr><td class="name">Tritone</td><td class="mono">TT</td><td class="mono">6</td><td><span class="cpill coral">dissonant</span></td></tr>
+        <tr><td class="name">Perfect fifth</td><td class="mono">P5</td><td class="mono">7</td><td><span class="cpill mint">perfect</span></td></tr>
+        <tr><td class="name">Minor sixth</td><td class="mono">m6</td><td class="mono">8</td><td><span class="cpill lav">consonant</span></td></tr>
+        <tr><td class="name">Major sixth</td><td class="mono">M6</td><td class="mono">9</td><td><span class="cpill lav">consonant</span></td></tr>
+        <tr><td class="name">Minor seventh</td><td class="mono">m7</td><td class="mono">10</td><td><span class="cpill butter">tense</span></td></tr>
+        <tr><td class="name">Major seventh</td><td class="mono">M7</td><td class="mono">11</td><td><span class="cpill coral">dissonant</span></td></tr>
+        <tr><td class="name">Perfect octave</td><td class="mono">P8</td><td class="mono">12</td><td><span class="cpill mint">perfect</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="block">
+    <h3>Voice · copy examples</h3>
+    <p style="margin:0 0 16px;color:var(--ink-2);font-size:13px;max-width:640px;">Warm, concise, musical. Short sentences. Use the display italic for hero phrases; body font for UI copy. Never gamey ("streak saved!"), never clinical ("ERROR: audio unavailable").</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+      <div style="background:var(--card);border:1px solid var(--hair);border-radius:14px;padding:18px 22px;">
+        <div class="label" style="color:#2f7a5a;margin-bottom:8px;">do</div>
+        <div class="serif" style="font-size:20px;font-style:italic;font-weight:600;margin-bottom:4px;">Three minutes a day. That's an ear.</div>
+        <div style="font-size:12px;color:var(--ink-3);">tagline · landing hero</div>
+      </div>
+      <div style="background:var(--card);border:1px solid var(--hair);border-radius:14px;padding:18px 22px;">
+        <div class="label" style="color:#c64632;margin-bottom:8px;">don't</div>
+        <div style="font-size:16px;font-weight:500;margin-bottom:4px;color:var(--ink-2);">"Great job champ! 🎉 Keep grinding!"</div>
+        <div style="font-size:12px;color:var(--ink-3);">avoid cheer, emoji, gamification buzzwords</div>
+      </div>
+      <div style="background:var(--card);border:1px solid var(--hair);border-radius:14px;padding:18px 22px;">
+        <div class="label" style="color:#2f7a5a;margin-bottom:8px;">do</div>
+        <div class="serif" style="font-size:18px;font-style:italic;font-weight:600;margin-bottom:4px;">Listen twice, then answer.</div>
+        <div style="font-size:12px;color:var(--ink-3);">empty-state · Practice screen</div>
+      </div>
+      <div style="background:var(--card);border:1px solid var(--hair);border-radius:14px;padding:18px 22px;">
+        <div class="label" style="color:#2f7a5a;margin-bottom:8px;">do</div>
+        <div class="serif" style="font-size:18px;font-style:italic;font-weight:600;margin-bottom:4px;">You've got the 5 in your bones now.</div>
+        <div style="font-size:12px;color:var(--ink-3);">mastery celebration</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2 class="disp">Stats &amp; progress</h2>
+  <p class="lead">How we show effort, accuracy, and mastery over time.</p>
+
+  <div class="block">
+    <h3>Progress bar</h3>
+    <p style="margin:0 0 16px;color:var(--ink-2);font-size:13px;">Lav → coral gradient fill on a butter track. Optional ink target line at the unlock threshold.</p>
+    <div style="display:flex;flex-direction:column;gap:16px;max-width:520px;">
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--ink-3);margin-bottom:6px;font-family:var(--font-body);"><span>session accuracy</span><span class="mono-sm" style="color:var(--ink-1);">87% / target 80%</span></div>
+        <div class="pbar"><div class="fill" style="width:87%;"></div><div class="target" style="left:80%;"></div></div>
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--ink-3);margin-bottom:6px;font-family:var(--font-body);"><span>questions answered</span><span class="mono-sm" style="color:var(--ink-1);">9 / 16</span></div>
+        <div class="pbar"><div class="fill" style="width:56%;"></div></div>
+      </div>
+    </div>
+    <div class="divider"></div>
+
+    <h3>Ticks · in-session progress</h3>
+    <p style="margin:0 0 12px;color:var(--ink-2);font-size:13px;">Coral = correct/answered, ink = current, ink-5 = upcoming. Always visible in the Practice top bar.</p>
+    <div class="ticks" style="max-width:420px;">
+      <div class="t done"></div><div class="t done"></div><div class="t done"></div><div class="t done"></div>
+      <div class="t done"></div><div class="t done"></div><div class="t done"></div>
+      <div class="t cur"></div>
+      <div class="t future"></div><div class="t future"></div><div class="t future"></div><div class="t future"></div>
+      <div class="t future"></div><div class="t future"></div><div class="t future"></div><div class="t future"></div>
+    </div>
+  </div>
+
+  <div class="block">
+    <h3>Stat tiles</h3>
+    <p style="margin:0 0 18px;color:var(--ink-2);font-size:13px;">Big display number, small uppercase label. Single-metric cards. Used on the Stats screen.</p>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;">
+      <div class="stat-tile"><div class="big">87<span style="font-size:22px;color:var(--ink-3);">%</span></div><div class="sub">accuracy</div></div>
+      <div class="stat-tile"><div class="big">24</div><div class="sub">sessions</div></div>
+      <div class="stat-tile"><div class="big">312</div><div class="sub">minutes</div></div>
+      <div class="stat-tile"><div class="big">1.4k</div><div class="sub">questions</div></div>
+    </div>
+  </div>
+
+  <div class="block">
+    <h3>Streak counter</h3>
+    <p style="margin:0 0 14px;color:var(--ink-2);font-size:13px;">Coral soft pill with a flame. Broken streaks go to ghost tone — we never scold.</p>
+    <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+      <div class="streak"><span class="flame"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.5 2c.3 2.2-.8 3.6-2 5.2-1.4 1.9-3 3.8-3 7 0 3.9 3.1 7.8 7 7.8s7-3.5 7-7.8c0-2.2-.8-4.4-2.3-5.7.2 1.7-.7 2.9-2 3.1.6-2.2-.6-4.8-2.4-6.2-1.3-1-2.3-2-2.3-3.4z"/></svg></span><span class="nmb">7</span><span class="lb">day streak</span></div>
+      <div class="streak" style="background:var(--page-2);"><span class="flame" style="opacity:0.4;"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.5 2c.3 2.2-.8 3.6-2 5.2-1.4 1.9-3 3.8-3 7 0 3.9 3.1 7.8 7 7.8s7-3.5 7-7.8c0-2.2-.8-4.4-2.3-5.7.2 1.7-.7 2.9-2 3.1.6-2.2-.6-4.8-2.4-6.2-1.3-1-2.3-2-2.3-3.4z"/></svg></span><span class="nmb" style="color:var(--ink-3);">0</span><span class="lb" style="color:var(--ink-3);">fresh start</span></div>
+    </div>
+  </div>
+
+  <div class="block">
+    <h3>Wave chart · 30-day accuracy</h3>
+    <p style="margin:0 0 14px;color:var(--ink-2);font-size:13px;">Smoothed quadratic bezier. Coral stroke, coral→transparent area fill, ink-5 dashed baseline, small coral dots where data exists.</p>
+    <div class="wave-card">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;">
+        <div><div class="val">83%</div><div class="lab2">30-day average</div></div>
+        <span class="cpill mint">+6% vs prev</span>
+      </div>
+      <svg width="100%" viewBox="0 0 520 140" preserveAspectRatio="none" style="display:block;">
+        <defs>
+          <linearGradient id="wg" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stop-color="#ff8a6b" stop-opacity="0.45"></stop>
+            <stop offset="100%" stop-color="#ff8a6b" stop-opacity="0.04"></stop>
+          </linearGradient>
+        </defs>
+        <line x1="12" x2="508" y1="128" y2="128" stroke="#e4dbed" stroke-width="1" stroke-dasharray="3 4"></line>
+        <path d="M 12 80 Q 40 78 60 70 Q 85 60 110 68 Q 140 80 170 55 Q 200 30 230 48 Q 260 66 290 42 Q 320 22 350 38 Q 380 58 410 32 Q 440 10 470 28 Q 495 44 508 36 L 508 128 L 12 128 Z" fill="url(#wg)"></path>
+        <path d="M 12 80 Q 40 78 60 70 Q 85 60 110 68 Q 140 80 170 55 Q 200 30 230 48 Q 260 66 290 42 Q 320 22 350 38 Q 380 58 410 32 Q 440 10 470 28 Q 495 44 508 36" stroke="#ff8a6b" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"></path>
+      </svg>
+    </div>
+  </div>
+
+  <div class="block">
+    <h3>Rhythm strip · practice hours</h3>
+    <p style="margin:0 0 14px;color:var(--ink-2);font-size:13px;">24 bars, one per hour of day. Lavender where you practiced, ink-5 where you didn't.</p>
+    <div class="rhythm">
+      <div class="bar" style="background:#e4dbed;height:8%;"></div>
+      <div class="bar" style="background:#e4dbed;height:8%;"></div>
+      <div class="bar" style="background:#e4dbed;height:8%;"></div>
+      <div class="bar" style="background:#e4dbed;height:8%;"></div>
+      <div class="bar" style="background:#e4dbed;height:8%;"></div>
+      <div class="bar" style="background:#e4dbed;height:8%;"></div>
+      <div class="bar" style="background:#c8b8ff;height:20%;"></div>
+      <div class="bar" style="background:#c8b8ff;height:56%;"></div>
+      <div class="bar" style="background:#c8b8ff;height:78%;"></div>
+      <div class="bar" style="background:#c8b8ff;height:42%;"></div>
+      <div class="bar" style="background:#c8b8ff;height:28%;"></div>
+      <div class="bar" style="background:#e4dbed;height:8%;"></div>
+      <div class="bar" style="background:#c8b8ff;height:36%;"></div>
+      <div class="bar" style="background:#c8b8ff;height:52%;"></div>
+      <div class="bar" style="background:#c8b8ff;height:24%;"></div>
+      <div class="bar" style="background:#e4dbed;height:8%;"></div>
+      <div class="bar" style="background:#e4dbed;height:8%;"></div>
+      <div class="bar" style="background:#c8b8ff;height:30%;"></div>
+      <div class="bar" style="background:#c8b8ff;height:72%;"></div>
+      <div class="bar" style="background:#c8b8ff;height:96%;"></div>
+      <div class="bar" style="background:#c8b8ff;height:64%;"></div>
+      <div class="bar" style="background:#c8b8ff;height:38%;"></div>
+      <div class="bar" style="background:#c8b8ff;height:18%;"></div>
+      <div class="bar" style="background:#e4dbed;height:8%;"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-top:8px;font-family:ui-monospace,monospace;font-size:10px;color:var(--ink-4);"><span>12a</span><span>6a</span><span>12p</span><span>6p</span><span>12a</span></div>
+  </div>
+
+  <div class="block">
+    <h3>Mastery heatmap</h3>
+    <p style="margin:0 0 14px;color:var(--ink-2);font-size:13px;">Color encodes accuracy (≥80% mint, ≥60% butter, &lt;60% coral); opacity encodes attempts (0.4 → 1.0 as it fills in). Grouped by level type.</p>
+    <div class="label" style="margin-bottom:6px;">Intervals</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;">
+      <div class="master-tile hi"><span>P5</span><span class="pct">94%</span></div>
+      <div class="master-tile hi"><span>P4</span><span class="pct">89%</span></div>
+      <div class="master-tile hi"><span>M3</span><span class="pct">82%</span></div>
+      <div class="master-tile mid"><span>m3</span><span class="pct">71%</span></div>
+      <div class="master-tile mid"><span>M6</span><span class="pct">68%</span></div>
+      <div class="master-tile lo"><span>TT</span><span class="pct">42%</span></div>
+      <div class="master-tile lo" style="opacity:0.5;"><span>M7</span><span class="pct">55%</span></div>
+    </div>
+    <div class="label" style="margin-bottom:6px;">Triads</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;">
+      <div class="master-tile hi"><span>maj</span><span class="pct">91%</span></div>
+      <div class="master-tile hi"><span>min</span><span class="pct">86%</span></div>
+      <div class="master-tile mid"><span>dim</span><span class="pct">64%</span></div>
+      <div class="master-tile lo" style="opacity:0.6;"><span>aug</span><span class="pct">48%</span></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2 class="disp">Dark mode</h2>
+  <p class="lead">Opt-in only (Settings → theme). Tokens keep the same names — components swap surfaces, not colors.</p>
+
+  <div class="dm-wrap">
+    <h3 style="margin-top:0;">Surfaces</h3>
+    <p style="margin:0;color:#cfc1dd;font-size:13px;max-width:620px;">Paper becomes a deep plum, layered in three steps. Cards sit on <span class="mono" style="color:#f5eefa;">--page-2</span> — never pure black.</p>
+    <div class="dm-surface-row">
+      <div class="dm-surface" style="background:#15101c;"><div><div class="lbl">Page</div><div class="hx">--page</div></div><div class="hx">#15101c</div></div>
+      <div class="dm-surface" style="background:#1e1729;"><div><div class="lbl">Page 2</div><div class="hx">--page-2 / --card</div></div><div class="hx">#1e1729</div></div>
+      <div class="dm-surface" style="background:#271e37;"><div><div class="lbl">Page 3</div><div class="hx">--page-3</div></div><div class="hx">#271e37</div></div>
+      <div class="dm-surface" style="background:#302740;"><div><div class="lbl">Hairline</div><div class="hx">--hairline</div></div><div class="hx">#302740</div></div>
+    </div>
+
+    <h3 style="margin-top:48px;">Ink (text)</h3>
+    <div class="dm-surface-row">
+      <div class="dm-surface" style="background:#f5eefa;color:#15101c;border-color:rgba(0,0,0,0.08);"><div><div class="lbl">Ink 1</div><div class="hx" style="color:#54466b;">primary</div></div><div class="hx" style="color:#54466b;">#f5eefa</div></div>
+      <div class="dm-surface" style="background:#cfc1dd;color:#15101c;border-color:rgba(0,0,0,0.08);"><div><div class="lbl">Ink 2</div><div class="hx" style="color:#54466b;">secondary</div></div><div class="hx" style="color:#54466b;">#cfc1dd</div></div>
+      <div class="dm-surface" style="background:#938099;color:#15101c;border-color:rgba(0,0,0,0.08);"><div><div class="lbl">Ink 3</div><div class="hx" style="color:#2a1d3a;">muted</div></div><div class="hx" style="color:#2a1d3a;">#938099</div></div>
+      <div class="dm-surface" style="background:#5b4d6c;color:#f5eefa;"><div><div class="lbl">Ink 4</div><div class="hx">disabled</div></div><div class="hx">#5b4d6c</div></div>
+    </div>
+
+    <h3 style="margin-top:48px;">Accent pairs</h3>
+    <p style="margin:0 0 4px;color:#cfc1dd;font-size:13px;max-width:620px;">The hue name stays; the <span class="mono" style="color:#f5eefa;">soft</span> becomes the dark saturated shade, and the <span class="mono" style="color:#f5eefa;">-ink</span> becomes the bright readable shade. Coral is the only token that doesn't flip — it's the brand.</p>
+    <div class="dm-accent-row">
+      <div class="dm-accent" style="background:#3a1f17;color:#ffcebd;"><div><div class="nm" style="color:#ff8a6b;">Coral</div><div class="meta">#ff8a6b on #3a1f17</div></div><div class="meta">soft surface + bright text</div></div>
+      <div class="dm-accent" style="background:#2f7a5a;color:#b6e5cd;"><div><div class="nm" style="color:#b6e5cd;">Mint</div><div class="meta">text #b6e5cd on #2f7a5a</div></div><div class="meta">chip / success</div></div>
+      <div class="dm-accent" style="background:#6d52c9;color:#e4daff;"><div><div class="nm" style="color:#e4daff;">Lavender</div><div class="meta">text #e4daff on #6d52c9</div></div><div class="meta">primary CTA</div></div>
+      <div class="dm-accent" style="background:#2867b2;color:#cce1ff;"><div><div class="nm" style="color:#cce1ff;">Sky</div><div class="meta">text #cce1ff on #2867b2</div></div><div class="meta">info</div></div>
+    </div>
+
+    <h3 style="margin-top:48px;">Token table</h3>
+    <div class="dm-head"><div>Token</div><div>Light</div><div>Dark</div></div>
+    <div class="dm-row"><div class="tk">--page</div><div class="dm-cell"><div class="chip" style="background:#fff8ef;"></div><span class="hex">#fff8ef</span></div><div class="dm-cell"><div class="chip" style="background:#15101c;"></div><span class="hex">#15101c</span></div></div>
+    <div class="dm-row"><div class="tk">--page-2</div><div class="dm-cell"><div class="chip" style="background:#fef1dd;"></div><span class="hex">#fef1dd</span></div><div class="dm-cell"><div class="chip" style="background:#1e1729;"></div><span class="hex">#1e1729</span></div></div>
+    <div class="dm-row"><div class="tk">--card</div><div class="dm-cell"><div class="chip" style="background:#ffffff;"></div><span class="hex">#ffffff</span></div><div class="dm-cell"><div class="chip" style="background:#1e1729;"></div><span class="hex">#1e1729</span></div></div>
+    <div class="dm-row"><div class="tk">--ink-1</div><div class="dm-cell"><div class="chip" style="background:#2a1d3a;"></div><span class="hex">#2a1d3a</span></div><div class="dm-cell"><div class="chip" style="background:#f5eefa;"></div><span class="hex">#f5eefa</span></div></div>
+    <div class="dm-row"><div class="tk">--ink-2</div><div class="dm-cell"><div class="chip" style="background:#54466b;"></div><span class="hex">#54466b</span></div><div class="dm-cell"><div class="chip" style="background:#cfc1dd;"></div><span class="hex">#cfc1dd</span></div></div>
+    <div class="dm-row"><div class="tk">--ink-3</div><div class="dm-cell"><div class="chip" style="background:#8a7b9d;"></div><span class="hex">#8a7b9d</span></div><div class="dm-cell"><div class="chip" style="background:#938099;"></div><span class="hex">#938099</span></div></div>
+    <div class="dm-row"><div class="tk">--hairline</div><div class="dm-cell"><div class="chip" style="background:#ebe1ef;"></div><span class="hex">#ebe1ef</span></div><div class="dm-cell"><div class="chip" style="background:#302740;"></div><span class="hex">#302740</span></div></div>
+    <div class="dm-row"><div class="tk">--coral</div><div class="dm-cell"><div class="chip" style="background:#ff8a6b;"></div><span class="hex">#ff8a6b</span></div><div class="dm-cell"><div class="chip" style="background:#ff8a6b;"></div><span class="hex">#ff8a6b <span style="color:#8ae5b6;">· unchanged</span></span></div></div>
+    <div class="dm-row"><div class="tk">--coral-ink</div><div class="dm-cell"><div class="chip" style="background:#c64632;"></div><span class="hex">#c64632</span></div><div class="dm-cell"><div class="chip" style="background:#ffcebd;"></div><span class="hex">#ffcebd</span></div></div>
+    <div class="dm-row"><div class="tk">--accent-soft</div><div class="dm-cell"><div class="chip" style="background:#ffe1d4;"></div><span class="hex">#ffe1d4</span></div><div class="dm-cell"><div class="chip" style="background:#3a1f17;"></div><span class="hex">#3a1f17</span></div></div>
+    <div class="dm-row"><div class="tk">--mint</div><div class="dm-cell"><div class="chip" style="background:#b6e5cd;"></div><span class="hex">#b6e5cd</span></div><div class="dm-cell"><div class="chip" style="background:#2f7a5a;"></div><span class="hex">#2f7a5a <span style="color:#938099;">(was -ink)</span></span></div></div>
+    <div class="dm-row"><div class="tk">--mint-ink</div><div class="dm-cell"><div class="chip" style="background:#2f7a5a;"></div><span class="hex">#2f7a5a</span></div><div class="dm-cell"><div class="chip" style="background:#b6e5cd;"></div><span class="hex">#b6e5cd <span style="color:#938099;">(was base)</span></span></div></div>
+    <div class="dm-row"><div class="tk">--lav</div><div class="dm-cell"><div class="chip" style="background:#c8b8ff;"></div><span class="hex">#c8b8ff</span></div><div class="dm-cell"><div class="chip" style="background:#6d52c9;"></div><span class="hex">#6d52c9</span></div></div>
+    <div class="dm-row"><div class="tk">--lav-ink</div><div class="dm-cell"><div class="chip" style="background:#5b3fb3;"></div><span class="hex">#5b3fb3</span></div><div class="dm-cell"><div class="chip" style="background:#e4daff;"></div><span class="hex">#e4daff</span></div></div>
+    <div class="dm-row"><div class="tk">--butter</div><div class="dm-cell"><div class="chip" style="background:#ffd768;"></div><span class="hex">#ffd768</span></div><div class="dm-cell"><div class="chip" style="background:#9a6f00;"></div><span class="hex">#9a6f00</span></div></div>
+    <div class="dm-row"><div class="tk">--sky</div><div class="dm-cell"><div class="chip" style="background:#a8d5ff;"></div><span class="hex">#a8d5ff</span></div><div class="dm-cell"><div class="chip" style="background:#2867b2;"></div><span class="hex">#2867b2</span></div></div>
+
+    <h3 style="margin-top:48px;">Side-by-side</h3>
+    <div class="dm-pairs">
+      <div class="dm-pair light">
+        <div class="dm-pair-head">Light — default</div>
+        <div class="dm-pair-body">
+          <div class="dm-pair-ui">
+            <div class="dm-card-mini" style="background:#fff;border:1px solid #ebe1ef;">
+              <div class="t" style="color:#2a1d3a;">Intervals · Level 3</div>
+              <div class="s" style="color:#54466b;">Perfect fifth · minor third · major sixth</div>
+            </div>
+            <div style="display:flex;gap:10px;align-items:center;">
+              <div class="dm-btn" style="background:#ff8a6b;color:#2a1d3a;">Play reference</div>
+              <div class="dm-btn" style="background:#ffe1d4;color:#c64632;">skip</div>
+            </div>
+            <div style="display:flex;gap:6px;">
+              <div style="padding:6px 12px;border-radius:999px;background:#b6e5cd;color:#2f7a5a;font-family:var(--font-body);font-weight:600;font-size:11px;">mint chip</div>
+              <div style="padding:6px 12px;border-radius:999px;background:#c8b8ff;color:#5b3fb3;font-family:var(--font-body);font-weight:600;font-size:11px;">lav chip</div>
+              <div style="padding:6px 12px;border-radius:999px;background:#ffd768;color:#9a6f00;font-family:var(--font-body);font-weight:600;font-size:11px;">butter chip</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="dm-pair dark">
+        <div class="dm-pair-head">Dark — opt-in</div>
+        <div class="dm-pair-body">
+          <div class="dm-pair-ui">
+            <div class="dm-card-mini" style="background:#1e1729;border:1px solid #302740;">
+              <div class="t" style="color:#f5eefa;">Intervals · Level 3</div>
+              <div class="s" style="color:#cfc1dd;">Perfect fifth · minor third · major sixth</div>
+            </div>
+            <div style="display:flex;gap:10px;align-items:center;">
+              <div class="dm-btn" style="background:#ff8a6b;color:#2a1d3a;">Play reference</div>
+              <div class="dm-btn" style="background:#3a1f17;color:#ffcebd;">skip</div>
+            </div>
+            <div style="display:flex;gap:6px;">
+              <div style="padding:6px 12px;border-radius:999px;background:#2f7a5a;color:#b6e5cd;font-family:var(--font-body);font-weight:600;font-size:11px;">mint chip</div>
+              <div style="padding:6px 12px;border-radius:999px;background:#6d52c9;color:#e4daff;font-family:var(--font-body);font-weight:600;font-size:11px;">lav chip</div>
+              <div style="padding:6px 12px;border-radius:999px;background:#9a6f00;color:#ffe49b;font-family:var(--font-body);font-weight:600;font-size:11px;">butter chip</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h3 style="margin-top:48px;">Rules</h3>
+    <div class="dm-rules">
+      <div class="dm-rule do">
+        <div class="gd">Do</div>
+        <h4>Keep coral fixed</h4>
+        <p>The brand coral <span class="mono" style="color:#ff8a6b;">#ff8a6b</span> stays identical in both themes — it's the one anchor users recognize across the app.</p>
+      </div>
+      <div class="dm-rule dont">
+        <div class="bad">Don't</div>
+        <h4>Use pure black</h4>
+        <p>Never <span class="mono" style="color:#ff8a8a;">#000</span> for surfaces. The darkest token is <span class="mono" style="color:#f5eefa;">#15101c</span> — a deep plum that matches the warm light palette.</p>
+      </div>
+      <div class="dm-rule do">
+        <div class="gd">Do</div>
+        <h4>Reuse token names</h4>
+        <p>Components reference <span class="mono" style="color:#f5eefa;">--ink-1</span>, <span class="mono" style="color:#f5eefa;">--card</span>, <span class="mono" style="color:#f5eefa;">--coral</span>. The theme swap handles the values — no conditionals in components.</p>
+      </div>
+      <div class="dm-rule dont">
+        <div class="bad">Don't</div>
+        <h4>Follow system theme</h4>
+        <p>Dark mode is opt-in from <span class="mono" style="color:#ff8a8a;">Settings → theme</span> only. We don't honor <span class="mono" style="color:#ff8a8a;">prefers-color-scheme</span> — light is the designed default.</p>
+      </div>
+      <div class="dm-rule do">
+        <div class="gd">Do</div>
+        <h4>Layer surfaces</h4>
+        <p>Page → Page&nbsp;2 → Page&nbsp;3 create depth. Cards lift onto <span class="mono" style="color:#f5eefa;">--page-2</span>; sheets and modals go up one more step.</p>
+      </div>
+      <div class="dm-rule dont">
+        <div class="bad">Don't</div>
+        <h4>Drop shadows on dark</h4>
+        <p>Shadows are still defined but use <span class="mono" style="color:#ff8a8a;">rgba(0,0,0,0.35+)</span> to survive. Prefer a brighter hairline <span class="mono" style="color:#f5eefa;">#302740</span> over a shadow for separation.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
+
+<section class="illust-intro">
+  <h2 class="disp">Illustration &amp; characters</h2>
+  <p class="lead">Four mascots — Fable, Noir, Major, Pulse — each with a role, a signature color, and a narrow tonal range. They appear for moments, never as chrome. One at a time, always.</p>
+</section>
+
+<div class="illust">
+  <div class="ticker">
+    <span>01 Cast</span><span class="sep">·</span>
+    <span>02 Fable</span><span class="sep">·</span>
+    <span>03 Noir</span><span class="sep">·</span>
+    <span>04 Major</span><span class="sep">·</span>
+    <span>05 Pulse</span><span class="sep">·</span>
+    <span>06 Roles</span><span class="sep">·</span>
+    <span>07 Usage</span>
+  </div>
+
+<section id="s1">
+  <h2 class="disp">01 · The cast</h2>
+  <p class="lead">Four characters, four roles. Each owns a signature color from the palette and never crosses it. You'll learn the shorthand within a week of using the app.</p>
+
+  <div class="lineup">
+    <div class="lup bg-coral">
+      <img src="mascots/fable/portrait.png?v=2" alt="Fable the fox">
+      <div style="text-align:center;">
+        <div class="nm" style="color:var(--coral-ink);">Fable</div>
+        <div class="sub">the fox</div>
+      </div>
+      <div class="chip coral">Coral · guide</div>
+    </div>
+    <div class="lup bg-mint">
+      <img src="mascots/noir/portrait.png?v=2" alt="Noir the cat">
+      <div style="text-align:center;">
+        <div class="nm" style="color:var(--mint-ink);">Noir</div>
+        <div class="sub">the cat</div>
+      </div>
+      <div class="chip mint">Mint · focus</div>
+    </div>
+    <div class="lup bg-butter">
+      <img src="mascots/major/portrait.png?v=2" alt="Major the bear">
+      <div style="text-align:center;">
+        <div class="nm" style="color:var(--butter-ink);">Major</div>
+        <div class="sub">the bear</div>
+      </div>
+      <div class="chip butter">Butter · progress</div>
+    </div>
+    <div class="lup bg-sky">
+      <img src="mascots/pulse/portrait.png?v=2" alt="Pulse the rabbit">
+      <div style="text-align:center;">
+        <div class="nm" style="color:var(--sky-ink);">Pulse</div>
+        <div class="sub">the rabbit</div>
+      </div>
+      <div class="chip sky">Sky · rhythm</div>
+    </div>
+  </div>
+
+  <div class="block" style="margin-top:22px;padding:28px 32px;">
+    <h3>House rules</h3>
+    <ul style="margin:4px 0 0;padding:0 0 0 18px;color:var(--ink-2);font-size:14px;line-height:1.75;">
+      <li><b>One mascot per screen.</b> Never two in a single frame.</li>
+      <li><b>Match character to moment.</b> Fable guides, Noir focuses, Major summarises, Pulse keeps time. Don't substitute.</li>
+      <li><b>Never re-skin.</b> A blue Fable or coral Major breaks recognition — the palette is identity, not theme.</li>
+      <li><b>No dialogue in the image.</b> Mascots show up with a face, not a speech bubble. Copy lives in the UI.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="s2">
+  <h2 class="disp">02 · Fable <span class="italic" style="color:var(--coral-ink);font-weight:500;font-size:26px;">/ the fox</span></h2>
+  <p class="lead">Warm, guiding, slightly clever. Fable is the only mascot that speaks in the first person — they're the hand on the user's shoulder through onboarding and hints.</p>
+
+  <div class="masc" style="margin-bottom:22px;">
+    <div class="masc-head">
+      <div>
+        <div class="mono-sm" style="letter-spacing:0.14em;text-transform:uppercase;">Mascot · 01 · Fox</div>
+        <div class="nm">Fable <span class="italic" style="color:var(--ink-3);font-weight:500;">/ warm, guiding, slightly clever</span></div>
+      </div>
+      <div class="role" style="color:var(--coral-ink);">Onboarding · hints · encouragement</div>
+    </div>
+    <div class="masc-body">
+      <div class="masc-hero bg-coral">
+        <img src="mascots/fable/portrait.png?v=2" alt="Fable the fox">
+      </div>
+      <div class="masc-bd">
+        <div>
+          <h4>Personality</h4>
+          <p style="margin:0;color:var(--ink-2);font-size:14px;line-height:1.65;">A patient mentor with a spark of mischief. Fable turns up when the user starts a lesson, gets stuck, or needs a hint to stay in motion. The coral scarf is the focal point — the one saturated accent in any screen that features them.</p>
+        </div>
+        <div>
+          <h4>Where they appear</h4>
+          <ul>
+            <li>First-run &amp; onboarding flows</li>
+            <li>In-lesson hints and nudges</li>
+            <li>Encouragement after a wrong answer</li>
+            <li>Empty states in the Learn tab</li>
+          </ul>
+        </div>
+        <div class="quote" style="border-left-color:var(--coral);">"Try the 5 first — it'll pull you home."</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fable expressions -->
+  <div class="block" style="margin-bottom:22px;padding:28px 32px;">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;gap:20px;margin-bottom:16px;flex-wrap:wrap;">
+      <h3 style="margin:0;">Expression range</h3>
+      <div class="mono-sm">6 states · use sparingly</div>
+    </div>
+    <div class="grid g-3" style="gap:12px;">
+      <div class="expr">
+        <div class="stg"><img src="mascots/fable/laugh.png?v=2" alt="Fable laughing"></div>
+        <div class="mt"><span class="n">Laugh</span><span class="s">streaks · celebrations</span></div>
+      </div>
+      <div class="expr">
+        <div class="stg"><img src="mascots/fable/excited.png?v=2" alt="Fable excited"></div>
+        <div class="mt"><span class="n">Excited</span><span class="s">correct answer</span></div>
+      </div>
+      <div class="expr">
+        <div class="stg"><img src="mascots/fable/curious.png?v=2" alt="Fable curious"></div>
+        <div class="mt"><span class="n">Curious</span><span class="s">hints · prompts</span></div>
+      </div>
+      <div class="expr">
+        <div class="stg"><img src="mascots/fable/happy.png?v=2" alt="Fable happy"></div>
+        <div class="mt"><span class="n">Happy</span><span class="s">default / idle</span></div>
+      </div>
+      <div class="expr">
+        <div class="stg"><img src="mascots/fable/content.png?v=2" alt="Fable content"></div>
+        <div class="mt"><span class="n">Content</span><span class="s">quiet states</span></div>
+      </div>
+      <div class="expr">
+        <div class="stg"><img src="mascots/fable/listening.png?v=2" alt="Fable listening"></div>
+        <div class="mt"><span class="n">Listening</span><span class="s">during playback</span></div>
+      </div>
+    </div>
+    <p style="margin:16px 0 0;color:var(--ink-3);font-size:13px;line-height:1.55;">Expressions progress from energetic (top-left) to quiet (bottom-right). Match intensity to the moment — <b>Laugh</b> for a 30-day streak is earned; <b>Laugh</b> on every correct answer wears thin within a week.</p>
+  </div>
+
+  <!-- Scale rules -->
+  <div class="block" style="padding:28px 32px;">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;gap:20px;margin-bottom:6px;flex-wrap:wrap;">
+      <h3 style="margin:0;">Scale &amp; sizes</h3>
+      <div class="mono-sm">never below 48px tall</div>
+    </div>
+    <p style="margin:4px 0 18px;color:var(--ink-2);font-size:14px;">Mascots read at three sizes. Below 48px the face collapses — use the app's icon instead.</p>
+    <div class="scale">
+      <div class="pt">
+        <img src="mascots/fable/portrait.png?v=2" style="width:72px;height:auto;" alt="Fable at 72px">
+        <div class="sz">XS · 72px</div>
+      </div>
+      <div class="pt">
+        <img src="mascots/fable/portrait.png?v=2" style="width:120px;height:auto;" alt="Fable at 120px">
+        <div class="sz">SM · 120px</div>
+      </div>
+      <div class="pt">
+        <img src="mascots/fable/portrait.png?v=2" style="width:200px;height:auto;" alt="Fable at 200px">
+        <div class="sz">MD · 200px</div>
+      </div>
+      <div class="pt">
+        <img src="mascots/fable/portrait.png?v=2" style="width:280px;height:auto;" alt="Fable at 280px">
+        <div class="sz">LG · 280px</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="s3">
+  <h2 class="disp">03 · Noir <span class="italic" style="color:var(--mint-ink);font-weight:500;font-size:26px;">/ the cat</span></h2>
+  <p class="lead">Quiet, observant, slightly analytical. The only mascot you'll see during listening drills. Noir doesn't cheer; they notice.</p>
+
+  <div class="masc" style="margin-bottom:22px;">
+    <div class="masc-head">
+      <div>
+        <div class="mono-sm" style="letter-spacing:0.14em;text-transform:uppercase;">Mascot · 02 · Cat</div>
+        <div class="nm">Noir <span class="italic" style="color:var(--ink-3);font-weight:500;">/ quiet, observant, analytical</span></div>
+      </div>
+      <div class="role" style="color:var(--mint-ink);">Focus states · listening · precision</div>
+    </div>
+    <div class="masc-body">
+      <div class="masc-hero bg-mint">
+        <img src="mascots/noir/portrait.png?v=2" alt="Noir the cat">
+      </div>
+      <div class="masc-bd">
+        <div>
+          <h4>Personality</h4>
+          <p style="margin:0;color:var(--ink-2);font-size:14px;line-height:1.65;">The still one. Noir shows up when the user needs to listen carefully — ear training, pitch matching, interval recognition. The mint bow-tie softens what would otherwise read as severe. They confirm, never celebrate.</p>
+        </div>
+        <div>
+          <h4>Where they appear</h4>
+          <ul>
+            <li>Listening &amp; pitch-match exercises</li>
+            <li>Focus mode &amp; silent practice</li>
+            <li>"Play again" prompts</li>
+            <li>Low-key confirmation after precise answers</li>
+          </ul>
+        </div>
+        <div class="quote" style="border-left-color:var(--mint);">"Hear it twice. Then answer."</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Noir expressions -->
+  <div class="block" style="padding:28px 32px;">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;gap:20px;margin-bottom:16px;flex-wrap:wrap;">
+      <h3 style="margin:0;">Expression range</h3>
+      <div class="mono-sm">6 states · use sparingly</div>
+    </div>
+    <div class="grid g-3" style="gap:12px;">
+      <div class="expr"><div class="stg bg-mint"><img src="mascots/noir/laugh.png?v=2" alt="Noir laughing"></div><div class="mt"><span class="n">Laugh</span><span class="s">streaks · celebrations</span></div></div>
+      <div class="expr"><div class="stg bg-mint"><img src="mascots/noir/excited.png?v=2" alt="Noir excited"></div><div class="mt"><span class="n">Excited</span><span class="s">correct answer</span></div></div>
+      <div class="expr"><div class="stg bg-mint"><img src="mascots/noir/curious.png?v=2" alt="Noir curious"></div><div class="mt"><span class="n">Curious</span><span class="s">hints · prompts</span></div></div>
+      <div class="expr"><div class="stg bg-mint"><img src="mascots/noir/happy.png?v=2" alt="Noir happy"></div><div class="mt"><span class="n">Happy</span><span class="s">default / idle</span></div></div>
+      <div class="expr"><div class="stg bg-mint"><img src="mascots/noir/content.png?v=2" alt="Noir content"></div><div class="mt"><span class="n">Content</span><span class="s">quiet states</span></div></div>
+      <div class="expr"><div class="stg bg-mint"><img src="mascots/noir/listening.png?v=2" alt="Noir listening"></div><div class="mt"><span class="n">Listening</span><span class="s">during playback</span></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="s4">
+  <h2 class="disp">04 · Major <span class="italic" style="color:var(--butter-ink);font-weight:500;font-size:26px;">/ the bear</span></h2>
+  <p class="lead">Friendly, grounded, supportive. Major carries the book — they remember what the user has done and hands it back in summaries and recaps.</p>
+
+  <div class="masc" style="margin-bottom:22px;">
+    <div class="masc-head">
+      <div>
+        <div class="mono-sm" style="letter-spacing:0.14em;text-transform:uppercase;">Mascot · 03 · Bear</div>
+        <div class="nm">Major <span class="italic" style="color:var(--ink-3);font-weight:500;">/ friendly, grounded, supportive</span></div>
+      </div>
+      <div class="role" style="color:var(--butter-ink);">Progress · summaries · confidence</div>
+    </div>
+    <div class="masc-body">
+      <div class="masc-hero bg-butter">
+        <img src="mascots/major/portrait.png?v=2" alt="Major the bear">
+      </div>
+      <div class="masc-bd">
+        <div>
+          <h4>Personality</h4>
+          <p style="margin:0;color:var(--ink-2);font-size:14px;line-height:1.65;">Solid and kind. Major is the one who remembers. They appear at end-of-lesson summaries, weekly recaps, and "welcome back" moments after a break. Big-sibling warmth; never paternal, never lecturing.</p>
+        </div>
+        <div>
+          <h4>Where they appear</h4>
+          <ul>
+            <li>End-of-lesson summaries</li>
+            <li>Weekly / monthly progress recaps</li>
+            <li>"Welcome back" after a break</li>
+            <li>Mastery &amp; unit-completion moments</li>
+          </ul>
+        </div>
+        <div class="quote" style="border-left-color:var(--butter);">"Four units down. I've been keeping track."</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Major expressions -->
+  <div class="block" style="padding:28px 32px;">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;gap:20px;margin-bottom:16px;flex-wrap:wrap;">
+      <h3 style="margin:0;">Expression range</h3>
+      <div class="mono-sm">6 states · use sparingly</div>
+    </div>
+    <div class="grid g-3" style="gap:12px;">
+      <div class="expr"><div class="stg bg-butter"><img src="mascots/major/laugh.png?v=2" alt="Major laughing"></div><div class="mt"><span class="n">Laugh</span><span class="s">streaks · celebrations</span></div></div>
+      <div class="expr"><div class="stg bg-butter"><img src="mascots/major/excited.png?v=2" alt="Major excited"></div><div class="mt"><span class="n">Excited</span><span class="s">correct answer</span></div></div>
+      <div class="expr"><div class="stg bg-butter"><img src="mascots/major/curious.png?v=2" alt="Major curious"></div><div class="mt"><span class="n">Curious</span><span class="s">hints · prompts</span></div></div>
+      <div class="expr"><div class="stg bg-butter"><img src="mascots/major/happy.png?v=2" alt="Major happy"></div><div class="mt"><span class="n">Happy</span><span class="s">default / idle</span></div></div>
+      <div class="expr"><div class="stg bg-butter"><img src="mascots/major/content.png?v=2" alt="Major content"></div><div class="mt"><span class="n">Content</span><span class="s">quiet states</span></div></div>
+      <div class="expr"><div class="stg bg-butter"><img src="mascots/major/listening.png?v=2" alt="Major listening"></div><div class="mt"><span class="n">Listening</span><span class="s">during playback</span></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="s5">
+  <h2 class="disp">05 · Pulse <span class="italic" style="color:var(--sky-ink);font-weight:500;font-size:26px;">/ the rabbit</span></h2>
+  <p class="lead">Light, rhythmic, energetic. Pulse keeps time — daily practice, streaks, rhythm drills. Their coral bow-tie is the one bridge back to Fable's palette.</p>
+
+  <div class="masc" style="margin-bottom:22px;">
+    <div class="masc-head">
+      <div>
+        <div class="mono-sm" style="letter-spacing:0.14em;text-transform:uppercase;">Mascot · 04 · Rabbit</div>
+        <div class="nm">Pulse <span class="italic" style="color:var(--ink-3);font-weight:500;">/ light, rhythmic, energetic</span></div>
+      </div>
+      <div class="role" style="color:var(--sky-ink);">Streaks · timing · daily practice</div>
+    </div>
+    <div class="masc-body">
+      <div class="masc-hero bg-sky">
+        <img src="mascots/pulse/portrait.png?v=2" alt="Pulse the rabbit">
+      </div>
+      <div class="masc-bd">
+        <div>
+          <h4>Personality</h4>
+          <p style="margin:0;color:var(--ink-2);font-size:14px;line-height:1.65;">Upbeat, never hyperactive. Pulse is eyes-closed because they're <em>listening to the beat</em>. Their role is keeping the user returning — morning reminders, streak counters, rhythm drills. Always warm; never guilt-trip.</p>
+        </div>
+        <div>
+          <h4>Where they appear</h4>
+          <ul>
+            <li>Streak counters &amp; daily-goal UI</li>
+            <li>Rhythm / timing exercises</li>
+            <li>Morning practice reminders</li>
+            <li>Metronome &amp; tempo-based drills</li>
+          </ul>
+        </div>
+        <div class="quote" style="border-left-color:var(--sky);">"Same time tomorrow. Two bars, then breakfast."</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pulse expressions -->
+  <div class="block" style="padding:28px 32px;">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;gap:20px;margin-bottom:16px;flex-wrap:wrap;">
+      <h3 style="margin:0;">Expression range</h3>
+      <div class="mono-sm">6 states · use sparingly</div>
+    </div>
+    <div class="grid g-3" style="gap:12px;">
+      <div class="expr"><div class="stg bg-sky"><img src="mascots/pulse/laugh.png?v=2" alt="Pulse laughing"></div><div class="mt"><span class="n">Laugh</span><span class="s">streaks · celebrations</span></div></div>
+      <div class="expr"><div class="stg bg-sky"><img src="mascots/pulse/excited.png?v=2" alt="Pulse excited"></div><div class="mt"><span class="n">Excited</span><span class="s">correct answer</span></div></div>
+      <div class="expr"><div class="stg bg-sky"><img src="mascots/pulse/curious.png?v=2" alt="Pulse curious"></div><div class="mt"><span class="n">Curious</span><span class="s">hints · prompts</span></div></div>
+      <div class="expr"><div class="stg bg-sky"><img src="mascots/pulse/happy.png?v=2" alt="Pulse happy"></div><div class="mt"><span class="n">Happy</span><span class="s">default / idle</span></div></div>
+      <div class="expr"><div class="stg bg-sky"><img src="mascots/pulse/content.png?v=2" alt="Pulse content"></div><div class="mt"><span class="n">Content</span><span class="s">quiet states</span></div></div>
+      <div class="expr"><div class="stg bg-sky"><img src="mascots/pulse/listening.png?v=2" alt="Pulse listening"></div><div class="mt"><span class="n">Listening</span><span class="s">during playback</span></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="s6">
+  <h2 class="disp">06 · Who shows up when</h2>
+  <p class="lead">Moments are not interchangeable. Pick the mascot whose tone fits the moment, not whoever's handy.</p>
+
+  <div class="block" style="padding:10px 12px 12px;">
+    <table class="roles">
+      <thead>
+        <tr><th>Moment</th><th>Mascot</th><th>Color</th><th>Tone</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>First lesson · onboarding</td><td class="who" style="color:var(--coral-ink);">Fable</td><td><span class="chip coral" style="font-size:10px;padding:3px 8px;">Coral</span></td><td>Curious, welcoming</td></tr>
+        <tr><td>Hint after a wrong answer</td><td class="who" style="color:var(--coral-ink);">Fable</td><td><span class="chip coral" style="font-size:10px;padding:3px 8px;">Coral</span></td><td>Encouraging</td></tr>
+        <tr><td>Empty state · Learn tab</td><td class="who" style="color:var(--coral-ink);">Fable</td><td><span class="chip coral" style="font-size:10px;padding:3px 8px;">Coral</span></td><td>Inviting</td></tr>
+        <tr><td>Listening &amp; pitch-match drill</td><td class="who" style="color:var(--mint-ink);">Noir</td><td><span class="chip mint" style="font-size:10px;padding:3px 8px;">Mint</span></td><td>Still, attentive</td></tr>
+        <tr><td>Focus mode / silent practice</td><td class="who" style="color:var(--mint-ink);">Noir</td><td><span class="chip mint" style="font-size:10px;padding:3px 8px;">Mint</span></td><td>Calm</td></tr>
+        <tr><td>End-of-unit summary</td><td class="who" style="color:var(--butter-ink);">Major</td><td><span class="chip butter" style="font-size:10px;padding:3px 8px;">Butter</span></td><td>Grounded, proud</td></tr>
+        <tr><td>Return after &gt; 7 day absence</td><td class="who" style="color:var(--butter-ink);">Major</td><td><span class="chip butter" style="font-size:10px;padding:3px 8px;">Butter</span></td><td>Warm, no guilt</td></tr>
+        <tr><td>Streak milestone · 7/30/100 days</td><td class="who" style="color:var(--sky-ink);">Pulse</td><td><span class="chip sky" style="font-size:10px;padding:3px 8px;">Sky</span></td><td>Rhythmic, light</td></tr>
+        <tr><td>Daily practice reminder</td><td class="who" style="color:var(--sky-ink);">Pulse</td><td><span class="chip sky" style="font-size:10px;padding:3px 8px;">Sky</span></td><td>Upbeat, gentle</td></tr>
+        <tr><td>Rhythm / metronome drill</td><td class="who" style="color:var(--sky-ink);">Pulse</td><td><span class="chip sky" style="font-size:10px;padding:3px 8px;">Sky</span></td><td>Pulsing</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="s7">
+  <h2 class="disp">07 · Using them well</h2>
+  <p class="lead">Three specific rules, with receipts.</p>
+
+  <!-- Rule 1: one per screen -->
+  <div style="margin-bottom:20px;">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;gap:20px;margin-bottom:10px;flex-wrap:wrap;">
+      <h3 style="margin:0;">Rule 01 · One mascot per screen</h3>
+      <div class="mono-sm">never duet shots</div>
+    </div>
+    <div class="placement">
+      <div>
+        <div class="phone">
+          <div class="statusbar"><span>9:41</span><span>●</span></div>
+          <div class="phtitle" style="color:var(--coral-ink);">Nice try.</div>
+          <div class="mascot-slot"><img src="mascots/fable/portrait.png?v=2" alt="Fable"></div>
+          <div class="bubble">Try the 5 first — it'll pull you home.</div>
+          <div style="flex:1;"></div>
+          <div class="btn" style="background:var(--coral);color:var(--ink-1);">Retry</div>
+        </div>
+        <div class="caption"><span class="tag do" style="padding:3px 8px;font-size:9px;">Do</span> &nbsp;one character holds the moment</div>
+      </div>
+      <div>
+        <div class="phone">
+          <div class="statusbar"><span>9:41</span><span>●</span></div>
+          <div class="phtitle">Nice try.</div>
+          <div class="mascot-slot stacked" style="display:flex;gap:8px;justify-content:center;">
+            <img src="mascots/fable/portrait.png?v=2" alt="Fable" style="max-width:80px;">
+            <img src="mascots/major/portrait.png?v=2" alt="Major" style="max-width:80px;">
+          </div>
+          <div class="bubble">Try the 5 first!</div>
+          <div style="flex:1;"></div>
+          <div class="btn">Retry</div>
+        </div>
+        <div class="caption"><span class="tag dont" style="padding:3px 8px;font-size:9px;">Don't</span> &nbsp;two voices at once</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rule 2: match moment -->
+  <div style="margin-bottom:20px;">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;gap:20px;margin-bottom:10px;flex-wrap:wrap;">
+      <h3 style="margin:0;">Rule 02 · Match mascot to moment</h3>
+      <div class="mono-sm">role is not a mood swap</div>
+    </div>
+    <div class="mpair">
+      <div class="mtile do">
+        <div class="stg bg-butter"><img src="mascots/major/portrait.png?v=2" alt="Major"></div>
+        <div class="mt"><span class="tag do">Do</span><p>End-of-unit summary with <b>Major</b> — progress &amp; memory are his job.</p></div>
+      </div>
+      <div class="mtile dont">
+        <div class="stg bg-sky"><img src="mascots/pulse/portrait.png?v=2" alt="Pulse misused"></div>
+        <div class="mt"><span class="tag dont">Don't</span><p><b>Pulse</b> on a summary screen feels like a reminder, not a reward. Wrong register.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rule 3: no re-skinning -->
+  <div style="margin-bottom:8px;">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;gap:20px;margin-bottom:10px;flex-wrap:wrap;">
+      <h3 style="margin:0;">Rule 03 · Don't re-skin</h3>
+      <div class="mono-sm">color is identity</div>
+    </div>
+    <div class="mpair">
+      <div class="mtile do">
+        <div class="stg bg-coral"><img src="mascots/fable/portrait.png?v=2" alt="Fable native colors"></div>
+        <div class="mt"><span class="tag do">Do</span><p><b>Fable</b> is always orange with a coral scarf. That's recognition.</p></div>
+      </div>
+      <div class="mtile dont">
+        <div class="stg bg-sky"><img src="mascots/fable/portrait.png?v=2" alt="Fable recolored" style="filter:hue-rotate(180deg) saturate(0.7);"></div>
+        <div class="mt"><span class="tag dont">Don't</span><p>A blue Fable reads as "new mascot" to the eye. The palette <em>is</em> the character.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pullquotes -->
+  <div style="margin-top:32px;display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+    <div class="pullq">
+      <img src="mascots/fable/portrait.png?v=2" alt="">
+      <div>
+        <div class="q">"Try the 5 first — it'll pull you home."</div>
+        <div class="attrib">Fable · onboarding tip</div>
+      </div>
+    </div>
+    <div class="pullq">
+      <img src="mascots/noir/portrait.png?v=2" alt="">
+      <div>
+        <div class="q">"Hear it twice. Then answer."</div>
+        <div class="attrib">Noir · listening drill</div>
+      </div>
+    </div>
+    <div class="pullq">
+      <img src="mascots/major/portrait.png?v=2" alt="">
+      <div>
+        <div class="q">"Four units down. I've been keeping track."</div>
+        <div class="attrib">Major · unit summary</div>
+      </div>
+    </div>
+    <div class="pullq">
+      <img src="mascots/pulse/portrait.png?v=2" alt="">
+      <div>
+        <div class="q">"Same time tomorrow. Two bars, then breakfast."</div>
+        <div class="attrib">Pulse · daily reminder</div>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    @media (max-width:800px){
+      .pullq{grid-template-columns:80px 1fr;gap:16px;padding:18px;}
+      .pullq img{max-width:80px;}
+      .pullq .q{font-size:17px;}
+    }
+  </style>
+</section>
+
+<!-- ============ 08 · VOICE & INTERACTIONS ============ -->
+<section id="s8v" class="illust">
+  <h2 class="disp">08 · Voice &amp; interactions</h2>
+  <p class="lead">Seven ways to stream, three ways to ask. Same phone frame as Rule 01 — one mascot, one voice, per screen. Pick streams for in-lesson feedback; pick surveys for onboarding and check-ins.</p>
+
+  <style>
+    /* Voice-phone grid: reuse .illust .phone directly so frames match Rule 01 pixel-for-pixel */
+    #s8v .vgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:32px 24px;}
+    @media (max-width:900px){#s8v .vgrid{grid-template-columns:repeat(2,1fr);}}
+    @media (max-width:520px){#s8v .vgrid{grid-template-columns:1fr;}}
+
+    #s8v .vcol{display:flex;flex-direction:column;align-items:center;gap:12px;}
+
+    /* FIXED-size phones: override .illust .phone's aspect-ratio + max-height so
+       streaming content can never push the frame around. */
+    #s8v .vcol .phone{
+      aspect-ratio:auto;
+      width:250px;max-width:100%;
+      height:440px;max-height:none;
+      flex:0 0 auto;
+      padding:16px;gap:8px;
+    }
+    #s8v .vcol .phone .phtitle{font-size:14px;margin:4px 0 2px;}
+    #s8v .vcol .phone .mascot-slot img{max-width:92px;}
+
+    #s8v .vcap{
+      font-family:ui-monospace,'JetBrains Mono',monospace;
+      font-size:10px;letter-spacing:0.14em;text-transform:uppercase;
+      color:var(--ink-3);text-align:center;line-height:1.55;
+      max-width:240px;
+    }
+    #s8v .vcap .num{display:inline-block;background:var(--page-2);border:1px solid var(--hair);border-radius:999px;padding:2px 7px;margin-right:4px;color:var(--ink-2);}
+    #s8v .vcap b{font-family:ui-monospace,'JetBrains Mono',monospace;color:var(--ink-1);font-weight:600;letter-spacing:0.14em;}
+
+    /* Pin the bubble to a fixed width + min-height and clip overflow */
+    #s8v .phone .bubble{
+      width:100%;
+      box-sizing:border-box;
+      min-height:104px;
+      overflow:hidden;
+      display:flex;flex-direction:column;justify-content:flex-start;gap:4px;
+      padding:10px 11px;
+      font-size:11.5px;line-height:1.45;
+      color:var(--ink-1);
+    }
+    #s8v .phone .bubble[data-kind=quiz]{min-height:128px;}
+    #s8v .phone .bubble[data-kind=yn]{min-height:116px;}
+    #s8v .phone .bubble[data-kind=slider]{min-height:124px;}
+    #s8v .phone .bubble[data-kind=md]{min-height:112px;}
+    #s8v .phone .bubble .ans{flex:1;min-height:0;overflow:hidden;color:var(--ink-1);}
+
+    /* ---------- Stream animations (ported from Streaming Animations.html) ---------- */
+    #s8v .fx-typewriter .char{opacity:0;}
+    #s8v .fx-typewriter .char.on{opacity:1;}
+    #s8v .fx-typewriter .caret{
+      display:inline-block;width:2px;height:1em;background:currentColor;
+      vertical-align:text-bottom;margin-left:1px;
+      animation:s8vblink 900ms steps(2) infinite;opacity:0.7;
+    }
+    @keyframes s8vblink{50%{opacity:0;}}
+
+    #s8v .fx-fadeup .word,#s8v .fx-blur .word,#s8v .fx-bubble .word{
+      display:inline-block;
+    }
+    #s8v .fx-fadeup .word{opacity:0;transform:translateY(8px);
+      transition:opacity 380ms ease, transform 380ms cubic-bezier(.2,.7,.2,1);}
+    #s8v .fx-fadeup .word.on{opacity:1;transform:none;}
+
+    #s8v .fx-blur .word{opacity:0;filter:blur(7px);
+      transition:opacity 420ms ease, filter 420ms ease;}
+    #s8v .fx-blur .word.on{opacity:1;filter:blur(0);}
+
+    #s8v .fx-bubble .word{opacity:0;transform:translateY(12px) scale(0.85);
+      transition:opacity 520ms cubic-bezier(.2,1.4,.4,1), transform 520ms cubic-bezier(.2,1.4,.4,1);}
+    #s8v .fx-bubble .word.on{opacity:1;transform:none;}
+
+    #s8v .fx-wave .char{display:inline-block;opacity:0;
+      transform:translateY(10px) rotate(-6deg);
+      transition:opacity 240ms ease, transform 360ms cubic-bezier(.2,1.4,.4,1);}
+    #s8v .fx-wave .char.on{opacity:1;transform:none;}
+
+    #s8v .fx-md .line{opacity:0;max-height:0;overflow:hidden;margin:0;
+      transition:opacity 300ms ease, max-height 420ms ease, margin 300ms ease;}
+    #s8v .fx-md .line.on{opacity:1;max-height:60px;}
+    #s8v .fx-md .line.bullet{padding-left:13px;position:relative;}
+    #s8v .fx-md .line.bullet::before{
+      content:'';position:absolute;left:2px;top:0.6em;width:4px;height:4px;
+      border-radius:50%;background:currentColor;opacity:0.7;
+      transform:scale(0);transition:transform 260ms cubic-bezier(.2,1.4,.4,1) 120ms;
+    }
+    #s8v .fx-md .line.on.bullet::before{transform:scale(1);}
+    #s8v .fx-md .line + .line.on{margin-top:3px;}
+
+    #s8v .fx-note .token{display:inline-block;opacity:0;
+      transform:translateY(-12px);position:relative;
+      transition:opacity 260ms ease, transform 360ms cubic-bezier(.2,1.4,.4,1);}
+    #s8v .fx-note .token.on{opacity:1;transform:none;}
+    #s8v .fx-note .space{display:inline-block;width:0.3em;}
+    #s8v .fx-note .note{
+      position:absolute;left:50%;top:-13px;font-size:9.5px;
+      color:var(--accent,var(--coral-ink));
+      opacity:0;transform:translate(-50%,4px);
+      transition:opacity 220ms ease, transform 600ms cubic-bezier(.2,.8,.4,1);
+      pointer-events:none;
+    }
+    #s8v .fx-note .token.ping .note{opacity:1;transform:translate(-50%,-8px);}
+
+    /* ---------- Surveys ---------- */
+    #s8v .phone .opts{display:flex;flex-direction:column;gap:4px;}
+    #s8v .phone .opt{
+      background:var(--card);border:1px solid var(--hair);border-radius:9px;
+      padding:6px 9px;font-size:10.5px;color:var(--ink-1);font-weight:500;
+      display:flex;align-items:center;gap:7px;
+      opacity:0;transform:translateY(4px);
+      transition:all 260ms ease;
+    }
+    #s8v .phone .opt.in{opacity:1;transform:none;}
+    #s8v .phone .opt > span:not(.kbd){min-width:0;line-height:1.3;}
+    #s8v .phone .opt .kbd{
+      width:13px;height:13px;border-radius:3px;border:1px solid var(--hair);
+      font-family:ui-monospace,monospace;font-size:8.5px;
+      display:inline-flex;align-items:center;justify-content:center;
+      color:var(--ink-3);flex-shrink:0;
+    }
+    #s8v .phone .opt.hover{border-color:currentColor;box-shadow:0 0 0 2px rgba(0,0,0,0.03);}
+    #s8v .phone .opt.picked-coral{background:var(--coral);color:#fff;border-color:var(--coral);}
+    #s8v .phone .opt.picked-coral .kbd{background:rgba(255,255,255,0.22);border-color:transparent;color:#fff;}
+    #s8v .phone .opt.picked-mint{background:var(--mint);color:var(--mint-ink);border-color:var(--mint);}
+    #s8v .phone .opt.picked-mint .kbd{background:rgba(47,122,90,0.18);border-color:transparent;color:var(--mint-ink);}
+    #s8v .phone .opt.picked-butter{background:var(--butter);color:var(--butter-ink);border-color:var(--butter);}
+    #s8v .phone .opt.picked-butter .kbd{background:rgba(154,111,0,0.18);border-color:transparent;color:var(--butter-ink);}
+    #s8v .phone .opt.picked-sky{background:var(--sky);color:var(--sky-ink);border-color:var(--sky);}
+    #s8v .phone .opt.picked-sky .kbd{background:rgba(40,103,178,0.18);border-color:transparent;color:var(--sky-ink);}
+    #s8v .phone .opt.dim{opacity:0.38;}
+
+    #s8v .phone .survey-reply{
+      margin-top:4px;font-size:10.5px;line-height:1.42;color:var(--ink-2);font-style:italic;
+      opacity:0;transition:opacity 400ms ease;
+    }
+    #s8v .phone .survey-reply.on{opacity:1;}
+    #s8v .phone .survey-reply .word{display:inline-block;opacity:0;transform:translateY(3px);
+      transition:opacity 300ms ease, transform 300ms ease;}
+    #s8v .phone .survey-reply .word.on{opacity:1;transform:none;}
+
+    /* Yes/No */
+    #s8v .phone .yn{display:flex;gap:5px;}
+    #s8v .phone .yn .opt{flex:1;justify-content:center;font-weight:600;font-size:10px;padding:8px 6px;text-align:center;line-height:1.25;}
+
+    /* Slider */
+    #s8v .phone .slider{position:relative;height:24px;margin:2px 0;}
+    #s8v .phone .slider .track{position:absolute;top:11px;left:0;right:0;height:3px;background:var(--hair);border-radius:999px;}
+    #s8v .phone .slider .fill{position:absolute;top:11px;left:0;height:3px;background:var(--sky);border-radius:999px;width:0%;
+      transition:width 520ms cubic-bezier(.2,.7,.2,1);}
+    #s8v .phone .slider .thumb{position:absolute;top:5px;width:14px;height:14px;border-radius:50%;background:#fff;
+      border:2px solid var(--sky);transform:translateX(-50%);left:0%;
+      transition:left 520ms cubic-bezier(.2,.7,.2,1);
+      box-shadow:0 1.5px 4px rgba(42,29,58,0.16);}
+    #s8v .phone .slider-labels{display:flex;justify-content:space-between;font-family:ui-monospace,monospace;font-size:9px;color:var(--ink-3);}
+    #s8v .phone .slider-value{font-family:var(--font-display);font-style:italic;font-weight:600;font-size:13px;color:var(--sky-ink);}
+
+    /* Question for surveys */
+    #s8v .phone .bubble .sq{
+      font-family:var(--font-display);font-style:italic;font-weight:600;
+      font-size:12px;line-height:1.3;color:var(--ink-1);margin:0 0 2px;
+      letter-spacing:-0.005em;
+    }
+
+    /* Voice guide row below */
+    #s8v .voice-guide{margin-top:40px;display:grid;grid-template-columns:repeat(4,1fr);gap:16px;}
+    @media (max-width:900px){#s8v .voice-guide{grid-template-columns:1fr 1fr;}}
+    #s8v .vguide{background:var(--card);border:1px solid var(--hair);border-radius:18px;padding:20px 22px;display:flex;flex-direction:column;gap:8px;}
+    #s8v .vguide .vhead{display:flex;align-items:center;gap:10px;}
+    #s8v .vguide .vdot{width:10px;height:10px;border-radius:50%;}
+    #s8v .vguide .vnm{font-family:var(--font-display);font-weight:600;font-size:19px;}
+    #s8v .vguide .vtrait{font-family:ui-monospace,monospace;font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--ink-3);}
+    #s8v .vguide p{margin:0;font-size:13px;color:var(--ink-2);line-height:1.5;}
+    #s8v .vguide ul{margin:2px 0 0;padding:0;list-style:none;font-size:12.5px;color:var(--ink-2);line-height:1.55;}
+    #s8v .vguide ul li{padding-left:14px;position:relative;}
+    #s8v .vguide ul li::before{content:'';position:absolute;left:0;top:0.62em;width:4px;height:4px;border-radius:50%;background:currentColor;opacity:0.4;}
+  </style>
+
+  <!-- Speed controls -->
+  <div style="display:flex;align-items:center;gap:12px;margin:8px 0 24px;font-family:ui-monospace,'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--ink-3);">
+    <span>Speed</span>
+    <div id="s8v-speed" style="display:flex;gap:4px;">
+      <button data-spd="0.7" style="background:var(--page-2);border:1px solid var(--hair);border-radius:999px;padding:4px 10px;font:inherit;color:var(--ink-2);cursor:pointer;">0.7×</button>
+      <button data-spd="1" class="on" style="background:var(--ink-1);border:1px solid var(--ink-1);border-radius:999px;padding:4px 10px;font:inherit;color:var(--page);cursor:pointer;">1×</button>
+      <button data-spd="1.5" style="background:var(--page-2);border:1px solid var(--hair);border-radius:999px;padding:4px 10px;font:inherit;color:var(--ink-2);cursor:pointer;">1.5×</button>
+    </div>
+  </div>
+
+  <div class="vgrid" id="s8v-grid"></div>
+
+  <!-- Voice guide row -->
+  <div class="voice-guide">
+    <div class="vguide">
+      <div class="vhead"><span class="vdot" style="background:var(--coral);"></span><span class="vnm">Fable</span></div>
+      <div class="vtrait">Guide · warm · short</div>
+      <p>Bright, encouraging fragments. Ends on the path forward.</p>
+      <ul><li>"Try the 5 first — it'll pull you home."</li><li>"C major — that's the bright one."</li></ul>
+    </div>
+    <div class="vguide">
+      <div class="vhead"><span class="vdot" style="background:var(--mint);"></span><span class="vnm">Noir</span></div>
+      <div class="vtrait">Focus · patient · precise</div>
+      <p>Asks, then waits. Quizzes and prompts more than statements.</p>
+      <ul><li>"Name the interval you just heard."</li><li>"Hear it twice. Then answer."</li></ul>
+    </div>
+    <div class="vguide">
+      <div class="vhead"><span class="vdot" style="background:var(--butter);"></span><span class="vnm">Major</span></div>
+      <div class="vtrait">Recap · steady · warm</div>
+      <p>Summarizes and welcomes back. Often in lists, always acknowledging progress.</p>
+      <ul><li>"Four units down. I've been keeping track."</li><li>"Pick up where you left off?"</li></ul>
+    </div>
+    <div class="vguide">
+      <div class="vhead"><span class="vdot" style="background:var(--sky);"></span><span class="vnm">Pulse</span></div>
+      <div class="vtrait">Rhythm · upbeat · daily</div>
+      <p>Celebrates streaks and sets the next beat. Almost musical cadence.</p>
+      <ul><li>"Seven days in a row!"</li><li>"Same time tomorrow. Two bars, then breakfast."</li></ul>
+    </div>
+  </div>
+
+  <!-- ============ Voice phone animation engine (ported from Streaming Animations) ============ -->
+  <script>
+  (function(){
+    'use strict';
+
+    const PALETTE_TITLE = {
+      coral: 'var(--coral-ink)', mint: 'var(--mint-ink)',
+      butter: 'var(--butter-ink)', sky: 'var(--sky-ink)'
+    };
+    const PALETTE_BTN = {
+      coral: ['var(--coral)','var(--ink-1)'],
+      mint:  ['var(--mint)', 'var(--mint-ink)'],
+      butter:['var(--butter)','var(--butter-ink)'],
+      sky:   ['var(--sky)',  'var(--sky-ink)']
+    };
+    const MASCOT_NAME = { fable:'Fable', noir:'Noir', major:'Major', pulse:'Pulse' };
+
+    const CARDS = [
+      // 1 · Typewriter · Fable guide
+      { kind:'stream', fx:'typewriter', name:'Typewriter', role:'Guide',
+        mascot:'fable', expr:'happy', palette:'coral',
+        phtitle:'A hint.', btn:'Got it',
+        question:'What key are we in?',
+        answer:"That bright lift? C major — four fifths up from A." },
+
+      // 2 · Fade-up · Fable hint
+      { kind:'stream', fx:'fadeup', name:'Fade up', role:'Hint',
+        mascot:'fable', expr:'curious', palette:'coral',
+        phtitle:'Nice try.', btn:'Retry',
+        question:'Which interval was that?',
+        answer:"A perfect fifth. Same opening shape as Twinkle Twinkle." },
+
+      // 3 · Blur focus · Noir listening
+      { kind:'stream', fx:'blur', name:'Blur focus', role:'Listen',
+        mascot:'noir', expr:'listening', palette:'mint',
+        phtitle:'Listen in.', btn:'Play again',
+        question:'Can you hum the tonic?',
+        answer:"Hold the note. Listen for where it wants to rest." },
+
+      // 4 · Survey MC · Noir pitch quiz
+      { kind:'quiz', name:'Survey · choice', role:'Quiz',
+        mascot:'noir', expr:'curious', palette:'mint',
+        phtitle:'Name that interval.', btn:'Submit',
+        question:'Name the interval you just heard.',
+        options:[
+          {key:'1',label:'Minor third'},
+          {key:'2',label:'Perfect fifth',correct:true},
+          {key:'3',label:'Major seventh'}
+        ],
+        reply:"Perfect fifth — your ear is tuning in." },
+
+      // 5 · Bubble · Pulse streak
+      { kind:'stream', fx:'bubble', name:'Bubble', role:'Streak',
+        mascot:'pulse', expr:'excited', palette:'sky',
+        phtitle:'Seven in a row.', btn:'Start day 8',
+        question:'Seven days in a row!',
+        answer:"That's a week. Same bar, same breath, tomorrow." },
+
+      // 6 · Markdown · Major recap
+      { kind:'stream', fx:'md', name:'Markdown expand', role:'Recap',
+        mascot:'major', expr:'content', palette:'butter',
+        phtitle:'Unit recap.', btn:'Next unit',
+        question:"Here's your unit wrap-up.",
+        answer:"This week you unlocked:\n• Perfect fifths\n• Major thirds\n• Two new keys" },
+
+      // 7 · Survey Yes/No · Major welcome back
+      { kind:'yn', name:'Survey · yes/no', role:'Check-in',
+        mascot:'major', expr:'happy', palette:'butter',
+        phtitle:'Welcome back.', btn:null,
+        question:'Pick up where you left off?',
+        options:[{key:'Y',label:'Yes, keep going',pick:true},{key:'N',label:'Start fresh'}],
+        reply:"Good — two lessons into Diatonic." },
+
+      // 8 · Wave · Pulse rhythm
+      { kind:'stream', fx:'wave', name:'Wave', role:'Rhythm',
+        mascot:'pulse', expr:'happy', palette:'sky',
+        phtitle:'Find the beat.', btn:'Tap along',
+        question:'Feel the pulse?',
+        answer:"Four on the floor — that's your foundation." },
+
+      // 9 · Note-by-note · Noir transcribe
+      { kind:'stream', fx:'note', name:'Note-by-note', role:'Transcribe',
+        mascot:'noir', expr:'content', palette:'mint',
+        phtitle:'Transcribe.', btn:'Play phrase',
+        question:'Transcribe the phrase.',
+        answer:"Do re mi, fa sol la — it climbs and rests on five." },
+
+      // 10 · Survey slider · Pulse goal
+      { kind:'slider', name:'Survey · slider', role:'Goal',
+        mascot:'pulse', expr:'curious', palette:'sky',
+        phtitle:'Daily goal.', btn:'Save goal',
+        question:'How many minutes a day?',
+        min:1, max:20, target:5,
+        reply:"Five minutes is a real streak. I'll nudge you at 8." }
+    ];
+
+    // ---------- Helpers ----------
+    let SPEED = 1;
+    const sleep = (ms) => new Promise(r => setTimeout(r, ms / SPEED));
+    const splitWords = (t) => t.match(/\S+\s*/g) || [];
+    const NOTES = ['♪','♫','♩','♬'];
+    function el(tag, cls, attrs){
+      const e = document.createElement(tag);
+      if (cls) e.className = cls;
+      if (attrs) for (const k in attrs) e.setAttribute(k, attrs[k]);
+      return e;
+    }
+
+    // ---------- Stream runners ----------
+    async function runTypewriter(target, text){
+      target.innerHTML = '';
+      const spans = [];
+      for (const ch of text){
+        const s = document.createElement('span');
+        s.className='char'; s.textContent=ch;
+        target.appendChild(s); spans.push(s);
+      }
+      const caret = document.createElement('span');
+      caret.className='caret'; target.appendChild(caret);
+      for (let i=0;i<spans.length;i++){
+        spans[i].classList.add('on');
+        await sleep(28 + (spans[i].textContent===' '?0:8*Math.random()));
+      }
+      await sleep(1600);
+      caret.remove();
+    }
+    async function runWordFx(target, text){
+      target.innerHTML='';
+      const words = splitWords(text);
+      const spans = words.map(w => {
+        const s = document.createElement('span');
+        s.className='word';
+        s.textContent = w.trimEnd();
+        target.appendChild(s);
+        if (w.endsWith(' ')) target.appendChild(document.createTextNode(' '));
+        return s;
+      });
+      for (const s of spans){ s.classList.add('on'); await sleep(110); }
+      await sleep(1500);
+    }
+    async function runWave(target, text){
+      target.innerHTML='';
+      for (const ch of text){
+        if (ch===' ') target.appendChild(document.createTextNode(' '));
+        else {
+          const s = document.createElement('span');
+          s.className='char'; s.textContent=ch;
+          target.appendChild(s);
+        }
+      }
+      const chars = target.querySelectorAll('.char');
+      for (let i=0;i<chars.length;i++){ chars[i].classList.add('on'); await sleep(22); }
+      await sleep(1500);
+    }
+    async function runMarkdown(target, text){
+      target.innerHTML='';
+      const lines = text.split('\n');
+      const divs = lines.map(line => {
+        const d = document.createElement('div');
+        d.className = 'line' + (line.trim().startsWith('•')?' bullet':'');
+        d.textContent = line.trim().replace(/^•\s*/,'');
+        target.appendChild(d);
+        return d;
+      });
+      for (const d of divs){ d.classList.add('on'); await sleep(300); }
+      await sleep(1400);
+    }
+    async function runNote(target, text, palette){
+      target.innerHTML='';
+      const accent = palette==='mint'?'var(--mint-ink)':
+                     palette==='butter'?'var(--butter-ink)':
+                     palette==='sky'?'var(--sky-ink)':'var(--coral-ink)';
+      target.style.setProperty('--accent', accent);
+      const words = splitWords(text);
+      const spans = [];
+      for (const w of words){
+        const wrap = document.createElement('span');
+        wrap.className='token';
+        wrap.textContent = w.trimEnd();
+        const note = document.createElement('span');
+        note.className='note';
+        note.textContent = NOTES[Math.floor(Math.random()*NOTES.length)];
+        wrap.appendChild(note);
+        target.appendChild(wrap);
+        if (w.endsWith(' ')){
+          const sp = document.createElement('span');
+          sp.className='space'; target.appendChild(sp);
+        }
+        spans.push(wrap);
+      }
+      for (const s of spans){
+        s.classList.add('on','ping');
+        setTimeout(()=>s.classList.remove('ping'), 700);
+        await sleep(130);
+      }
+      await sleep(1500);
+    }
+
+    const STREAM_RUNNERS = {
+      typewriter: runTypewriter,
+      fadeup: runWordFx,
+      blur: runWordFx,
+      bubble: runWordFx,
+      wave: runWave,
+      md: runMarkdown,
+      note: (t,x,p)=>runNote(t,x,p)
+    };
+
+    // ---------- Survey runners ----------
+    async function runQuiz(target, card){
+      target.innerHTML='';
+      const q = el('p','sq'); q.textContent = '\u201C'+card.question+'\u201D';
+      target.appendChild(q);
+      const wrap = el('div','opts');
+      const optEls = card.options.map(o => {
+        const e = el('div','opt');
+        const k = el('span','kbd'); k.textContent=o.key;
+        const l = document.createElement('span'); l.textContent=o.label;
+        e.appendChild(k); e.appendChild(l);
+        wrap.appendChild(e);
+        return {el:e, data:o};
+      });
+      target.appendChild(wrap);
+      const reply = el('div','survey-reply');
+      target.appendChild(reply);
+
+      for (const o of optEls){ o.el.classList.add('in'); await sleep(140); }
+      await sleep(400);
+
+      const correctIdx = optEls.findIndex(o=>o.data.correct);
+      for (let i=0;i<correctIdx;i++){
+        optEls[i].el.classList.add('hover');
+        await sleep(240);
+        optEls[i].el.classList.remove('hover');
+      }
+      optEls[correctIdx].el.classList.add('hover');
+      await sleep(340);
+      optEls[correctIdx].el.classList.remove('hover');
+      optEls[correctIdx].el.classList.add('picked-'+card.palette);
+      optEls.forEach((o,i)=>{ if(i!==correctIdx) o.el.classList.add('dim'); });
+      await sleep(300);
+
+      reply.classList.add('on');
+      const words = splitWords(card.reply);
+      for (const w of words){
+        const s = el('span','word'); s.textContent = w.trimEnd();
+        reply.appendChild(s);
+        if (w.endsWith(' ')) reply.appendChild(document.createTextNode(' '));
+        requestAnimationFrame(()=>s.classList.add('on'));
+        await sleep(100);
+      }
+      await sleep(1600);
+    }
+
+    async function runYN(target, card){
+      target.innerHTML='';
+      const q = el('p','sq'); q.textContent = '\u201C'+card.question+'\u201D';
+      target.appendChild(q);
+      const wrap = el('div','yn');
+      const optEls = card.options.map(o => {
+        const e = el('div','opt');
+        const l = document.createElement('span'); l.textContent=o.label;
+        e.appendChild(l);
+        wrap.appendChild(e);
+        return {el:e,data:o};
+      });
+      target.appendChild(wrap);
+      const reply = el('div','survey-reply');
+      target.appendChild(reply);
+
+      for (const o of optEls){ o.el.classList.add('in'); await sleep(150); }
+      await sleep(400);
+
+      const pickIdx = optEls.findIndex(o=>o.data.pick);
+      optEls[pickIdx].el.classList.add('hover');
+      await sleep(380);
+      optEls[pickIdx].el.classList.remove('hover');
+      optEls[pickIdx].el.classList.add('picked-'+card.palette);
+      optEls.forEach((o,i)=>{ if(i!==pickIdx) o.el.classList.add('dim'); });
+      await sleep(340);
+
+      reply.classList.add('on');
+      const words = splitWords(card.reply);
+      for (const w of words){
+        const s = el('span','word'); s.textContent = w.trimEnd();
+        reply.appendChild(s);
+        if (w.endsWith(' ')) reply.appendChild(document.createTextNode(' '));
+        requestAnimationFrame(()=>s.classList.add('on'));
+        await sleep(100);
+      }
+      await sleep(1600);
+    }
+
+    async function runSlider(target, card){
+      target.innerHTML='';
+      const q = el('p','sq'); q.textContent = '\u201C'+card.question+'\u201D';
+      target.appendChild(q);
+      const val = el('div','slider-value'); val.textContent = card.min+' min';
+      target.appendChild(val);
+      const s = el('div','slider');
+      const track = el('div','track');
+      const fill = el('div','fill'); fill.style.width='0%';
+      const thumb = el('div','thumb'); thumb.style.left='0%';
+      s.appendChild(track); s.appendChild(fill); s.appendChild(thumb);
+      target.appendChild(s);
+      const labels = el('div','slider-labels');
+      labels.innerHTML = '<span>'+card.min+' min</span><span>'+card.max+' min</span>';
+      target.appendChild(labels);
+      const reply = el('div','survey-reply');
+      target.appendChild(reply);
+
+      await sleep(500);
+      const pct = ((card.target - card.min) / (card.max - card.min)) * 100;
+      fill.style.width = pct+'%';
+      thumb.style.left = pct+'%';
+      const steps = 18;
+      for (let i=1;i<=steps;i++){
+        const v = Math.round(card.min + (card.target - card.min) * (i/steps));
+        val.textContent = v + ' min';
+        await sleep(520/steps);
+      }
+      await sleep(450);
+      reply.classList.add('on');
+      const words = splitWords(card.reply);
+      for (const w of words){
+        const sp = el('span','word'); sp.textContent = w.trimEnd();
+        reply.appendChild(sp);
+        if (w.endsWith(' ')) reply.appendChild(document.createTextNode(' '));
+        requestAnimationFrame(()=>sp.classList.add('on'));
+        await sleep(100);
+      }
+      await sleep(1600);
+    }
+
+    const SURVEY_RUNNERS = { quiz:runQuiz, yn:runYN, slider:runSlider };
+
+    // ---------- Render & loop ----------
+    const grid = document.getElementById('s8v-grid');
+
+    CARDS.forEach((card, i) => {
+      const col = el('div','vcol');
+      const phone = el('div','phone');
+      phone.dataset.vp = String(i);
+
+      const status = el('div','statusbar');
+      status.innerHTML = '<span>9:41</span><span>●</span>';
+      phone.appendChild(status);
+
+      const title = el('div','phtitle');
+      title.style.color = PALETTE_TITLE[card.palette];
+      title.textContent = card.phtitle;
+      phone.appendChild(title);
+
+      const slot = el('div','mascot-slot');
+      const img = document.createElement('img');
+      img.src = 'mascots/' + card.mascot + '/portrait.png?v=2';
+      img.alt = MASCOT_NAME[card.mascot];
+      slot.appendChild(img);
+      phone.appendChild(slot);
+
+      const bubble = el('div','bubble');
+      const kindAttr = card.kind==='stream' ? (card.fx==='md'?'md':'stream') : card.kind;
+      bubble.setAttribute('data-kind', kindAttr);
+
+      if (card.kind === 'stream'){
+        bubble.classList.add('fx-'+card.fx);
+        const ans = el('div','ans');
+        bubble.appendChild(ans);
+      }
+      phone.appendChild(bubble);
+
+      const spacer = el('div',''); spacer.style.flex = '1';
+      phone.appendChild(spacer);
+
+      if (card.btn){
+        const btn = el('div','btn');
+        const [bg, fg] = PALETTE_BTN[card.palette];
+        btn.style.background = bg; btn.style.color = fg;
+        btn.textContent = card.btn;
+        phone.appendChild(btn);
+      }
+
+      col.appendChild(phone);
+
+      const cap = el('div','vcap');
+      cap.innerHTML = '<span class="num">'+String(i+1).padStart(2,'0')+'</span><b>'+MASCOT_NAME[card.mascot]+'</b> · '+card.role+' &nbsp;·&nbsp; '+card.name.toLowerCase();
+      col.appendChild(cap);
+
+      grid.appendChild(col);
+
+      // Loop
+      (async () => {
+        await sleep(i * 180);
+        while (true){
+          if (phone.dataset.visible === '1'){
+            try {
+              if (card.kind === 'stream'){
+                const ans = phone.querySelector('.ans');
+                if (card.fx === 'note'){
+                  await runNote(ans, card.answer, card.palette);
+                } else {
+                  await STREAM_RUNNERS[card.fx](ans, card.answer);
+                }
+              } else {
+                await SURVEY_RUNNERS[card.kind](bubble, card);
+              }
+            } catch(e){ console.error(e); }
+            await sleep(900);
+          } else {
+            await sleep(300);
+          }
+        }
+      })();
+    });
+
+    // Visibility throttling
+    const io = new IntersectionObserver((entries)=>{
+      entries.forEach(e => {
+        e.target.dataset.visible = e.isIntersecting ? '1' : '0';
+      });
+    }, {threshold:0.2});
+    document.querySelectorAll('#s8v-grid .phone').forEach(p => {
+      p.dataset.visible = '0';
+      io.observe(p);
+    });
+
+    // Speed controls
+    document.querySelectorAll('#s8v-speed button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        SPEED = parseFloat(btn.dataset.spd);
+        document.querySelectorAll('#s8v-speed button').forEach(b => {
+          b.classList.remove('on');
+          b.style.background = 'var(--page-2)';
+          b.style.borderColor = 'var(--hair)';
+          b.style.color = 'var(--ink-2)';
+        });
+        btn.classList.add('on');
+        btn.style.background = 'var(--ink-1)';
+        btn.style.borderColor = 'var(--ink-1)';
+        btn.style.color = 'var(--page)';
+      });
+    });
+  })();
+  </script>
+</section>
+
+<section id="s9audio">
+  <h2 class="disp">09 · Sound &amp; listening</h2>
+  <p class="lead">Four loaders — two for when the app <em>speaks or plays a sound</em>, two for when it <em>listens</em>. Pure motion, no face. The animation style is universal; the color tracks whichever mascot is holding the moment.</p>
+
+  <style>
+    #s9audio .aud-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;}
+    @media (max-width:900px){#s9audio .aud-grid{grid-template-columns:repeat(2,1fr);}}
+    @media (max-width:520px){#s9audio .aud-grid{grid-template-columns:1fr;}}
+
+    #s9audio .aud{
+      background:var(--card);border:1px solid var(--hair);border-radius:20px;
+      display:flex;flex-direction:column;overflow:hidden;
+    }
+    #s9audio .aud .stage{
+      flex:1;min-height:220px;display:flex;align-items:center;justify-content:center;
+      padding:32px;position:relative;
+      background:var(--bg,#fff);
+    }
+    #s9audio .aud.coral  .stage{background:#fff5ef;}
+    #s9audio .aud.mint   .stage{background:#eef8f2;}
+    #s9audio .aud.butter .stage{background:#fff7dc;}
+    #s9audio .aud.sky    .stage{background:#eff5ff;}
+    html[data-theme="dark"] #s9audio .aud.coral  .stage{background:#3a1f17;}
+    html[data-theme="dark"] #s9audio .aud.mint   .stage{background:#1e3b2c;}
+    html[data-theme="dark"] #s9audio .aud.butter .stage{background:#2d2108;}
+    html[data-theme="dark"] #s9audio .aud.sky    .stage{background:#0f2538;}
+
+    #s9audio .aud .num{
+      position:absolute;top:14px;left:16px;
+      font-family:ui-monospace,'JetBrains Mono',monospace;font-size:11px;
+      color:var(--ink-3);letter-spacing:0.14em;
+    }
+    #s9audio .aud .mode{
+      position:absolute;top:14px;right:16px;
+      font-family:ui-monospace,'JetBrains Mono',monospace;
+      font-size:10px;letter-spacing:0.16em;text-transform:uppercase;
+      padding:3px 9px;border-radius:999px;
+    }
+    #s9audio .aud.coral  .mode{background:var(--coral); color:#fff;}
+    #s9audio .aud.mint   .mode{background:var(--mint);  color:var(--mint-ink);}
+    #s9audio .aud.butter .mode{background:var(--butter);color:var(--butter-ink);}
+    #s9audio .aud.sky    .mode{background:var(--sky);   color:var(--sky-ink);}
+
+    #s9audio .aud .meta{
+      padding:16px 20px;border-top:1px solid var(--hair);
+      display:flex;flex-direction:column;gap:4px;min-height:122px;
+    }
+    #s9audio .aud .meta .ttl{font-family:var(--font-display);font-weight:600;font-size:18px;letter-spacing:-0.01em;line-height:1.1;}
+    #s9audio .aud .meta .use{font-size:12.5px;color:var(--ink-2);line-height:1.5;flex:1;}
+    #s9audio .aud .meta .tok{
+      font-family:ui-monospace,monospace;font-size:10.5px;color:var(--ink-3);
+      letter-spacing:0.06em;margin-top:2px;
+    }
+
+    /* Per-palette accent wiring — fixed saturated colors for loaders, light AND dark.
+       (In dark mode the token --*-ink inverts to pale pastels, which reads as faded.
+       The blobs are the character — keep them vivid in both themes.) */
+    #s9audio .aud.coral  { --ai: #c64632; }
+    #s9audio .aud.mint   { --ai: #2f7a5a; }
+    #s9audio .aud.butter { --ai: #9a6f00; }
+    #s9audio .aud.sky    { --ai: #2867b2; }
+
+    /* 04 · Concentric blobs */
+    #s9audio .ld04{width:120px;height:120px;position:relative;}
+    #s9audio .ld04::before,#s9audio .ld04::after{content:'';position:absolute;inset:0;margin:auto;
+      border-radius:42% 58% 60% 40% / 50% 44% 56% 50%;}
+    #s9audio .ld04::before{width:120px;height:120px;
+      background:color-mix(in oklab, var(--ai) 22%, transparent);
+      animation:s9-ld04a 3.2s ease-in-out infinite;}
+    #s9audio .ld04::after{width:64px;height:64px;background:var(--ai);
+      animation:s9-ld04b 2.4s ease-in-out infinite reverse;}
+    @keyframes s9-ld04a{
+      0%,100%{border-radius:42% 58% 60% 40% / 50% 44% 56% 50%;transform:rotate(0);}
+      50%{border-radius:58% 42% 38% 62% / 60% 52% 48% 40%;transform:rotate(180deg);}
+    }
+    @keyframes s9-ld04b{
+      0%,100%{border-radius:60% 40% 44% 56% / 48% 58% 42% 52%;transform:rotate(0) scale(1);}
+      50%{border-radius:40% 60% 56% 44% / 62% 38% 62% 38%;transform:rotate(180deg) scale(1.1);}
+    }
+
+    /* 06 · Soft bars */
+    #s9audio .ld06{display:flex;gap:10px;align-items:center;height:100px;}
+    #s9audio .ld06 i{display:block;width:14px;height:36px;background:var(--ai);
+      border-radius:999px;animation:s9-ld06 1.2s ease-in-out infinite;}
+    #s9audio .ld06 i:nth-child(1){animation-delay:0s;opacity:0.4;}
+    #s9audio .ld06 i:nth-child(2){animation-delay:.12s;opacity:0.6;}
+    #s9audio .ld06 i:nth-child(3){animation-delay:.24s;opacity:0.85;}
+    #s9audio .ld06 i:nth-child(4){animation-delay:.36s;opacity:1;}
+    #s9audio .ld06 i:nth-child(5){animation-delay:.48s;opacity:0.75;}
+    #s9audio .ld06 i:nth-child(6){animation-delay:.60s;opacity:0.5;}
+    @keyframes s9-ld06{0%,100%{height:22px;}50%{height:86px;}}
+
+    /* 08 · Ripple rings */
+    #s9audio .ld08{width:140px;height:140px;position:relative;}
+    #s9audio .ld08 i{position:absolute;inset:50% 50%;width:0;height:0;
+      border-radius:50%;border:3px solid var(--ai);
+      animation:s9-ld08 2.4s cubic-bezier(.2,.7,.3,1) infinite;}
+    #s9audio .ld08 i:nth-child(2){animation-delay:.8s;}
+    #s9audio .ld08 i:nth-child(3){animation-delay:1.6s;}
+    @keyframes s9-ld08{
+      0%{inset:50% 50%;width:0;height:0;opacity:1;}
+      100%{inset:0;width:100%;height:100%;opacity:0;}
+    }
+    #s9audio .ld08-core{position:absolute;inset:0;margin:auto;width:28px;height:28px;
+      border-radius:50%;background:var(--ai);
+      animation:s9-ld08core 2.4s ease-in-out infinite;}
+    @keyframes s9-ld08core{0%,100%{transform:scale(0.85);}50%{transform:scale(1.1);}}
+
+    /* 20 · Breathing blob + dot */
+    #s9audio .ld20{width:110px;height:110px;
+      background:color-mix(in oklab, var(--ai) 18%, transparent);
+      border:2.5px solid var(--ai);
+      animation:s9-ld20out 3.4s ease-in-out infinite;
+      display:grid;place-items:center;}
+    #s9audio .ld20::before{content:'';width:34px;height:34px;
+      background:var(--ai);border-radius:50%;
+      animation:s9-ld20in 1.4s ease-in-out infinite;}
+    @keyframes s9-ld20out{
+      0%,100%{border-radius:48% 52% 58% 42% / 52% 58% 42% 48%;transform:rotate(0);}
+      50%{border-radius:58% 42% 48% 52% / 44% 46% 54% 56%;transform:rotate(180deg);}
+    }
+    @keyframes s9-ld20in{0%,100%{transform:scale(0.75);}50%{transform:scale(1.15);}}
+
+    /* Color-as-character demo row */
+    #s9audio .aud-demo{
+      margin-top:40px;padding:32px;
+      background:var(--card);border:1px solid var(--hair);border-radius:20px;
+    }
+    #s9audio .aud-demo-head{margin-bottom:24px;max-width:560px;}
+    #s9audio .aud-demo-head h3{
+      font-family:var(--font-display);font-weight:600;font-size:22px;
+      letter-spacing:-0.01em;color:var(--ink-1);margin:0 0 6px;
+      text-transform:none;
+    }
+    #s9audio .aud-demo-head p{margin:0;font-size:14px;color:var(--ink-2);line-height:1.5;}
+    #s9audio .aud-demo-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;}
+    @media (max-width:900px){#s9audio .aud-demo-row{grid-template-columns:repeat(2,1fr);}}
+    #s9audio .aud-chip{
+      display:flex;flex-direction:column;align-items:center;gap:14px;
+      padding:28px 20px 22px;border-radius:16px;
+      background:var(--bg);
+    }
+    #s9audio .aud-chip.coral  { --ai: #c64632; background:#fff5ef; }
+    #s9audio .aud-chip.mint   { --ai: #2f7a5a; background:#eef8f2; }
+    #s9audio .aud-chip.butter { --ai: #9a6f00; background:#fff7dc; }
+    #s9audio .aud-chip.sky    { --ai: #2867b2; background:#eff5ff; }
+    html[data-theme="dark"] #s9audio .aud-chip.coral  {background:#3a1f17;}
+    html[data-theme="dark"] #s9audio .aud-chip.mint   {background:#1e3b2c;}
+    html[data-theme="dark"] #s9audio .aud-chip.butter {background:#2d2108;}
+    html[data-theme="dark"] #s9audio .aud-chip.sky    {background:#0f2538;}
+    #s9audio .aud-chip .ld08.sm{width:72px;height:72px;}
+    #s9audio .aud-chip .ld08.sm i{border-width:2px;}
+    #s9audio .aud-chip .ld08.sm .ld08-core{width:16px;height:16px;}
+    #s9audio .aud-chip-lbl{
+      font-family:ui-monospace,monospace;font-size:11px;color:var(--ink-2);
+      letter-spacing:0.04em;
+    }
+    #s9audio .aud-chip-lbl b{font-weight:600;color:var(--ink-1);}
+  </style>
+
+  <div class="aud-grid">
+    <div class="aud coral">
+      <div class="stage">
+        <span class="num">01</span><span class="mode">Speak</span>
+        <div class="ld04"></div>
+      </div>
+      <div class="meta">
+        <div class="ttl">Concentric blobs</div>
+        <div class="use">Breathing inner &amp; outer shapes. For when the app speaks or plays a sound.</div>
+        <div class="tok">loader/04 · any palette</div>
+      </div>
+    </div>
+
+    <div class="aud butter">
+      <div class="stage">
+        <span class="num">02</span><span class="mode">Speak</span>
+        <div class="ld08"><i></i><i></i><i></i><div class="ld08-core"></div></div>
+      </div>
+      <div class="meta">
+        <div class="ttl">Ripple rings</div>
+        <div class="use">Rings pulse outward from a core. Chimes, system sounds, any audio playback.</div>
+        <div class="tok">loader/08 · any palette</div>
+      </div>
+    </div>
+
+    <div class="aud mint">
+      <div class="stage">
+        <span class="num">03</span><span class="mode">Listen</span>
+        <div class="ld06"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      </div>
+      <div class="meta">
+        <div class="ttl">Soft bars</div>
+        <div class="use">Wave bars rise and fall. For microphone pickup, pitch and voice input.</div>
+        <div class="tok">loader/06 · any palette</div>
+      </div>
+    </div>
+
+    <div class="aud sky">
+      <div class="stage">
+        <span class="num">04</span><span class="mode">Listen</span>
+        <div class="ld20"></div>
+      </div>
+      <div class="meta">
+        <div class="ttl">Breathing dot</div>
+        <div class="use">Soft halo with a pulsing center. For rhythm capture, tap tempo, metronome calibration.</div>
+        <div class="tok">loader/20 · any palette</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Color-as-character demo: same loader, four palettes -->
+  <div class="aud-demo">
+    <div class="aud-demo-head">
+      <h3>Color is the character</h3>
+      <p>The shape is the mechanic. The color is who's speaking. Here's ripple rings in all four palettes — pick the mascot's color for the moment they're leading.</p>
+    </div>
+    <div class="aud-demo-row">
+      <div class="aud-chip coral">
+        <div class="ld08 sm"><i></i><i></i><i></i><div class="ld08-core"></div></div>
+        <div class="aud-chip-lbl"><b>Fable</b> · guide</div>
+      </div>
+      <div class="aud-chip mint">
+        <div class="ld08 sm"><i></i><i></i><i></i><div class="ld08-core"></div></div>
+        <div class="aud-chip-lbl"><b>Noir</b> · focus</div>
+      </div>
+      <div class="aud-chip butter">
+        <div class="ld08 sm"><i></i><i></i><i></i><div class="ld08-core"></div></div>
+        <div class="aud-chip-lbl"><b>Major</b> · recap</div>
+      </div>
+      <div class="aud-chip sky">
+        <div class="ld08 sm"><i></i><i></i><i></i><div class="ld08-core"></div></div>
+        <div class="aud-chip-lbl"><b>Pulse</b> · rhythm</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="s8">
+  <h2 class="disp">10 · The short list</h2>
+  <p class="lead">If you remember nothing else.</p>
+  <div class="sum">
+    <div class="row do"><div class="dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 12.5 10 17.5 19 7"/></svg></div><div><b>Four mascots, four colors, four roles.</b><p>Fable coral · Noir mint · Major butter · Pulse sky. Learn the shorthand; don't substitute.</p></div></div>
+    <div class="row do"><div class="dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 12.5 10 17.5 19 7"/></svg></div><div><b>One per screen.</b><p>No duets. No crowd shots. A mascot holds a moment; moments are not shared.</p></div></div>
+    <div class="row do"><div class="dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 12.5 10 17.5 19 7"/></svg></div><div><b>Match tone to moment.</b><p>Guidance → Fable. Focus → Noir. Progress → Major. Rhythm → Pulse.</p></div></div>
+    <div class="row do"><div class="dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 12.5 10 17.5 19 7"/></svg></div><div><b>Never below 48px tall.</b><p>The faces collapse. Use the app icon at smaller sizes.</p></div></div>
+    <div class="row dont"><div class="dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg></div><div><b>No re-skinning.</b><p>Color is identity. A recolored mascot reads as a new character.</p></div></div>
+    <div class="row dont"><div class="dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg></div><div><b>No permanent chrome.</b><p>Mascots show up for moments — never as navigation, footer decoration, or loading spinners.</p></div></div>
+  </div>
+</section>
+
+</div>
+
+
+
+<section>
+  <h2 class="disp">Originals &amp; source files</h2>
+  <p class="lead">The raw inputs that generated this kit — keep for re-derivation if we ever need to re-export at different sizes or regenerate assets.</p>
+  <div class="grid g-3">
+    <div class="tile light">
+      <div class="bg" style="background:#fff;padding:20px;"><img src="originals/mascots-cast-lineup.png" alt="Cast lineup" style="max-height:260px;"></div>
+      <div class="meta"><span class="name">Cast · lineup</span><span class="sz">originals/mascots-cast-lineup.png</span></div>
+    </div>
+    <div class="tile light">
+      <div class="bg" style="background:#fff;padding:20px;"><img src="originals/mascots-fable-expressions.png" alt="Fable expressions" style="max-height:260px;"></div>
+      <div class="meta"><span class="name">Fable · 6 expressions</span><span class="sz">originals/mascots-fable-expressions.png</span></div>
+    </div>
+    <div class="tile light">
+      <div class="bg" style="background:#fff;padding:20px;"><img src="originals/mascots-noir-expressions.png" alt="Noir expressions" style="max-height:260px;"></div>
+      <div class="meta"><span class="name">Noir · 6 expressions</span><span class="sz">originals/mascots-noir-expressions.png</span></div>
+    </div>
+    <div class="tile light">
+      <div class="bg" style="background:#fff;padding:20px;"><img src="originals/mascots-major-expressions.png" alt="Major expressions" style="max-height:260px;"></div>
+      <div class="meta"><span class="name">Major · 6 expressions</span><span class="sz">originals/mascots-major-expressions.png</span></div>
+    </div>
+    <div class="tile light">
+      <div class="bg" style="background:#fff;padding:20px;"><img src="originals/mascots-pulse-expressions.png" alt="Pulse expressions" style="max-height:260px;"></div>
+      <div class="meta"><span class="name">Pulse · 6 expressions</span><span class="sz">originals/mascots-pulse-expressions.png</span></div>
+    </div>
+    <div class="tile light">
+      <div class="bg" style="background:#fff;padding:20px;"><img src="originals/logo-system-reference.png" alt="Logo system reference" style="max-height:260px;"></div>
+      <div class="meta"><span class="name">Logo · system reference</span><span class="sz">originals/logo-system-reference.png</span></div>
+    </div>
+  </div>
+</section>
+
+<div class="footer">
+  <span>Fifths · Brand Kit · generated from the prototype</span>
+  <span class="mono">v1</span>
+</div>
+
+</div>
+
+<!-- ============ TWEAKS ============ -->
+<style>
+  #tweaks{position:fixed;right:20px;bottom:20px;width:320px;background:var(--card);border:1px solid var(--hair);border-radius:20px;box-shadow:0 20px 60px rgba(42,29,58,0.18),0 4px 12px rgba(42,29,58,0.08);padding:18px 18px 16px;z-index:9999;font-family:var(--font-body);display:none;color:var(--ink-1);}
+  #tweaks.open{display:block;}
+  #tweaks .tw-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+  #tweaks .tw-title{font-family:var(--font-display);font-weight:600;font-size:18px;letter-spacing:-0.01em;}
+  #tweaks .tw-close{background:none;border:none;color:var(--ink-3);cursor:pointer;padding:4px;display:flex;}
+  #tweaks .tw-close:hover{color:var(--ink-1);}
+  #tweaks .tw-group{margin-bottom:14px;}
+  #tweaks .tw-label{font-family:var(--font-body);font-size:10.5px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:var(--ink-3);margin-bottom:8px;}
+  #tweaks .tw-opts{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+  #tweaks .tw-opts.cols-2{grid-template-columns:1fr 1fr;}
+  #tweaks .tw-opt{background:var(--page);border:1px solid var(--hair);border-radius:10px;padding:9px 10px;font-size:13px;color:var(--ink-2);cursor:pointer;text-align:left;display:flex;flex-direction:column;gap:2px;transition:all 0.12s ease;}
+  #tweaks .tw-opt .prev{font-size:16px;line-height:1.1;color:var(--ink-1);}
+  #tweaks .tw-opt .nm{font-family:var(--font-body);font-size:10.5px;color:var(--ink-3);letter-spacing:0.02em;}
+  #tweaks .tw-opt:hover{border-color:var(--ink-4);color:var(--ink-1);}
+  #tweaks .tw-opt.active{background:var(--coral);border-color:var(--coral-ink,#c64632);color:#fff;box-shadow:0 2px 0 var(--coral-ink,#c64632);}
+  #tweaks .tw-opt.active .prev, #tweaks .tw-opt.active .nm{color:#fff;}
+  html[data-theme="dark"] #tweaks .tw-opt.active{background:#ff8a6b;color:#fff;}
+  #tweaks .tw-opts-theme{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+  #tweaks .tw-theme{padding:10px 12px;font-family:var(--font-body);font-size:13px;font-weight:500;border:1px solid var(--hair);border-radius:10px;background:var(--page);cursor:pointer;color:var(--ink-2);display:flex;align-items:center;gap:8px;justify-content:center;}
+  #tweaks .tw-theme.active{background:var(--ink-1);color:var(--page);border-color:var(--ink-1);}
+  #tweaks .tw-theme svg{width:16px;height:16px;}
+</style>
+
+<div id="tweaks">
+  <div class="tw-head">
+    <div class="tw-title">Tweaks</div>
+    <button class="tw-close" aria-label="Close tweaks" onclick="window.parent.postMessage({type:'__deactivate_edit_mode'},'*')">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
+    </button>
+  </div>
+
+  <div class="tw-group">
+    <div class="tw-label">Display font</div>
+    <div class="tw-opts" id="tw-display">
+      <button class="tw-opt" data-val="fraunces"><span class="prev" style="font-family:'Fraunces',serif;font-weight:700;">Fifths</span><span class="nm">Fraunces</span></button>
+      <button class="tw-opt" data-val="dm-serif"><span class="prev" style="font-family:'DM Serif Display',serif;">Fifths</span><span class="nm">DM Serif Display</span></button>
+      <button class="tw-opt" data-val="instrument"><span class="prev" style="font-family:'Instrument Serif',serif;">Fifths</span><span class="nm">Instrument Serif</span></button>
+      <button class="tw-opt" data-val="newsreader"><span class="prev" style="font-family:'Newsreader',serif;font-weight:600;">Fifths</span><span class="nm">Newsreader</span></button>
+      <button class="tw-opt" data-val="playfair"><span class="prev" style="font-family:'Playfair Display',serif;font-weight:700;">Fifths</span><span class="nm">Playfair Display</span></button>
+    </div>
+  </div>
+
+  <div class="tw-group">
+    <div class="tw-label">Body font</div>
+    <div class="tw-opts" id="tw-body">
+      <button class="tw-opt" data-val="outfit"><span class="prev" style="font-family:'Outfit',sans-serif;font-size:14px;">Perfect fifth</span><span class="nm">Outfit</span></button>
+      <button class="tw-opt" data-val="inter"><span class="prev" style="font-family:'Inter',sans-serif;font-size:14px;">Perfect fifth</span><span class="nm">Inter</span></button>
+      <button class="tw-opt" data-val="manrope"><span class="prev" style="font-family:'Manrope',sans-serif;font-size:14px;">Perfect fifth</span><span class="nm">Manrope</span></button>
+      <button class="tw-opt" data-val="dm-sans"><span class="prev" style="font-family:'DM Sans',sans-serif;font-size:14px;">Perfect fifth</span><span class="nm">DM Sans</span></button>
+    </div>
+  </div>
+
+  <div class="tw-group" style="margin-bottom:4px;">
+    <div class="tw-label">Theme</div>
+    <div class="tw-opts-theme" id="tw-theme">
+      <button class="tw-theme" data-val="light">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+        Light
+      </button>
+      <button class="tw-theme" data-val="dark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        Dark
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+    "displayFont": "dm-serif",
+    "bodyFont": "outfit",
+    "theme": "light"
+  }/*EDITMODE-END*/;
+
+  const DISPLAY_FONTS = {
+    'fraunces':    "'Fraunces', Georgia, serif",
+    'dm-serif':    "'DM Serif Display', Georgia, serif",
+    'instrument':  "'Instrument Serif', Georgia, serif",
+    'newsreader':  "'Newsreader', Georgia, serif",
+    'playfair':    "'Playfair Display', Georgia, serif",
+  };
+  const BODY_FONTS = {
+    'outfit':  "'Outfit', system-ui, sans-serif",
+    'inter':   "'Inter', system-ui, sans-serif",
+    'manrope': "'Manrope', system-ui, sans-serif",
+    'dm-sans': "'DM Sans', system-ui, sans-serif",
+  };
+
+  let state = { ...TWEAK_DEFAULTS };
+
+  function apply() {
+    document.documentElement.style.setProperty('--font-display', DISPLAY_FONTS[state.displayFont] || DISPLAY_FONTS.fraunces);
+    document.documentElement.style.setProperty('--font-body', BODY_FONTS[state.bodyFont] || BODY_FONTS.outfit);
+    document.documentElement.setAttribute('data-theme', state.theme === 'dark' ? 'dark' : 'light');
+    // Update active state on chips
+    document.querySelectorAll('#tw-display .tw-opt').forEach(b => b.classList.toggle('active', b.dataset.val === state.displayFont));
+    document.querySelectorAll('#tw-body .tw-opt').forEach(b => b.classList.toggle('active', b.dataset.val === state.bodyFont));
+    document.querySelectorAll('#tw-theme .tw-theme').forEach(b => b.classList.toggle('active', b.dataset.val === state.theme));
+  }
+
+  function set(key, value) {
+    state[key] = value;
+    apply();
+    try {
+      window.parent.postMessage({ type: '__edit_mode_set_keys', edits: { [key]: value } }, '*');
+    } catch (e) {}
+  }
+
+  // Wire buttons
+  document.querySelectorAll('#tw-display .tw-opt').forEach(b => b.addEventListener('click', () => set('displayFont', b.dataset.val)));
+  document.querySelectorAll('#tw-body .tw-opt').forEach(b => b.addEventListener('click', () => set('bodyFont', b.dataset.val)));
+  document.querySelectorAll('#tw-theme .tw-theme').forEach(b => b.addEventListener('click', () => set('theme', b.dataset.val)));
+
+  // Apply defaults immediately (so theme sticks even with panel closed)
+  apply();
+
+  // Listener FIRST, then announce
+  window.addEventListener('message', (e) => {
+    const d = e.data || {};
+    if (d.type === '__activate_edit_mode') document.getElementById('tweaks').classList.add('open');
+    if (d.type === '__deactivate_edit_mode') document.getElementById('tweaks').classList.remove('open');
+  });
+  try {
+    window.parent.postMessage({ type: '__edit_mode_available' }, '*');
+  } catch (e) {}
+})();
+</script>
+
+</body></html>

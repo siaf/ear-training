@@ -1,13 +1,64 @@
+@import './tokens.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+html, body, #root {
+  height: 100%;
+}
+
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family: var(--ui);
+  background: var(--page);
+  color: var(--ink-1);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  @apply bg-gray-900 text-white;
+  /* Respect iOS + Android device notches and home indicators. */
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  /* Allow the body padding to bleed its background into the safe-areas. */
+  background-color: var(--page);
+  overscroll-behavior: none;
+}
+
+button { font-family: inherit; }
+
+@keyframes streak-pop {
+  0%   { transform: translateY(6px) scale(0.7); opacity: 0; }
+  60%  { transform: translateY(-4px) scale(1.12); opacity: 1; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+/* ------ Brand kit: fade-up reveal (ported from public/brand/index.html §08) ------ */
+@keyframes fx-fade-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+.fx-fade-up > * {
+  opacity: 0;
+  animation: fx-fade-up 480ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+.fx-fade-up > *:nth-child(1) { animation-delay: 40ms; }
+.fx-fade-up > *:nth-child(2) { animation-delay: 180ms; }
+.fx-fade-up > *:nth-child(3) { animation-delay: 320ms; }
+.fx-fade-up > *:nth-child(4) { animation-delay: 460ms; }
+.fx-fade-up > *:nth-child(5) { animation-delay: 600ms; }
+
+/* Mascot enters with a soft scale + fade */
+@keyframes fx-mascot-enter {
+  from { opacity: 0; transform: translateY(8px) scale(0.92); }
+  to   { opacity: 1; transform: none; }
+}
+.fx-mascot-enter { animation: fx-mascot-enter 520ms cubic-bezier(0.2, 0.9, 0.3, 1) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

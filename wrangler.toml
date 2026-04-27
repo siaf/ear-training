@@ -1,0 +1,30 @@
+# Cloudflare Pages config for the Fifths marketing site (fifths.io).
+# The React app uses a separate Pages project — NOT this file.
+#
+# IMPORTANT (from the phase0-landing-page skill):
+#   This file MUST live at the repo root, NOT inside site/. A
+#   wrangler.toml inside site/ would be served publicly as
+#   /wrangler.toml, leaking config.
+#
+# Deploy happens via the cloudflare-pages-deploy skill — see
+# docs/deploy-checklist.md for the exact commands. This file
+# documents the intended shape; the skill will fill in the D1
+# database_id after creating the database.
+
+name = "fifths-marketing"
+compatibility_date = "2026-04-19"
+pages_build_output_dir = "site"
+
+# D1 binding — required by site/functions/waitlist.js.
+#
+# Set the database_id after creating the DB:
+#   wrangler d1 create fifths
+#
+# Bindings set here apply to Preview deployments. Production
+# bindings are set separately in the Cloudflare dashboard
+# (Pages → fifths-marketing → Settings → Functions → D1 bindings)
+# with variable name exactly "DB". See deploy-checklist.md.
+[[d1_databases]]
+binding = "DB"
+database_name = "fifths"
+database_id = "c59006a9-89f7-4985-b5bf-1578b4e3534e"

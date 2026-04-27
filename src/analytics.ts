@@ -17,15 +17,33 @@ export class AnalyticsEngine {
     const correctAnswers = this.answers.filter(a => a.isCorrect).length;
     const accuracy = totalQuestions > 0 ? (correctAnswers / totalQuestions) * 100 : 0;
 
+    let currentStreak = 0;
+    let bestStreak = 0;
+    let run = 0;
+    for (const a of this.answers) {
+      if (a.isCorrect) {
+        run++;
+        if (run > bestStreak) bestStreak = run;
+      } else {
+        run = 0;
+      }
+    }
+    currentStreak = run;
+
     const weaknesses = this.calculateWeaknesses();
     const scaleDegreeWeaknesses = this.calculateScaleDegreeWeaknesses();
     const intervalWeaknesses = this.calculateIntervalWeaknesses();
     const confusionMatrix = this.calculateConfusionMatrix();
 
+    const results = this.answers.map((a) => a.isCorrect);
+
     return {
       totalQuestions,
       correctAnswers,
       accuracy,
+      currentStreak,
+      bestStreak,
+      results,
       weaknesses,
       scaleDegreeWeaknesses,
       intervalWeaknesses,
@@ -195,9 +213,13 @@ export class AnalyticsEngine {
 
   getAverageResponseTime(): number {
     if (this.answers.length === 0) return 0;
-    
+
     const totalTime = this.answers.reduce((sum, answer) => sum + answer.responseTime, 0);
     return totalTime / this.answers.length;
+  }
+
+  getAnswers(): Answer[] {
+    return this.answers.slice();
   }
 
   reset() {

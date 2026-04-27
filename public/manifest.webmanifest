@@ -1,0 +1,17 @@
+{
+  "name": "Fifths — Ear Training",
+  "short_name": "Fifths",
+  "description": "Ear training that tells you exactly what you keep missing.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#fff8ef",
+  "theme_color": "#fff8ef",
+  "icons": [
+    { "src": "brand/favicons/favicon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "brand/favicons/favicon-256.png", "sizes": "256x256", "type": "image/png" },
+    { "src": "brand/icons/icon-android-playstore-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "brand/icons/icon-android-playstore-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

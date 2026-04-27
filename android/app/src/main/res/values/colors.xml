@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Brand tokens (light). Source of truth: public/brand/index.html + src/tokens.css.
+         These override Capacitor's default theme colors so the pre-WebView splash
+         and any system chrome match the Fifths palette. -->
+    <color name="colorPrimary">#FFF8EF</color>
+    <color name="colorPrimaryDark">#FEF1DD</color>
+    <color name="colorAccent">#FF8A6B</color>
+</resources>

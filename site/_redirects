@@ -1,0 +1,39 @@
+# Cloudflare Pages redirect table — Fifths Phase 0 launch URLs.
+# Short, organic-looking paths that 302 to the UTM-tagged landing. Keeps
+# Reddit's spam filter from flagging raw UTM URLs in post bodies.
+# Each redirect lands the user on the wedge-appropriate landing page.
+
+# ─── Default landing (broad audience) ───
+/r/sideproject         /?utm_source=reddit&utm_medium=organic&utm_campaign=rsideproject&utm_content=launch                          302
+/r/musictheory         /?utm_source=reddit&utm_medium=organic&utm_campaign=rmusictheory&utm_content=tool-share                     302
+/r/wearethemusicmakers /?utm_source=reddit&utm_medium=organic&utm_campaign=rwearethemusicmakers&utm_content=tool-share             302
+/x                     /?utm_source=x&utm_medium=organic&utm_campaign=xthread-1&utm_content=launch                                  302
+/hn                    /?utm_source=hackernews&utm_medium=organic&utm_campaign=askhn&utm_content=askhn-positioning                  302
+/pw                    /?utm_source=producthunt&utm_medium=organic&utm_campaign=upcoming&utm_content=coming-soon                    302
+
+# ─── /transcribing (Wedge 1 — stalled hobbyist) ───
+/r/eartraining         /transcribing?utm_source=reddit&utm_medium=organic&utm_campaign=reartraining&utm_content=stopped-improving   302
+/r/piano               /transcribing?utm_source=reddit&utm_medium=organic&utm_campaign=rpiano&utm_content=hear-scale-degrees        302
+/r/pianolearning       /transcribing?utm_source=reddit&utm_medium=organic&utm_campaign=rpianolearning&utm_content=next-step-after   302
+/r/guitarlessons       /transcribing?utm_source=reddit&utm_medium=organic&utm_campaign=rguitarlessons&utm_content=hear-songs        302
+/r/guitar              /transcribing?utm_source=reddit&utm_medium=organic&utm_campaign=rguitar&utm_content=transcribing-songs       302
+
+# ─── /jazz (Wedge 3 — jazz musicians) ───
+/r/jazz                /jazz?utm_source=reddit&utm_medium=organic&utm_campaign=rjazz&utm_content=altered-dominants                  302
+/r/jazztheory          /jazz?utm_source=reddit&utm_medium=organic&utm_campaign=rjazztheory&utm_content=modal-interchange            302
+/r/saxophone           /jazz?utm_source=reddit&utm_medium=organic&utm_campaign=rsaxophone&utm_content=changes-by-ear                302
+
+# ─── /classical (Wedge 3 — classical / composer) ───
+/r/classicalmusic      /classical?utm_source=reddit&utm_medium=organic&utm_campaign=rclassicalmusic&utm_content=ear-training-serious 302
+/r/composer            /classical?utm_source=reddit&utm_medium=organic&utm_campaign=rcomposer&utm_content=inner-hearing              302
+/r/choralmusic         /classical?utm_source=reddit&utm_medium=organic&utm_campaign=rchoralmusic&utm_content=sight-singing           302
+
+# ─── /returning (Wedge 1 — adult returner, Lifetime tier audience) ───
+/r/musiced             /returning?utm_source=reddit&utm_medium=organic&utm_campaign=rmusiced&utm_content=adult-learner               302
+/r/adultbeginner       /returning?utm_source=reddit&utm_medium=organic&utm_campaign=radultbeginner&utm_content=restart              302
+
+# ─── Mic-input-adjacent (ship when mic beta lands) ───
+/r/singing             /jazz?utm_source=reddit&utm_medium=organic&utm_campaign=rsinging&utm_content=sing-back                       302
+
+# ─── DM-only variants for strict subs (link-less post → DM sends this) ───
+/r/personalfinance-dm  /?utm_source=reddit&utm_medium=dm&utm_campaign=rpersonalfinance&utm_content=dm-reply                         302

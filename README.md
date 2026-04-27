@@ -137,13 +137,49 @@ The app currently uses the free Salamander Grand Piano samples hosted on the Ton
 
 ```
 src/
-├── App.tsx              # Main application component
-├── audioEngine.ts       # Tone.js audio synthesis
-├── curriculum.ts        # Progressive learning levels
-├── analytics.ts         # Performance tracking and insights
-├── types.ts            # TypeScript type definitions
-└── main.tsx            # Application entry point
+├── App.tsx                # Top-level shell: route + session orchestration
+├── audioEngine.ts         # Tone.js audio (unchanged)
+├── curriculum.ts          # Levels + segments (unchanged)
+├── analytics.ts           # In-session stats
+├── scaleContext.ts        # Diatonic filtering (unchanged)
+├── types.ts               # TypeScript types
+├── tokens.css             # Design tokens (playful v2)
+├── components/            # Primitives + overlays (Bean, ColorPill, MasteryOverlay, …)
+├── lib/                   # segmentColors, calibration, sessionStore, native glue
+├── routes/                # One file per surface (Landing, Onboarding, Path, Practice, Results, Stats, Settings, Paywall)
+└── main.tsx               # Entry + initNative()
 ```
+
+## Mobile (iOS + Android)
+
+The app ships to iOS and Android as a Capacitor-wrapped WebView. All the React code runs unchanged inside the native shell.
+
+### Prerequisites
+- **iOS**: macOS + [Xcode](https://apps.apple.com/app/xcode/id497799835) (free) + CocoaPods (`brew install cocoapods`).
+- **Android**: [Android Studio](https://developer.android.com/studio) (free, any OS).
+
+### Dev workflow
+```bash
+npm install
+npm run ios        # builds web assets, syncs, opens Xcode
+npm run android    # builds web assets, syncs, opens Android Studio
+```
+
+Alternatively run straight to a connected device/simulator:
+```bash
+npm run ios:run
+npm run android:run
+```
+
+### Known issues
+- **CocoaPods `Encoding::CompatibilityError`** under Ruby 3.4+: if `npx cap add ios` or `cap sync ios` fails with a unicode-normalize error, re-run with `LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 npx cap sync ios`. The npm scripts above already work on an already-added platform.
+
+### Store submission (later — not needed for local testing)
+- **iOS**: Apple Developer Program ($99/yr). Configure bundle id in `capacitor.config.ts` (`io.fifths.app`) and in Xcode signing. Archive → upload to App Store Connect → TestFlight.
+- **Android**: Google Play Console ($25 one-time). Generate a signing key, build a signed AAB in Android Studio (`Build → Generate Signed App Bundle`), upload to Play Console.
+
+### Native glue
+`src/lib/native.ts` hides the status bar, splash, and wires up a one-time gesture listener to unlock iOS AudioContext. It's a no-op on web.
 
 ## License
 

@@ -1,2 +1,42 @@
 node_modules
 dist/
+
+# Marketing site brand assets — synced from public/brand/ at deploy time.
+# Source of truth lives in public/brand/. See `npm run sync:site-brand`.
+site/brand/
+
+# Editor
+.DS_Store
+.idea/
+.vscode/
+
+# Capacitor / iOS
+ios/App/Pods/
+ios/App/build/
+ios/App/DerivedData/
+ios/App/App/public/
+ios/capacitor-cordova-ios-plugins/
+
+# Capacitor / Android
+android/.gradle/
+android/build/
+android/app/build/
+android/app/src/main/assets/public/
+android/local.properties
+android/captures/
+android/.idea/
+
+# Capacitor config copies
+ios/App/App/capacitor.config.json
+android/app/src/main/assets/capacitor.config.json
+
+# Cloudflare Wrangler local dev cache
+.wrangler/
+
+# Local env (Supabase, RevenueCat, etc.) — never commit
+.env
+.env.local
+.env.*.local
+
+# Claude Code session lock
+.claude/scheduled_tasks.lock

@@ -3,6 +3,173 @@ import { CurriculumLevel, CurriculumSegment } from './types';
 // Organized curriculum with segments
 export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
   {
+    id: 'foundations',
+    name: 'Foundations',
+    description: 'Train the raw ear — same/different, beating, consonance',
+    icon: '🎧',
+    color: 'emerald',
+    levels: [
+      {
+        id: 'found_higher_lower',
+        name: 'Higher or Lower',
+        type: 'acoustic',
+        acousticKind: 'higher_lower',
+        items: ['higher', 'lower'],
+        unlockRequirement: 85,
+        description: 'Hear two notes and tell which is higher',
+        segmentId: 'foundations',
+        maxQuestions: 10,
+        intro: [
+          {
+            idea: "Welcome. We're going to start at the ground floor.",
+            purpose: "Every musician needs one reflex: hearing pitch move. Up or down. That's it — and we'll build everything else on top of it.",
+            expectation: "Short rounds. Low stakes. Just listen and answer.",
+          },
+          {
+            idea: 'Pitch goes up, pitch goes down.',
+            purpose: "Your ear already knows — naming the direction makes the knowledge conscious, and consciousness is what you can use later.",
+            expectation: "Two notes play. Tap higher or lower for the second one.",
+          },
+        ],
+      },
+      {
+        id: 'found_same_diff',
+        name: 'Same or Different',
+        type: 'acoustic',
+        acousticKind: 'same_diff',
+        items: ['same', 'different'],
+        unlockRequirement: 85,
+        description: 'Detect when two notes are the same pitch',
+        segmentId: 'foundations',
+        maxQuestions: 10,
+      },
+      {
+        id: 'found_beating',
+        name: 'In Tune or Beating',
+        type: 'acoustic',
+        acousticKind: 'beating',
+        items: ['in_tune', 'beating'],
+        unlockRequirement: 80,
+        description: 'Hear the pulsing between two slightly detuned notes',
+        segmentId: 'foundations',
+        prerequisites: ['found_same_diff'],
+        maxQuestions: 10,
+      },
+      {
+        id: 'found_consonance',
+        name: 'Smooth or Rough',
+        type: 'acoustic',
+        acousticKind: 'consonance',
+        items: ['smooth', 'rough'],
+        unlockRequirement: 75,
+        description: 'Distinguish consonant and dissonant intervals by feel',
+        segmentId: 'foundations',
+        prerequisites: ['found_same_diff'],
+        maxQuestions: 10,
+      },
+      {
+        id: 'found_match_pitch',
+        name: 'Match the Pitch',
+        type: 'acoustic',
+        acousticKind: 'match_pitch',
+        items: ['match'],
+        responseModes: ['sing'],
+        singAcceptAnyOctave: true,
+        singToleranceCents: 50,
+        unlockRequirement: 70,
+        description: 'Listen, then sing the note back',
+        segmentId: 'foundations',
+        prerequisites: ['found_higher_lower'],
+      },
+      {
+        id: 'found_sing_pivot',
+        name: 'Sing the Pivot',
+        type: 'acoustic',
+        acousticKind: 'sing_sequence',
+        items: ['match'],
+        responseModes: ['sing'],
+        singAcceptAnyOctave: true,
+        singToleranceCents: 55,
+        singPerNoteHoldMs: 220,
+        sequenceShape: [0, 1, 0, -1, 0], // CDCBC shape — up a step, back, down a step, back
+        sequenceScale: 'major',
+        sequenceKeyRoot: 'C',
+        sequenceTransposeStep: 1,
+        unlockRequirement: 70,
+        description: 'Sing a 5-note pivot phrase. Each round climbs a scale step.',
+        segmentId: 'foundations',
+        prerequisites: ['found_match_pitch'],
+      },
+    ],
+  },
+  {
+    id: 'tonality',
+    name: 'Tonality',
+    description: 'Feel the key center — find home, sense resolution',
+    icon: '🏠',
+    color: 'sky',
+    levels: [
+      {
+        id: 'ton_is_tonic',
+        name: 'Is It the Tonic?',
+        type: 'scale_degree',
+        context: 'major',
+        items: ['1', '2', '3', '4', '5', '6', '7'],
+        itemGroups: {
+          tonic: ['1'],
+          not_tonic: ['2', '3', '4', '5', '6', '7'],
+        },
+        unlockRequirement: 80,
+        description: 'After the scale, decide if the note is the tonic',
+        segmentId: 'tonality',
+        prerequisites: ['found_higher_lower'],
+        maxQuestions: 12,
+        questionsPerKey: 4,
+        intro: [
+          {
+            idea: 'Every key has a home note — the tonic.',
+            purpose: "When a tune finally feels like it's 'landed', that's the tonic. Finding it by ear is what turns a string of notes into a song in a key.",
+            expectation: "You'll hear the scale first, then a single note from it.",
+          },
+          {
+            idea: 'Your job: is that note home, or somewhere else?',
+            purpose: "Honing this one decision — tonic or not — trains the most important anchor your inner ear will ever have.",
+            expectation: 'Tap tonic or not tonic.',
+          },
+        ],
+      },
+      {
+        id: 'ton_stable_unstable',
+        name: 'Stable or Unstable',
+        type: 'scale_degree',
+        context: 'major',
+        items: ['1', '2', '3', '4', '5', '6', '7'],
+        itemGroups: {
+          stable: ['1', '3', '5'],
+          unstable: ['2', '4', '6', '7'],
+        },
+        unlockRequirement: 75,
+        description: 'Does the note feel resolved or does it want to move?',
+        segmentId: 'tonality',
+        prerequisites: ['ton_is_tonic'],
+        maxQuestions: 12,
+        questionsPerKey: 4,
+      },
+      {
+        id: 'ton_major_minor_key',
+        name: 'Major or Minor Key',
+        type: 'mode',
+        items: ['ionian', 'aeolian'],
+        unlockRequirement: 80,
+        description: 'Listen to the scale and identify the mode',
+        segmentId: 'tonality',
+        prerequisites: ['ton_is_tonic'],
+        establishTonality: false,
+        maxQuestions: 10,
+      },
+    ],
+  },
+  {
     id: 'pitch',
     name: 'Pitch',
     description: 'Develop fundamental pitch recognition and scale degree awareness',
@@ -18,6 +185,19 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
         unlockRequirement: 80,
         description: 'Identify the tonic triad notes (1, 3, 5) in a major scale',
         segmentId: 'pitch',
+        prerequisites: ['ton_is_tonic'],
+        intro: [
+          {
+            idea: 'Every note in a key has a number — 1 through 7.',
+            purpose: "Numbers let you talk about a melody without a key: 'the 3rd', 'up to the 5th'. Once your ear names them, you can transpose on the fly.",
+            expectation: "We'll start with just three: 1, 3, 5 — the notes of the home chord.",
+          },
+          {
+            idea: "1, 3, 5 is the tonic triad — the spine of any major key.",
+            purpose: "If you can hear these three in context, you already have most of 'doh-mi-sol' — the scaffolding under every melody you know.",
+            expectation: "Scale plays, then one of those three notes. Tap which degree.",
+          },
+        ],
       },
       {
         id: 'scale_degree_major_2',
@@ -28,6 +208,7 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
         unlockRequirement: 75,
         description: 'Identify scale degrees 1-5 in a major scale',
         segmentId: 'pitch',
+        prerequisites: ['scale_degree_major_1'],
       },
       {
         id: 'scale_degree_major_full',
@@ -38,6 +219,7 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
         unlockRequirement: 75,
         description: 'Identify all 7 scale degrees in a major scale',
         segmentId: 'pitch',
+        prerequisites: ['scale_degree_major_2'],
       },
       {
         id: 'scale_degree_minor',
@@ -48,6 +230,7 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
         unlockRequirement: 75,
         description: 'Identify all 7 scale degrees in natural minor',
         segmentId: 'pitch',
+        prerequisites: ['scale_degree_major_full', 'ton_major_minor_key'],
       },
       {
         id: 'level_1',
@@ -58,6 +241,7 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
         unlockRequirement: 80,
         description: 'Learn major and minor thirds from the root note',
         segmentId: 'pitch',
+        prerequisites: ['scale_degree_major_1'],
       },
       {
         id: 'level_2',
@@ -68,6 +252,7 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
         unlockRequirement: 80,
         description: 'Practice thirds from the 5th scale degree',
         segmentId: 'pitch',
+        prerequisites: ['level_1'],
       },
       {
         id: 'level_3',
@@ -77,49 +262,11 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
         unlockRequirement: 75,
         description: 'Identify thirds from any scale degree',
         segmentId: 'pitch',
-      },
-      {
-        id: 'scale_degree_major_triads',
-        name: 'Major Scale Triads (Harmonic)',
-        type: 'scale_degree',
-        items: ['1', '2', '3', '4', '5', '6', '7'],
-        context: 'major_triads',
-        unlockRequirement: 70,
-        description: 'Identify triads built on each scale degree in major',
-        segmentId: 'pitch',
-      },
-      {
-        id: 'scale_degree_minor_triads',
-        name: 'Minor Scale Triads (Harmonic)',
-        type: 'scale_degree',
-        items: ['1', '2', '3', '4', '5', '6', '7'],
-        context: 'minor_triads',
-        unlockRequirement: 70,
-        description: 'Identify triads built on each scale degree in minor',
-        segmentId: 'pitch',
-      },
-      {
-        id: 'scale_degree_major_7ths',
-        name: 'Major Scale 7th Chords',
-        type: 'scale_degree',
-        items: ['1', '2', '3', '4', '5', '6', '7'],
-        context: 'major_7ths',
-        unlockRequirement: 70,
-        description: 'Identify 7th chords built on each scale degree in major',
-        segmentId: 'pitch',
-      },
-      {
-        id: 'scale_degree_minor_7ths',
-        name: 'Minor Scale 7th Chords',
-        type: 'scale_degree',
-        items: ['1', '2', '3', '4', '5', '6', '7'],
-        context: 'minor_7ths',
-        unlockRequirement: 70,
-        description: 'Identify 7th chords built on each scale degree in minor',
-        segmentId: 'pitch',
+        prerequisites: ['level_2', 'scale_degree_major_full'],
       },
       {
         id: 'level_4',
+        tier: 'pro',
         name: 'Tonic Triads (I and vi)',
         type: 'triad',
         items: ['major', 'minor'],
@@ -127,9 +274,23 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
         unlockRequirement: 80,
         description: 'Learn the tonic major chord and its relative minor',
         segmentId: 'pitch',
+        prerequisites: ['level_1'],
+        intro: [
+          {
+            idea: 'A triad stacks three notes: root, third, fifth.',
+            purpose: "Chord quality (major vs minor) is decided by one interval — the third. Training your ear to snap-judge that interval is the whole game of harmonic listening.",
+            expectation: "You'll hear a chord played all at once.",
+          },
+          {
+            idea: "We'll start with just two: the I chord (major) and the vi (minor).",
+            purpose: "They share two notes but feel worlds apart. If you can tell these two, you can hear major-vs-minor anywhere.",
+            expectation: "Listen, then tap major or minor.",
+          },
+        ],
       },
       {
         id: 'level_5',
+        tier: 'pro',
         name: 'Dominant Triads (V)',
         type: 'triad',
         items: ['major'],
@@ -137,51 +298,133 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
         unlockRequirement: 85,
         description: 'Master the dominant chord',
         segmentId: 'pitch',
+        prerequisites: ['level_4'],
       },
       {
         id: 'level_6',
+        tier: 'pro',
         name: 'All Diatonic Triads',
         type: 'triad',
         items: ['major', 'minor', 'diminished'],
         unlockRequirement: 75,
         description: 'Identify all triads in the major scale',
         segmentId: 'pitch',
+        prerequisites: ['level_5', 'level_3'],
+      },
+      {
+        id: 'scale_degree_major_triads',
+        tier: 'pro',
+        name: 'Major Scale Triads (Harmonic)',
+        type: 'scale_degree',
+        items: ['1', '2', '3', '4', '5', '6', '7'],
+        context: 'major_triads',
+        unlockRequirement: 70,
+        description: 'Identify triads built on each scale degree in major',
+        segmentId: 'pitch',
+        prerequisites: ['level_6', 'scale_degree_major_full'],
+      },
+      {
+        id: 'scale_degree_minor_triads',
+        tier: 'pro',
+        name: 'Minor Scale Triads (Harmonic)',
+        type: 'scale_degree',
+        items: ['1', '2', '3', '4', '5', '6', '7'],
+        context: 'minor_triads',
+        unlockRequirement: 70,
+        description: 'Identify triads built on each scale degree in minor',
+        segmentId: 'pitch',
+        prerequisites: ['scale_degree_major_triads', 'scale_degree_minor'],
       },
       {
         id: 'level_7',
+        tier: 'pro',
         name: 'Common Seventh Chords',
         type: 'seventh_chord',
         items: ['major_7', 'minor_7', 'dominant_7'],
         unlockRequirement: 75,
         description: 'Learn the most common seventh chords',
         segmentId: 'pitch',
+        prerequisites: ['level_6'],
+        intro: [
+          {
+            idea: 'A 7th chord is a triad with one extra voice on top.',
+            purpose: "That added 7th is the entire sound of jazz, soul, and sophisticated pop. Three 7th qualities cover the vast majority of real-world progressions.",
+            expectation: "You'll hear a four-note chord.",
+          },
+          {
+            idea: 'Three flavors: major-7 (dreamy), minor-7 (cool), dominant-7 (tense, wants to resolve).',
+            purpose: "Each has a clearly different emotional pull. Once your ear tags them, chord charts start speaking plain English.",
+            expectation: "Listen and tap the one you heard.",
+          },
+        ],
       },
       {
         id: 'level_8',
+        tier: 'pro',
         name: 'Advanced Seventh Chords',
         type: 'seventh_chord',
         items: ['major_7', 'minor_7', 'dominant_7', 'half_diminished_7', 'diminished_7', 'minor_major_7'],
         unlockRequirement: 70,
         description: 'Master all seventh chord qualities',
         segmentId: 'pitch',
+        prerequisites: ['level_7'],
+      },
+      {
+        id: 'scale_degree_major_7ths',
+        tier: 'pro',
+        name: 'Major Scale 7th Chords',
+        type: 'scale_degree',
+        items: ['1', '2', '3', '4', '5', '6', '7'],
+        context: 'major_7ths',
+        unlockRequirement: 70,
+        description: 'Identify 7th chords built on each scale degree in major',
+        segmentId: 'pitch',
+        prerequisites: ['scale_degree_major_triads', 'level_8'],
+      },
+      {
+        id: 'scale_degree_minor_7ths',
+        tier: 'pro',
+        name: 'Minor Scale 7th Chords',
+        type: 'scale_degree',
+        items: ['1', '2', '3', '4', '5', '6', '7'],
+        context: 'minor_7ths',
+        unlockRequirement: 70,
+        description: 'Identify 7th chords built on each scale degree in minor',
+        segmentId: 'pitch',
+        prerequisites: ['scale_degree_major_7ths', 'scale_degree_minor_triads'],
       },
       {
         id: 'level_9',
+        tier: 'pro',
         name: 'Major vs Minor Modes',
         type: 'mode',
         items: ['ionian', 'lydian', 'mixolydian', 'aeolian', 'dorian'],
         unlockRequirement: 70,
         description: 'Distinguish between major and minor modes',
         segmentId: 'pitch',
+        prerequisites: ['scale_degree_minor', 'ton_major_minor_key'],
+        establishTonality: false,
+        maxQuestions: 12,
+        intro: [
+          {
+            idea: 'A mode is a scale with a different starting foot.',
+            purpose: "Same seven notes, different tonal center — and the emotional color flips completely. Ionian is sunlight; aeolian is shadow.",
+            expectation: "You'll hear a scale played ascending. Tap which mode it is.",
+          },
+        ],
       },
       {
         id: 'level_10',
+        tier: 'pro',
         name: 'All Modes',
         type: 'mode',
         items: ['ionian', 'dorian', 'phrygian', 'lydian', 'mixolydian', 'aeolian', 'locrian'],
         unlockRequirement: 70,
         description: 'Master all seven modes',
         segmentId: 'pitch',
+        prerequisites: ['level_9'],
+        establishTonality: false,
+        maxQuestions: 14,
       },
     ],
   },
@@ -203,6 +446,19 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
         unlockRequirement: 75,
         description: 'Recognize perfect 4ths and 5ths played together',
         segmentId: 'intervals',
+        prerequisites: ['found_consonance'],
+        intro: [
+          {
+            idea: 'An interval is the distance between two pitches.',
+            purpose: "Intervals are the alphabet of all melody and harmony. Once you can name them by ear, chord qualities and melodic shapes start reading like plain text.",
+            expectation: "We'll start with two of the stablest intervals: the perfect 4th and perfect 5th.",
+          },
+          {
+            idea: 'Harmonic means both notes sound at once.',
+            purpose: "Training harmonic recognition before melodic is kinder to a new ear — you hear the blend, not the gesture, and the 4th vs 5th contrast is wide and unmistakable.",
+            expectation: 'Listen, then tap which interval you heard.',
+          },
+        ],
       },
       {
         id: 'int_melodic_4ths_5ths_asc',
@@ -214,6 +470,7 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
         unlockRequirement: 75,
         description: 'Identify ascending perfect 4ths and 5ths',
         segmentId: 'intervals',
+        prerequisites: ['int_harmonic_4ths_5ths', 'found_higher_lower'],
       },
       {
         id: 'int_melodic_4ths_5ths_desc',
@@ -225,8 +482,9 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
         unlockRequirement: 75,
         description: 'Identify descending perfect 4ths and 5ths',
         segmentId: 'intervals',
+        prerequisites: ['int_melodic_4ths_5ths_asc'],
       },
-      
+
       // Thirds
       {
         id: 'int_harmonic_3rds',
@@ -237,6 +495,7 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
         unlockRequirement: 75,
         description: 'Distinguish major and minor 3rds played together',
         segmentId: 'intervals',
+        prerequisites: ['int_harmonic_4ths_5ths'],
       },
       {
         id: 'int_melodic_3rds_asc',
@@ -248,6 +507,7 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
         unlockRequirement: 75,
         description: 'Identify ascending major and minor 3rds',
         segmentId: 'intervals',
+        prerequisites: ['int_harmonic_3rds', 'int_melodic_4ths_5ths_asc'],
       },
       {
         id: 'int_melodic_3rds_desc',
@@ -259,11 +519,13 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
         unlockRequirement: 75,
         description: 'Identify descending major and minor 3rds',
         segmentId: 'intervals',
+        prerequisites: ['int_melodic_3rds_asc'],
       },
-      
-      // Sixths
+
+      // Sixths (inversions of 3rds)
       {
         id: 'int_harmonic_6ths',
+        tier: 'pro',
         name: 'Harmonic: Sixths',
         type: 'interval',
         items: ['minor_6th', 'major_6th'],
@@ -271,9 +533,11 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
         unlockRequirement: 75,
         description: 'Recognize major and minor 6ths played together',
         segmentId: 'intervals',
+        prerequisites: ['int_harmonic_3rds'],
       },
       {
         id: 'int_melodic_6ths_asc',
+        tier: 'pro',
         name: 'Melodic: Sixths (Ascending)',
         type: 'interval',
         items: ['minor_6th', 'major_6th'],
@@ -282,9 +546,11 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
         unlockRequirement: 75,
         description: 'Identify ascending major and minor 6ths',
         segmentId: 'intervals',
+        prerequisites: ['int_harmonic_6ths', 'int_melodic_3rds_asc'],
       },
       {
         id: 'int_melodic_6ths_desc',
+        tier: 'pro',
         name: 'Melodic: Sixths (Descending)',
         type: 'interval',
         items: ['minor_6th', 'major_6th'],
@@ -293,8 +559,9 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
         unlockRequirement: 75,
         description: 'Identify descending major and minor 6ths',
         segmentId: 'intervals',
+        prerequisites: ['int_melodic_6ths_asc'],
       },
-      
+
       // Seconds (more challenging)
       {
         id: 'int_harmonic_2nds',
@@ -305,6 +572,7 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
         unlockRequirement: 75,
         description: 'Distinguish major and minor 2nds played together',
         segmentId: 'intervals',
+        prerequisites: ['int_harmonic_3rds'],
       },
       {
         id: 'int_melodic_2nds_asc',
@@ -316,6 +584,7 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
         unlockRequirement: 75,
         description: 'Identify ascending half steps and whole steps',
         segmentId: 'intervals',
+        prerequisites: ['int_harmonic_2nds', 'int_melodic_3rds_asc'],
       },
       {
         id: 'int_melodic_2nds_desc',
@@ -327,9 +596,10 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
         unlockRequirement: 75,
         description: 'Identify descending half steps and whole steps',
         segmentId: 'intervals',
+        prerequisites: ['int_melodic_2nds_asc'],
       },
-      
-      // Sevenths
+
+      // Sevenths (inversions of 2nds)
       {
         id: 'int_harmonic_7ths',
         name: 'Harmonic: Sevenths',
@@ -339,6 +609,7 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
         unlockRequirement: 75,
         description: 'Recognize major and minor 7ths played together',
         segmentId: 'intervals',
+        prerequisites: ['int_harmonic_2nds'],
       },
       {
         id: 'int_melodic_7ths_asc',
@@ -350,6 +621,7 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
         unlockRequirement: 75,
         description: 'Identify ascending major and minor 7ths',
         segmentId: 'intervals',
+        prerequisites: ['int_harmonic_7ths', 'int_melodic_2nds_asc'],
       },
       {
         id: 'int_melodic_7ths_desc',
@@ -361,8 +633,9 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
         unlockRequirement: 75,
         description: 'Identify descending major and minor 7ths',
         segmentId: 'intervals',
+        prerequisites: ['int_melodic_7ths_asc'],
       },
-      
+
       // Tritones and Major Sevenths (challenging)
       {
         id: 'int_harmonic_tritone_maj7',
@@ -373,6 +646,7 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
         unlockRequirement: 70,
         description: 'Distinguish tritones from major 7ths harmonically',
         segmentId: 'intervals',
+        prerequisites: ['int_harmonic_7ths'],
       },
       {
         id: 'int_melodic_tritone_maj7_asc',
@@ -384,6 +658,7 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
         unlockRequirement: 70,
         description: 'Identify ascending tritones vs major 7ths',
         segmentId: 'intervals',
+        prerequisites: ['int_harmonic_tritone_maj7', 'int_melodic_7ths_asc'],
       },
       {
         id: 'int_melodic_tritone_maj7_desc',
@@ -395,8 +670,9 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
         unlockRequirement: 70,
         description: 'Identify descending tritones vs major 7ths',
         segmentId: 'intervals',
+        prerequisites: ['int_melodic_tritone_maj7_asc'],
       },
-      
+
       // All Intervals - Comprehensive
       {
         id: 'int_all_harmonic',
@@ -407,6 +683,7 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
         unlockRequirement: 70,
         description: 'Master all intervals played harmonically',
         segmentId: 'intervals',
+        prerequisites: ['int_harmonic_tritone_maj7', 'int_harmonic_6ths'],
       },
       {
         id: 'int_all_melodic_asc',
@@ -418,6 +695,7 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
         unlockRequirement: 70,
         description: 'Master all ascending intervals',
         segmentId: 'intervals',
+        prerequisites: ['int_all_harmonic', 'int_melodic_tritone_maj7_asc', 'int_melodic_6ths_asc'],
       },
       {
         id: 'int_all_melodic_desc',
@@ -429,6 +707,7 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
         unlockRequirement: 70,
         description: 'Master all descending intervals',
         segmentId: 'intervals',
+        prerequisites: ['int_all_melodic_asc', 'int_melodic_tritone_maj7_desc', 'int_melodic_6ths_desc'],
       },
     ],
   },
@@ -581,15 +860,60 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
 // Flatten all levels from segments for backwards compatibility
 export const CURRICULUM: CurriculumLevel[] = CURRICULUM_SEGMENTS.flatMap(segment => segment.levels);
 
-export function getCurrentLevel(completedLevels: string[]): CurriculumLevel {
-  const nextLevel = CURRICULUM.find(level => !completedLevels.includes(level.id));
-  return nextLevel || CURRICULUM[CURRICULUM.length - 1];
+export function isProLesson(level: CurriculumLevel): boolean {
+  return level.tier === 'pro';
+}
+
+/** Effective prerequisites for a level — Pro prereqs are skipped for free users
+ *  so a free learner is never gated by something they're not allowed to play. */
+function effectivePrereqs(level: CurriculumLevel, isPro: boolean): string[] {
+  const raw = level.prerequisites ?? [];
+  if (isPro) return raw;
+  const byId = new Map(CURRICULUM.map(l => [l.id, l]));
+  return raw.filter(id => {
+    const pre = byId.get(id);
+    return !pre || !isProLesson(pre);
+  });
+}
+
+export function getCurrentLevel(completedLevels: string[], isPro: boolean = true): CurriculumLevel {
+  const done = new Set(completedLevels);
+  const candidates = CURRICULUM.filter(level => {
+    if (done.has(level.id)) return false;
+    if (!isPro && isProLesson(level)) return false; // free user "current lesson" cursor skips Pro lessons
+    return isLevelUnlocked(level, completedLevels, { isPro });
+  });
+  if (candidates.length > 0) return candidates[0];
+  const nextAny = CURRICULUM.find(level => !done.has(level.id) && (isPro || !isProLesson(level)));
+  return nextAny || CURRICULUM[CURRICULUM.length - 1];
 }
 
 export function canUnlockNextLevel(currentLevelId: string, accuracy: number): boolean {
   const currentLevel = CURRICULUM.find(level => level.id === currentLevelId);
   if (!currentLevel) return false;
   return accuracy >= currentLevel.unlockRequirement;
+}
+
+export function isLevelUnlocked(
+  level: CurriculumLevel,
+  completedLevels: string[],
+  opts: { unlockAll?: boolean; isPro?: boolean } = {},
+): boolean {
+  if (opts.unlockAll) return true;
+  const prereqs = effectivePrereqs(level, opts.isPro ?? true);
+  if (prereqs.length === 0) return true;
+  const done = new Set(completedLevels);
+  return prereqs.every(id => done.has(id));
+}
+
+export function getUnlockedLevels(
+  completedLevels: string[],
+  opts: { unlockAll?: boolean; isPro?: boolean } = {},
+): CurriculumLevel[] {
+  const done = new Set(completedLevels);
+  return CURRICULUM.filter(
+    level => !done.has(level.id) && isLevelUnlocked(level, completedLevels, opts),
+  );
 }
 
 export function getDisplayName(item: string): string {

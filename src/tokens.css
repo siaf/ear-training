@@ -1,0 +1,88 @@
+/* Fifths · design tokens — source of truth is the brand kit at public/brand/brand-kit.html */
+:root {
+  --page:   #fff8ef;
+  --page-2: #fef1dd;
+  --page-3: #fde6c4;
+  --card:   #ffffff;
+
+  --ink-1:  #2a1d3a;
+  --ink-2:  #54466b;
+  --ink-3:  #8a7b9d;
+  --ink-4:  #b7acc4;
+  --ink-5:  #e4dbed;
+  --hairline: #ebe1ef;
+
+  --coral:      #ff8a6b;
+  --coral-ink:  #c64632;
+  --coral-soft: #ffe1d4;
+  --mint:       #b6e5cd;
+  --mint-ink:   #2f7a5a;
+  --mint-soft:  #d5f0e1;
+  --lav:        #c8b8ff;
+  --lav-ink:    #5b3fb3;
+  --lav-soft:   #e4daff;
+  --butter:     #ffd768;
+  --butter-ink: #9a6f00;
+  --butter-soft:#fff0c1;
+  --sky:        #a8d5ff;
+  --sky-ink:    #2867b2;
+  --sky-soft:   #dcecff;
+
+  --accent:      var(--coral);
+  --accent-ink:  var(--coral-ink);
+  --accent-soft: var(--coral-soft);
+
+  --ui:    'Outfit', system-ui, sans-serif;
+  --disp:  'DM Serif Display', Georgia, serif;
+  --mono:  ui-monospace, 'JetBrains Mono', monospace;
+
+  --r-sm: 10px;
+  --r-md: 18px;
+  --r-lg: 26px;
+  --r-xl: 34px;
+  --r-full: 9999px;
+
+  --sh-sm: 0 1px 2px rgba(42,29,58,0.06), 0 2px 6px rgba(42,29,58,0.05);
+  --sh-md: 0 4px 14px rgba(42,29,58,0.10), 0 2px 5px rgba(42,29,58,0.06);
+  --sh-lg: 0 16px 40px rgba(42,29,58,0.14), 0 6px 12px rgba(42,29,58,0.08);
+}
+
+/* Dark theme — opt-in via <html data-theme="dark"> only (light is the designed default).
+   Per brand kit: coral is unchanged, every other pastel flips with its -ink partner,
+   and each hue's -soft becomes a deep tinted surface. */
+html[data-theme="dark"] {
+  --page:   #15101c;
+  --page-2: #1e1729;
+  --page-3: #271e37;
+  --card:   #1e1729;
+
+  --ink-1:  #f5eefa;
+  --ink-2:  #cfc1dd;
+  --ink-3:  #938099;
+  --ink-4:  #5b4d6c;
+  --ink-5:  #352a44;
+  --hairline: #302740;
+
+  --coral:      #ff8a6b;
+  --coral-ink:  #ffcebd;
+  --coral-soft: #3a1f17;
+  --mint:       #2f7a5a;
+  --mint-ink:   #b6e5cd;
+  --mint-soft:  #1e3b2c;
+  --lav:        #6d52c9;
+  --lav-ink:    #e4daff;
+  --lav-soft:   #24173d;
+  --butter:     #9a6f00;
+  --butter-ink: #ffe49b;
+  --butter-soft:#2d2108;
+  --sky:        #2867b2;
+  --sky-ink:    #cce1ff;
+  --sky-soft:   #0f2538;
+
+  --sh-sm: 0 1px 2px rgba(0,0,0,0.25), 0 2px 6px rgba(0,0,0,0.18);
+  --sh-md: 0 4px 14px rgba(0,0,0,0.35), 0 2px 5px rgba(0,0,0,0.20);
+  --sh-lg: 0 16px 40px rgba(0,0,0,0.45), 0 6px 12px rgba(0,0,0,0.25);
+}
+
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.serif { font-family: var(--disp); }
