@@ -16,6 +16,20 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap">
   <link rel="stylesheet" href="/styles.css">
   <script defer src="https://cloud.umami.is/script.js" data-website-id="8cc10640-f114-49ab-8572-036552f64527"></script>
+  <!-- PostHog -->
+  <script>
+    !function(t,e){var o,n,p,r;e.__SV||(window.posthog && window.posthog.__loaded)||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="capture identify register reset opt_in_capturing opt_out_capturing has_opted_out_capturing".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+    posthog.init('phc_vy9ynWCmqQ27B9FRAvXN6SNay28XjaGHHo3NCvszDF3h', { api_host: 'https://us.i.posthog.com', defaults: '2026-01-30', person_profiles: 'identified_only', property_blacklist: ['$ip'], ip: false, capture_pageview: true, capture_pageleave: 'if_capture_pageview', cross_subdomain_cookie: true, persistence: 'localStorage+cookie', session_recording: { maskAllInputs: true } })
+  </script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-LJYKXFDR9L"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-LJYKXFDR9L');
+    gtag('config', 'AW-17007845333');
+  </script>
   <style>
     .legal {
       max-width: 760px;
@@ -112,7 +126,7 @@
 
   <h3>4. Privacy-respecting analytics</h3>
   <p>The marketing site uses <a href="https://umami.is/" rel="nofollow">Umami</a>, a cookieless analytics tool that does not track users across sites. It records aggregate page views, referring sites, and rough country-level location. No personal identifiers, no cross-site profiles, no ads.</p>
-  <p>The app may use <a href="https://posthog.com/" rel="nofollow">PostHog</a> for product analytics — to see which features people use and where they get stuck. PostHog is configured without IP tracking, without session replay of input fields, and is anonymized at the device level. You can opt out from inside the app's settings.</p>
+  <p>Both the marketing site and the app use <a href="https://posthog.com/" rel="nofollow">PostHog</a> for product analytics — to understand which pages convert and which features people use. On the marketing site, PostHog records pageviews and form submissions tagged with the campaign that referred you (if any). In the app, it records which lessons you start, finish, or get stuck on. In both places, PostHog is configured without IP tracking, without session replay of input fields, and is anonymized at the device level until you explicitly sign in. You can opt out from inside the app's settings.</p>
 
   <h3>5. Crash and error reports</h3>
   <p>If the app crashes, we receive a stack trace and the version of the app you were running. We do not receive your practice data with crash reports.</p>

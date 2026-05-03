@@ -1,4 +1,5 @@
 import { isNative, platform } from './native';
+import { trackPurchase } from './attribution';
 
 // Entitlement identifier configured in RevenueCat dashboard.
 // All paid tiers (monthly, annual, lifetime) grant this same entitlement.
@@ -14,6 +15,12 @@ export const PRODUCT_IDS = {
 
 type CustomerInfoLike = {
   entitlements?: { active?: Record<string, unknown> };
+};
+
+const PRODUCT_VALUE_USD: Record<string, number> = {
+  [PRODUCT_IDS.proMonthly]: 4.99,
+  [PRODUCT_IDS.proAnnual]: 39.99,
+  [PRODUCT_IDS.lifetime]: 99.0,
 };
 
 interface BillingProvider {
@@ -150,7 +157,12 @@ async function initWeb(userId?: string): Promise<BillingProvider | null> {
       }
       const result = await inst.purchase({ rcPackage: pkg });
       setCustomerInfo(result.customerInfo);
-      return Boolean(result.customerInfo.entitlements.active[PRO_ENTITLEMENT]);
+      const granted = Boolean(result.customerInfo.entitlements.active[PRO_ENTITLEMENT]);
+      if (granted) {
+        const email = (result.customerInfo as { email?: string | null }).email ?? null;
+        trackPurchase({ value: PRODUCT_VALUE_USD[productId] ?? 0, transactionId: productId, email });
+      }
+      return granted;
     },
     restorePurchases: async () => {
       // Web billing is single-device; "restore" reduces to refetching customer info.
@@ -198,7 +210,11 @@ async function initNative(userId?: string): Promise<BillingProvider | null> {
       }
       const { customerInfo: info } = await Purchases.purchasePackage({ aPackage: pkg });
       setCustomerInfo(info);
-      return Boolean(info.entitlements.active[PRO_ENTITLEMENT]);
+      const granted = Boolean(info.entitlements.active[PRO_ENTITLEMENT]);
+      if (granted) {
+        trackPurchase({ value: PRODUCT_VALUE_USD[productId] ?? 0, transactionId: productId });
+      }
+      return granted;
     },
     restorePurchases: async () => {
       const { customerInfo: info } = await Purchases.restorePurchases();

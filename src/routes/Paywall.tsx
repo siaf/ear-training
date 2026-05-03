@@ -1,5 +1,7 @@
+import { useEffect } from 'react';
 import { useBreakpoint } from '../lib/useBreakpoint';
 import { Bean, Brand, ColorPill } from '../components/primitives';
+import { phCapture } from '../lib/posthog';
 
 export type PaywallTrigger = 'session-ceiling' | 'advanced-segment' | 'manual';
 export type PlanId = 'free' | 'pro' | 'studio';
@@ -96,6 +98,15 @@ export default function Paywall({ trigger, currentPlan, onSelect, onDismiss }: P
   const mobile = useBreakpoint() !== 'desktop';
 
   const copy = triggerCopy(trigger);
+
+  useEffect(() => {
+    phCapture('paywall_viewed', { trigger, current_plan: currentPlan });
+  }, [trigger, currentPlan]);
+
+  const handleSelect = (plan: PlanId) => {
+    phCapture('paywall_plan_selected', { plan, trigger, current_plan: currentPlan });
+    onSelect(plan);
+  };
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--page)', overflow: 'auto' }}>
@@ -250,7 +261,7 @@ export default function Paywall({ trigger, currentPlan, onSelect, onDismiss }: P
                   size="md"
                   style={{ width: '100%', justifyContent: 'center' }}
                   disabled={isCurrent}
-                  onClick={() => onSelect(p.id)}
+                  onClick={() => handleSelect(p.id)}
                 >
                   {isCurrent ? 'current plan' : p.cta}
                 </Bean>

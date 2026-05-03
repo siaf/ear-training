@@ -6,6 +6,7 @@ import { SYNTH_CATALOG, SynthType } from '../audioEngine';
 import { ThemePreference } from '../lib/theme';
 import type { SyncState } from '../lib/syncEngine';
 import { DegreeNotation, DEFAULT_DEGREE_NOTATION, DEGREE_NOTATION_LABELS } from '../lib/degreeNotation';
+import { isAnalyticsOptedOut, setAnalyticsOptOut } from '../lib/posthog';
 
 export type Preset = 'beginner' | 'balanced' | 'studio';
 
@@ -152,6 +153,7 @@ export default function Settings({
   const mobile = useBreakpoint() !== 'desktop';
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [resetArmed, setResetArmed] = useState(false);
+  const [analyticsOff, setAnalyticsOff] = useState(isAnalyticsOptedOut());
 
   const activePreset = matchesPreset(settings);
 
@@ -611,6 +613,28 @@ export default function Settings({
             </Row>
           </div>
         )}
+
+        <div style={{ marginTop: 24, padding: '18px 22px', background: 'var(--card)', borderRadius: 22, border: '1px solid var(--hairline)' }}>
+          <div style={{ fontFamily: 'var(--disp)', fontStyle: 'italic', fontSize: 18, fontWeight: 600, color: 'var(--ink-1)' }}>
+            privacy
+          </div>
+          <div style={{ fontSize: 13, color: 'var(--ink-2)', margin: '6px 0 12px' }}>
+            anonymous product analytics help us see which lessons trip people up. no IPs, no input recording, opt out anytime.
+          </div>
+          <Row label="anonymous analytics">
+            <Bean
+              tone={analyticsOff ? 'soft' : 'mint'}
+              size="sm"
+              onClick={() => {
+                const next = !analyticsOff;
+                setAnalyticsOptOut(next);
+                setAnalyticsOff(next);
+              }}
+            >
+              {analyticsOff ? 'off' : 'on'}
+            </Bean>
+          </Row>
+        </div>
 
         <div style={{ marginTop: 32, padding: '18px 22px', background: 'var(--coral-soft)', borderRadius: 22 }}>
           <div style={{ fontFamily: 'var(--disp)', fontStyle: 'italic', fontSize: 16, fontWeight: 600, color: 'var(--coral-ink)' }}>

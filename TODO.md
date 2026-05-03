@@ -142,6 +142,68 @@ The `payment-failed` and `cancelled` Loops transactional templates are uploaded 
 
 ### Stripe receipt email branding (merged into Stripe live mode section above — do in same session as the live activation)
 
+### Google Ads readiness (paid acquisition prep)
+**Strategy doc:** [docs/google-ads-strategy.md](docs/google-ads-strategy.md) — the full playbook (funnel, conversion taxonomy, campaign structure, bidding, expansion roadmap, kill criteria). **Keyword plan:** [docs/google-ads-keywords.md](docs/google-ads-keywords.md) — 6 ad groups × 38 keywords with bid floors and rationale. **Raw research:** [ads-research/](ads-research/) — 6 Keyword Planner CSVs (fifths, seeds, earmaster, completeeartrainer, sonofield, tonegym). This TODO section tracks only what's outstanding operationally.
+
+**Funnel:** `Visit fifths.io → anonymous use of app.fifths.io → account_signup (Google primary, magic-link fallback) → purchase`. Waitlist removed from the path 2026-04-27 — app is live, users go straight to it.
+
+**~~Done 2026-04-27 (account + tracking infra):~~**
+- ~~Google Ads account created (`sahar.fathi.business@gmail.com`), Conversion ID `AW-17007845333`, umbrella tag `GT-57Z7JZDC`. Advertiser Verification carried over from the existing Ketabian LLC account — no re-review.~~
+- ~~GA4 property `Fifths.IO` (ID `534842759`), Measurement ID `G-LJYKXFDR9L`, cross-domain stitching configured for `fifths.io` ↔ `app.fifths.io`, GA4 ↔ Ads link active.~~
+- ~~`gtag('config', 'G-LJYKXFDR9L')` + `gtag('config', 'AW-17007845333')` deployed on all 7 marketing pages in [site/](site/) (index, jazz, classical, transcribing, returning, privacy, terms) AND on the React app's [index.html](index.html).~~
+- ~~3 conversion actions created in Google Ads, manually with code:~~
+  - ~~`account_signup` — Sign-up category, Secondary, Count One, 30-day window. Label `kllgCLWf6qMcENW__K0_`. Fires on first Supabase sign-in via [src/lib/syncEngine.ts](src/lib/syncEngine.ts) + [src/lib/attribution.ts](src/lib/attribution.ts) `trackAccountSignup`.~~
+  - ~~`purchase` — Subscribe category, Primary, Count Every, 90-day window, dynamic value via Event snippet. Label `_PtGCPWU6qMcENW__K0_`. Fires on RevCat success in [src/lib/billing.ts](src/lib/billing.ts) `trackPurchase` with $4.99/$39.99/$99 mapped from product ID.~~
+  - ~~`engaged_anon` — Page view category, Secondary, Count One, 30-day window. Label `oLgZCMyB6qMcENW__K0_`. Fires on first session completion in [src/App.tsx](src/App.tsx) `endSession` once `totalQuestions > 0`.~~
+- ~~Env-var contract in [src/lib/attribution.ts](src/lib/attribution.ts) reads `VITE_GOOGLE_ADS_ID` + 3 `VITE_GADS_LABEL_*` vars; missing vars silently no-op.~~
+- ~~`gclid` + `utm_*` capture on landing in BOTH [site/app.js](site/app.js) (marketing) and [src/lib/attribution.ts](src/lib/attribution.ts) (app), 90-day TTL under localStorage key `fifths.attribution.v1`. Outbound `app.fifths.io` links on the marketing site auto-rewritten to forward those params.~~
+- ~~Enhanced Conversions wired client-side: `gtag('set', 'user_data', { email })` called before signup + purchase events. "User provided data" hits confirmed in Tag Assistant.~~
+- ~~AuthSheet flipped to Google-primary: [src/components/AuthSheet.tsx](src/components/AuthSheet.tsx) shows "continue with Google" as the prominent coral CTA; magic link collapsed behind a small "or sign in with email" link.~~
+- ~~End-to-end Tag Assistant verification 2026-04-27: `account_signup` ✅ fires on Google sign-in, `engaged_anon` ✅ fires on first complete session. `purchase` ⏳ unverified pending RevCat Stripe reconnect (see "Stripe live mode" section above) — code path is identical to the two verified events, no reason to expect issues.~~
+
+**Outstanding (do before launching ads):**
+- [ ] **Toggle Enhanced Conversions ON in Google Ads UI.** Tools → Conversions → Settings → Enhanced conversions → ON, method **Google Tag**. Code is already passing hashed email; the toggle just tells Google to use it. (~30 sec.)
+- [ ] **Confirm goal hierarchy.** Tools → Goals → confirm `Purchase` is account default + Primary; `Sign-up` and `Page view` are Secondary.
+- [ ] **Verify `purchase` end-to-end** — gated on the RevCat Stripe reconnect documented at [TODO.md "Stripe live mode" section](#stripe-live-mode--final-step-before-launch-do-after-phase-3-ux-testing-passes). Once RC is reconnected, run a $4.99 sandbox purchase with `4242 4242 4242 4242` and confirm Tag Assistant logs the conversion.
+
+**Account housekeeping (do now, before any campaign):**
+- [ ] **Rename conversion actions** in Tools → Conversions: `purchase` → `fifths_purchase`, `Sign-up` → `fifths_signup`, `engaged_anon` → `fifths_engaged`. Pure UI rename — labels are immutable, no code change. Globally namespaced names keep reports clean once Speak Fluently campaigns ship.
+- [ ] **Create Custom Goal "Fifths"** in Tools → Goals → + Create custom goal. Attach the 3 renamed actions. This becomes the goal every Fifths campaign explicitly attaches.
+- [ ] **Set the 3 account-default goals (Purchase / Sign-up / Page view) to inactive** — uncheck "Apply to all campaigns by default" on each. Forces explicit goal selection per campaign. Prevents future Speak Fluently campaigns from accidentally optimizing toward Fifths' purchase events.
+
+**Outstanding (campaign launch — see [docs/google-ads-strategy.md](docs/google-ads-strategy.md) for the full playbook):**
+- [ ] **Brand Defense skipped for Fifths.** At pre-launch awareness, no branded search volume exists worth defending. Revisit in month 4-6 if organic mentions create competitor squatting risk.
+- ~~**Keyword Planner pass** done 2026-04-27. 6 CSVs in [ads-research/](ads-research/) (fifths, seeds, earmaster, completeeartrainer, sonofield, tonegym). Curated launch list: 6 ad groups × 38 keywords (76 total in exact + phrase variants), full plan + bidding strategy + kill criteria in [docs/google-ads-keywords.md](docs/google-ads-keywords.md). Headline picks: `relative pitch` (5k vol, $0 floor, unclaimed), `ear training app` (5k, $0.50), `transcribe music` (5k, $0.50), `tonegym`/`musicca` for competitor-conquest.~~
+- [ ] **Campaign 1: High-intent ear training.** Launch after (a) keyword planner pass, (b) RC Stripe reconnect, (c) `fifths_purchase` end-to-end verified via sandbox buy. $10-15/day, phrase+exact match, conversion goal = Custom Goal: Fifths. Maximize Clicks with bid cap until ≥10 conversions, then Maximize Conversions, then tCPA at ≥30.
+- [ ] **Negative keyword list** applied at account level before any campaign launches: `free, youtube, pdf, tutorial, how to, reddit, kids, children, beginner, course, lesson plan, sheet music, guitar tabs, piano tutorial, jobs, apk, crack, mod, download, torrent, review of, vs, cheat, hack, worksheet, exercise sheet, school, classroom`. Apply via Tools → Shared library → Negative keyword lists.
+- [ ] **Campaign 2: Competitor offensive** (week 4+, gated on Campaign 1 profitability). Two angles: (A) **Primary** — sign up for Semrush ($120 one-time, cancel after 1 month), pull PPC keyword reports for earmaster/sonofield/meludia/etc., add validated winners to Campaign 1's ad groups. (B) **Secondary** — separate "alternative" campaign at $5/day on `"earmaster alternative"`, `"sonofield alternative"`, etc. Never use competitor names in ad copy headlines (trademark risk).
+
+**Expansion roadmap (week 6+, gated on Campaign 1 ROI — see [docs/google-ads-strategy.md](docs/google-ads-strategy.md) "Expansion roadmap" section for the full rationale):**
+- [ ] **Phase 2A — `/singing/` landing + vocal ear training ad group.** Vocal-segment cluster (`vocal ear training`, `singing ear training`, `voice training app`) totals ~6,500 monthly searches at low CPCs. Direct competitors don't target this well. Fifths' product already supports it (sing mode + voice range calibration); just needs marketing positioning. ~4 hrs landing + 30 min ad group setup. Highest-priority expansion — cheapest test of the segmentation hypothesis. Estimated ~2× addressable audience.
+- [ ] **Phase 2B — Aural skills ad group** (academic music education). 5 keywords (`aural skills`, `aural training`, `melodic dictation`, `harmonic dictation`, `aural skills practice`). Lands on existing /classical/. 30 min total. Higher-willingness-to-pay segment (music students with exam pressure).
+- [ ] **Phase 2C — Instrument-themed landings.** `/piano-ear-training/`, `/guitar-ear-training/`, `/bass-ear-training/`. Same product, instrument-themed copy + screenshots. Lifts Quality Score on instrument-specific keyword variants AND opens organic SEO. 6-8 hrs for 3 landings. Skip if Phase 2A doesn't perform.
+- [ ] **Phase 2D — YouTube + SEO content engine** (separate workstream from ads). Tutorial-intent keywords (`how to transcribe music`, `how to identify intervals`) have 50,000+/mo combined. Wrong intent for paid; ideal for content marketing. Editorial: 1 video + 1 blog post/week, 12 weeks. Compounds for years; outscales ads at marginal cost. Note: requires blog setup on `fifths.io/blog/` — not currently scoped.
+- [ ] **Phase 2E — Geographic split campaigns.** Once Campaign 1 has 30 days of data, duplicate as US-only / UK-only / AU-only with locale-specific terminology (UK uses `aural`). 30 min, do not split earlier (dilutes signal).
+- [ ] **Phase 2F — Universal App Campaigns (UAC)** for iOS + Android. Gated on Apple/Google dev account approval + native app shipping. Different campaign type from Search; optimizes for in-app installs and events. Captures the `play store` / `app store` / `[platform] app` keyword pool that we filtered out for web ads. 4-6 hrs config once mobile is stable in TestFlight/Play internal.
+
+**What we explicitly will NOT chase** (per keyword data analysis):
+- `perfect pitch` head term — wrong product fit (Fifths teaches relative, not perfect)
+- `chord progressions` / `music theory` head terms — Fifths isn't a theory app
+- `sight reading` — would require product expansion to be honest; revisit only as a future Pro-tier feature
+- `free ear training app` searchers — won't convert to paid; capture organically via blog comparison posts instead
+
+**Deferred ad-tracking infra (week 3+, only if scale justifies):**
+- [ ] **OAuth host branding fix** ([TODO.md:343](TODO.md#L343)). Google sign-in OAuth picker still shows "azsedefwatnqjogotudi.supabase.co" instead of `app.fifths.io`. Switching to `signInWithIdToken` via Google Identity Services recovers ~25% of paid-traffic signup conversions. ~2-3h work.
+- [ ] **Server-side purchase via OCI.** Add a handler to the RevCat → Loops webhook Worker that POSTs `INITIAL_PURCHASE` + `RENEWAL` events to Google Ads' Offline Conversion Import API. Maps `app_user_id` → original `gclid` (already persisted to localStorage; need to also persist to Supabase `profiles` row at signup time so the Worker can recover it). Recovers the ~30% of purchases lost to client-side blockers (Safari ITP, ad blockers).
+- [ ] **30-day adjusted-value upload.** Once OCI is wired, fire conversion at $0 at purchase time, then upload retention-adjusted value 30 days later. More accurate ROAS than the current "guess first-year LTV upfront" approach.
+- [ ] **Performance Max campaign.** Hold until ≥30 paid conversions in the account. PMax needs the signal volume to learn; before that it burns budget on garbage placements.
+- [ ] **Google Identity Services / One Tap** for additional ~30-50% Chrome desktop signup lift.
+
+**~~Already done (landing-page hygiene, 2026-04-26):~~**
+- ~~Pricing block on `/`, `/jazz`, `/classical`, `/transcribing` (Free / Pro Monthly $4.99 / Pro Annual $39.99 / Lifetime $99) — Google Ads policy team flags ads that obscure subscription pricing.~~
+- ~~Cancel-anytime + 14-day refund visible from every landing page hero CTA and pricing fineprint.~~
+- ~~"No ads, ever" trust signal surfaced on every CTA.~~
+
 ### Cloudflare Email Routing — `hello@fifths.io` inbound (USER, ~2 min)
 Free Cloudflare-native inbound email forwarding. No mail server needed; replies go to your existing Gmail.
 - [ ] Cloudflare → **fifths.io zone → Email → Email Routing → Get Started** (auto-adds MX + SPF DNS records).
@@ -218,10 +280,12 @@ npx capacitor-assets generate --iconBackgroundColor '#fff8ef' --splashBackground
 
 Android adaptive-icon sources ready at [`public/brand/icons/icon-android-adaptive-{fg,bg}.png`](./public/brand/icons/) and [`icon-android-mono-fg.png`](./public/brand/icons/icon-android-mono-fg.png).
 
-### Offline fallback for Tone.js piano samples
+### Offline fallback for Tone.js piano samples — **deferred until iOS/Android launch**
+Web users have internet by definition; if they don't, the app's other network deps (Supabase, RevCat) are also broken. This is only a real UX problem on installed mobile apps that can be opened in airplane mode. Skip for the web launch; revisit when packaging the iOS/Android binaries.
+
 [`audioEngine.ts`](src/audioEngine.ts) loads Salamander Grand Piano samples from the Tone.js CDN at `https://tonejs.github.io/audio/salamander/`. Offline, the sampler never resolves and Practice hangs.
 
-Two options:
+Two options when we revisit:
 1. **Detect + fallback**: wrap the Sampler ready-promise with a timeout, fall back to the sine/sawtooth synth if it times out. Minimal code change.
 2. **Bundle samples**: drop ~5 MB of MP3s into `public/samples/` and switch `baseUrl`. Works offline, slightly larger bundle.
 
@@ -336,8 +400,42 @@ The chat-style onboarding now persists `{ ratings, voiceRange, experience, goal,
 ### Push notifications
 Currently implemented as **local notifications** only (scheduled on the device). Remote push (server → device) would need FCM (Android) + APNs setup (iOS) which both require paid developer accounts, certs, and a backend to send them.
 
-### PostHog product analytics (deferred from this round)
-Umami covers the marketing site. PostHog inside the app would track funnels (signup → first session → trial → paid), feature adoption, and where users get stuck. Free tier 1M events/mo. Skipped this round per user request — revisit after launch. **Note:** PostHog also does error tracking + session replay, so adopting it could replace Sentry (one less integration).
+### PostHog product analytics — ✅ live (2026-05-03)
+Wired on both `fifths.io` (marketing, in [site/app.js](site/app.js) + inline on [site/privacy/index.html](site/privacy/index.html) and [site/terms/index.html](site/terms/index.html)) and `app.fifths.io` (React app, in [src/lib/posthog.ts](src/lib/posthog.ts), used by [src/lib/attribution.ts](src/lib/attribution.ts), [src/App.tsx](src/App.tsx), [src/routes/Settings.tsx](src/routes/Settings.tsx), [src/routes/Paywall.tsx](src/routes/Paywall.tsx), [src/components/AuthSheet.tsx](src/components/AuthSheet.tsx)).
+
+**Privacy posture matches `/privacy`:** `ip:false` + `$ip` blacklist, masked inputs, identified-only profiles, autocapture allowlist (`[data-ph-track]` only). Settings → privacy toggle exposes opt-out. Cross-subdomain cookie shares `distinct_id` between marketing and app.
+
+**Custom events captured:**
+- App: `session_started`, `session_completed`, `level_unlocked`, `paywall_viewed`, `paywall_plan_selected`, `auth_sheet_opened`, `auth_provider_clicked`
+- App (dual-fire with Google Ads): `fifths_engaged`, `fifths_signup`, `fifths_purchase`
+- Marketing: `waitlist_submit`, `survey_submit`, plus auto-captured `$pageview` / `$pageleave` / `$web_vitals`
+- All events carry `gclid` + `utm_*` as super-properties (registered via `phRegister` from stored attribution)
+
+**PostHog assets** (project id 408097, org "Ketabian LLC"):
+- Dashboards: [Engagement & Retention](https://us.posthog.com/project/408097/dashboard/1539424) (10 insights), [Acquisition & Ads](https://us.posthog.com/project/408097/dashboard/1539431) (12 insights)
+- Cohort: [Engaged users (≥3 completed sessions)](https://us.posthog.com/project/408097/cohorts/289626)
+- Survey: [Marketing exit-intent](https://us.posthog.com/project/408097/surveys/019def29-d754-0000-94a5-cd5fb2a09951) — **draft, needs manual launch**
+- Feature flag: [`lp-headline-test`](https://us.posthog.com/project/408097/feature_flags/663166) — placeholder, off until variant copy is decided
+- PostHog MCP server is connected to Claude Code; ask Claude to add new insights/funnels and it will create them via the MCP
+
+**Marketing referer→utm fallback:** `site/app.js` infers `utm_source`/`utm_medium` from `document.referrer` when explicit URL params are absent (Reddit, X, HN, YouTube, etc.) so organic-share traffic is properly attributed.
+
+**Still deferred:**
+- Replace Sentry with PostHog Error Tracking (would shed one integration). Not urgent — Sentry is wired and works.
+- Session recording is NOT enabled (off by default; has cost implications). Toggle in PostHog → Settings → Recording when ready.
+- Ad-spend ingestion for true CAC/ROAS (annotate manually for now, or build Data Warehouse CSV import once spend > $1k/mo).
+
+### Native (iOS/Android) analytics — full fix once mobile actually ships
+Quick fix already deployed (2026-05-03): every PostHog event carries `$source` (`web` / `ios` / `android`) + `$is_native` super-properties from [src/lib/posthog.ts](src/lib/posthog.ts), so web vs native traffic is sliceable in any insight via the breakdown menu. GA4/gtag is skipped on native (gated on `window.Capacitor.isNativePlatform()` in [index.html](index.html)) so iOS sessions don't pollute GA4 as "(direct)" pageviews.
+
+**Still TODO once iOS/Android distribution exists** (do AFTER Apple Developer + Google Play enrollment + first TestFlight build):
+
+- [ ] **Replace web SDK with PostHog React Native SDK** in the Capacitor wrappers. The current setup runs the JS web SDK inside WKWebView; this works but means: (a) `$host` is `localhost` not `app.fifths.io`, breaking host-based dashboard filters, (b) no access to native lifecycle hooks (app backgrounded, push opened, etc.), (c) no AdAttributionKit / SKAdNetwork integration. PostHog's native SDK fixes all three. Several days of work.
+- [ ] **Apple Search Ads attribution.** Integrate Apple's `AdServices` framework to call `AAAttribution.attributionToken()` on first launch, decode the token via Apple's API, and forward `apple_campaign_id` / `apple_keyword_id` to PostHog as super-properties on the first session. Lets you measure Apple Search Ads conversion in the same PostHog funnels as Google Ads.
+- [ ] **Universal Links → attribution forwarding.** When a user taps `fifths.io/...` on iOS and the app opens via Universal Link, parse `gclid`/`utm_*` from the URL and `phRegister` them on launch — same pattern as the web side. Recovers attribution for the "saw fifths.io ad on mobile web → installed iOS app same session" flow.
+- [ ] **Identity stitching across web↔native.** Currently web and native installs of the same human get separate `distinct_id`s until they sign in. After sign-in, `phIdentify(userId)` stitches them via Supabase user id. Verify this works end-to-end with a real test (web visit → magic link → install iOS app → sign in there → confirm one Person row in PostHog).
+- [ ] **Update existing PostHog dashboards to slice by `$source`.** Most current insights filter by `$host icontains app.fifths.io` which would silently exclude native users. Once the React Native SDK is in (and `$host` no longer applies), swap those filters to `$source = web` for explicit web-only views, and clone key insights to `$source = ios` / `$source = android` for per-surface analysis.
+- [ ] **Apple App Store Connect Analytics + Google Play Console** — separately, log into both and configure the pre-built funnels (impressions → product page views → installs → opens). These are platform-attributed and can't be reproduced in PostHog. Cross-reference with PostHog `session_started` to detect install-but-never-opened drop-off.
 
 ### Backup restore drill
 Supabase auto-snapshots daily; D1 has time-travel. We've never tested actually restoring either.

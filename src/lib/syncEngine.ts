@@ -7,6 +7,7 @@ import {
   subscribeSessions,
 } from './sessionStore';
 import { identifyUser, isPro, logOutBilling } from './billing';
+import { trackAccountSignup } from './attribution';
 
 const FLUSH_DEBOUNCE_MS = 2000;
 
@@ -97,6 +98,7 @@ function handleSession(session: Session | null) {
   }
   if (!wasSignedIn) {
     void identifyUser(user.id);
+    trackAccountSignup(user.id, user.email ?? null);
     void initialSync();
   }
 }

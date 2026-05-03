@@ -24,6 +24,8 @@ import {
   type ProfileSnapshot,
 } from './lib/syncEngine';
 import { PRODUCT_IDS, isPro, purchaseProduct, subscribeBilling } from './lib/billing';
+import { trackEngagedAnon } from './lib/attribution';
+import { phCapture } from './lib/posthog';
 import LessonIntro from './components/LessonIntro';
 import MasteryOverlay from './components/MasteryOverlay';
 import StreakRecoverySheet from './components/StreakRecoverySheet';
@@ -311,8 +313,18 @@ export default function App() {
       setSessionStartedAt(Date.now());
       setRoute('practice');
       cancelStreakReminder().catch(() => {});
+      const level = CURRICULUM.find((l) => l.id === levelId);
+      phCapture('session_started', {
+        level_id: levelId,
+        level_type: level?.type ?? null,
+        is_first_ever_session: !hasEverPracticed,
+        is_signed_in: isSignedIn,
+        is_pro: proActive,
+        completed_levels_count: completedLevels.length,
+        is_repeat_of_level: completedLevels.includes(levelId),
+      });
     },
-    [analytics],
+    [analytics, hasEverPracticed, isSignedIn, proActive, completedLevels],
   );
 
   // Wrap startSession to enforce the anonymous lesson cap.
@@ -461,10 +473,12 @@ export default function App() {
       setCompletedLevels((prev) => (prev.includes(currentLevel.id) ? prev : [...prev, currentLevel.id]));
     }
     if (finalStats.totalQuestions > 0) {
+      const startedAt = sessionStartedAt || Date.now();
+      const endedAt = Date.now();
       recordSession({
         levelId: currentLevel.id,
-        startedAt: sessionStartedAt || Date.now(),
-        endedAt: Date.now(),
+        startedAt,
+        endedAt,
         answers: analytics.getAnswers(),
         stats: finalStats,
         unlocked,
@@ -473,17 +487,39 @@ export default function App() {
       // First-session prompt for notifications, then schedule reminder.
       if (!hasEverPracticed) {
         requestNotificationPermission().then(() => scheduleStreakReminder(22)).catch(() => {});
+        trackEngagedAnon();
       } else {
         scheduleStreakReminder(22).catch(() => {});
       }
       setHasEverPracticed(true);
+      phCapture('session_completed', {
+        level_id: currentLevel.id,
+        level_type: currentLevel.type,
+        accuracy: finalStats.accuracy,
+        total_questions: finalStats.totalQuestions,
+        duration_ms: endedAt - startedAt,
+        unlocked,
+        is_first_ever_session: !hasEverPracticed,
+        is_first_completion_of_level: firstUnlock,
+        completed_levels_count: completedLevels.length + (firstUnlock ? 1 : 0),
+        is_signed_in: isSignedIn,
+        is_pro: proActive,
+      });
+      if (firstUnlock) {
+        phCapture('level_unlocked', {
+          level_id: currentLevel.id,
+          level_type: currentLevel.type,
+          accuracy: finalStats.accuracy,
+          completed_levels_count: completedLevels.length + 1,
+        });
+      }
     }
     if (firstUnlock) {
       setMasteryLevelId(currentLevel.id);
       haptics.heavy();
     }
     setRoute('results');
-  }, [analytics, completedLevels, currentLevel.id, sessionStartedAt]);
+  }, [analytics, completedLevels, currentLevel.id, currentLevel.type, sessionStartedAt, hasEverPracticed, isSignedIn, proActive]);
 
   /* ---------- Question orchestration ---------- */
 

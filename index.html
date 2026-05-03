@@ -25,6 +25,26 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap" />
 
     <title>Fifths · Ear Training</title>
+
+    <!-- Google tag (gtag.js) — web only. Capacitor injects window.Capacitor
+         before any script runs, so we can skip loading gtag inside the iOS /
+         Android WebView. Native users have no gclid/utm context anyway, so
+         their gtag pageviews would just pollute GA4 as "(direct)" traffic. -->
+    <script>
+      (function () {
+        var isNative = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+        if (isNative) return;
+        var s = document.createElement('script');
+        s.async = true;
+        s.src = 'https://www.googletagmanager.com/gtag/js?id=G-LJYKXFDR9L';
+        document.head.appendChild(s);
+        window.dataLayer = window.dataLayer || [];
+        window.gtag = function () { window.dataLayer.push(arguments); };
+        window.gtag('js', new Date());
+        window.gtag('config', 'G-LJYKXFDR9L');
+        window.gtag('config', 'AW-17007845333');
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -7,6 +7,8 @@ import './index.css'
 import { initNative } from './lib/native'
 import { initBilling } from './lib/billing'
 import { migrateBrandStorage } from './lib/migrateStorage'
+import { captureAttribution, getStoredAttribution } from './lib/attribution'
+import { initPostHog, phRegister } from './lib/posthog'
 
 const sentryDsn = import.meta.env.VITE_SENTRY_DSN as string | undefined
 if (sentryDsn) {
@@ -26,6 +28,9 @@ if (sentryDsn) {
 }
 
 migrateBrandStorage()
+initPostHog()
+captureAttribution()
+phRegister(getStoredAttribution() as Record<string, unknown>)
 initNative().catch((err) => console.warn('initNative failed', err))
 initBilling().catch((err) => console.warn('initBilling failed', err))
 
