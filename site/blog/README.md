@@ -38,6 +38,12 @@ Every article cites primary sources. Where the evidence is contested or weaker t
 12. [Can adults learn perfect pitch? What the 2020s research actually says](./05-perfect-pitch-adults.md)
 13. [What ear training does to your brain: cognitive benefits of music training in adults](./13-cognitive-benefits-music-training-adults.md)
 
+### Voice and vocalises
+
+14. [The double-neighbor figure: the tiny five-note pattern at the root of vocal warm-ups](./14-pivot-tones-double-neighbor-figure.md)
+15. [How vocalises are actually transposed — and why it isn't the cycle of fifths](./15-how-vocalises-are-transposed.md)
+16. [Designing a Voice section: the ear training curriculum gap most apps miss](./16-designing-a-voice-section.md)
+
 ---
 
 If you want to skip ahead to the practice that all of this implies, [Fifths](https://fifths.io) is the app we built around it.

@@ -68,8 +68,22 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
         prerequisites: ['found_same_diff'],
         maxQuestions: 10,
       },
+    ],
+  },
+
+  // 2. VOICE — vocal production curriculum: match → resting tone → step → skip → pivot → arpeggio → pentachord → scale.
+  // Patterns are sung as sing-sequence drills with shape offsets relative to the start degree. The engine transposes
+  // the start degree by sequenceTransposeStep each round (chromatic-style climb in scale steps). See
+  // /blog/16-designing-a-voice-section.md for the pedagogical rationale.
+  {
+    id: 'voice',
+    name: 'Voice',
+    description: 'Train your voice as the instrument of your ear — match, anchor, embellish, arpeggiate',
+    icon: '🎤',
+    color: 'rose',
+    levels: [
       {
-        id: 'found_match_pitch',
+        id: 'voice_match_pitch',
         name: 'Match the Pitch',
         type: 'acoustic',
         acousticKind: 'match_pitch',
@@ -79,11 +93,137 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
         singToleranceCents: 50,
         unlockRequirement: 70,
         description: 'Listen, then sing the note back',
-        segmentId: 'foundations',
+        segmentId: 'voice',
         prerequisites: ['found_higher_lower'],
+        intro: [
+          {
+            idea: 'A note plays. You sing it.',
+            purpose: "This is the atom of vocal pitch matching — the place every voice teacher starts. Every other Voice lesson is built on top of this single skill.",
+            expectation: "Listen to the note, then hold the same pitch with your voice. Don't worry about octave — sing it where it's comfortable.",
+          },
+        ],
       },
       {
-        id: 'found_sing_pivot',
+        id: 'voice_resting_tone',
+        name: 'Find Home',
+        type: 'acoustic',
+        acousticKind: 'match_pitch',
+        items: ['match'],
+        responseModes: ['sing'],
+        singAcceptAnyOctave: true,
+        singToleranceCents: 50,
+        unlockRequirement: 70,
+        description: 'After the scale establishes the key, sing the tonic',
+        segmentId: 'voice',
+        prerequisites: ['voice_match_pitch'],
+        establishTonality: true,
+        intro: [
+          {
+            idea: "Every key has a home note. Your job: sing it.",
+            purpose: "Producing the tonic in a known key is the foundational tonal-singing skill — Edwin Gordon called it the resting tone, and put it before everything else. Singing in tune in a key collapses without it.",
+            expectation: "You'll hear the scale, then sing the tonic — the note the scale started and ended on.",
+          },
+        ],
+      },
+      {
+        id: 'voice_step_up',
+        name: 'Step Up, Step Back',
+        type: 'acoustic',
+        acousticKind: 'sing_sequence',
+        items: ['match'],
+        responseModes: ['sing'],
+        singAcceptAnyOctave: true,
+        singToleranceCents: 55,
+        singPerNoteHoldMs: 220,
+        sequenceShape: [0, 1, 0],
+        sequenceScale: 'major',
+        sequenceKeyRoot: 'C',
+        sequenceTransposeStep: 1,
+        unlockRequirement: 70,
+        description: 'Sing do-re-do — the smallest melodic motion',
+        segmentId: 'voice',
+        prerequisites: ['voice_resting_tone'],
+        intro: [
+          {
+            idea: 'Three notes: home, up a step, home.',
+            purpose: "Leaving a reference pitch and returning to it is a separate skill from holding it. This is the smallest pattern that exercises both.",
+            expectation: "Sing each of the three notes in turn. The starting pitch climbs each round.",
+          },
+        ],
+      },
+      {
+        id: 'voice_step_down',
+        name: 'Step Down, Step Back',
+        type: 'acoustic',
+        acousticKind: 'sing_sequence',
+        items: ['match'],
+        responseModes: ['sing'],
+        singAcceptAnyOctave: true,
+        singToleranceCents: 55,
+        singPerNoteHoldMs: 220,
+        sequenceShape: [0, -1, 0],
+        sequenceScale: 'major',
+        sequenceKeyRoot: 'C',
+        sequenceTransposeStep: 1,
+        unlockRequirement: 70,
+        description: 'Sing do-ti-do — the descending mirror of step-up-step-back',
+        segmentId: 'voice',
+        prerequisites: ['voice_step_up'],
+      },
+      {
+        id: 'voice_skip_third',
+        name: 'Skip a Third',
+        type: 'acoustic',
+        acousticKind: 'sing_sequence',
+        items: ['match'],
+        responseModes: ['sing'],
+        singAcceptAnyOctave: true,
+        singToleranceCents: 55,
+        singPerNoteHoldMs: 220,
+        sequenceShape: [0, 2, 0],
+        sequenceScale: 'major',
+        sequenceKeyRoot: 'C',
+        sequenceTransposeStep: 1,
+        unlockRequirement: 70,
+        description: 'Sing do-mi-do — first skip, bypassing a scale step',
+        segmentId: 'voice',
+        prerequisites: ['voice_step_down'],
+        intro: [
+          {
+            idea: "First leap: jump over a step instead of stepping through it.",
+            purpose: "Singing the third without singing the second in between is the move that opens up triadic hearing later. The voice has to commit to the destination, not slide into it.",
+            expectation: "Three notes: home, up a third (skipping a step), back home.",
+          },
+        ],
+      },
+      {
+        id: 'voice_skip_fifth',
+        name: 'Skip a Fifth',
+        type: 'acoustic',
+        acousticKind: 'sing_sequence',
+        items: ['match'],
+        responseModes: ['sing'],
+        singAcceptAnyOctave: true,
+        singToleranceCents: 55,
+        singPerNoteHoldMs: 220,
+        sequenceShape: [0, 4, 0],
+        sequenceScale: 'major',
+        sequenceKeyRoot: 'C',
+        sequenceTransposeStep: 1,
+        unlockRequirement: 70,
+        description: 'Sing do-sol-do — the tonic-to-dominant leap',
+        segmentId: 'voice',
+        prerequisites: ['voice_skip_third'],
+        intro: [
+          {
+            idea: "Tonic to the fifth — the signature interval of the tonal system.",
+            purpose: "Do-sol is the most common harmonic leap in Western music. Singing it accurately and consistently is the gateway to chord-quality hearing.",
+            expectation: "Three notes: home, up a fifth, back home.",
+          },
+        ],
+      },
+      {
+        id: 'voice_pivot_tonic',
         name: 'Sing the Pivot',
         type: 'acoustic',
         acousticKind: 'sing_sequence',
@@ -97,14 +237,157 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
         sequenceKeyRoot: 'C',
         sequenceTransposeStep: 1,
         unlockRequirement: 70,
-        description: 'Sing a 5-note pivot phrase. Each round climbs a scale step.',
-        segmentId: 'foundations',
-        prerequisites: ['found_match_pitch'],
+        description: 'Sing do-re-do-ti-do — the classic five-note double-neighbor figure',
+        segmentId: 'voice',
+        prerequisites: ['voice_skip_fifth'],
+        intro: [
+          {
+            idea: "Five notes: home, up a step, home, down a step, home.",
+            purpose: "This shape has at least four names in four traditions — double-neighbor figure, pentachord vocalise, tonal pattern, pentachord exercise. It packs five sub-skills into one short gesture and is the foundation of every classical vocal warm-up.",
+            expectation: "Sing each of the five notes in turn. The starting pitch climbs each round.",
+          },
+        ],
+      },
+      {
+        id: 'voice_pivot_inverted',
+        name: 'Inverted Pivot',
+        type: 'acoustic',
+        acousticKind: 'sing_sequence',
+        items: ['match'],
+        responseModes: ['sing'],
+        singAcceptAnyOctave: true,
+        singToleranceCents: 55,
+        singPerNoteHoldMs: 220,
+        sequenceShape: [0, -1, 0, 1, 0],
+        sequenceScale: 'major',
+        sequenceKeyRoot: 'C',
+        sequenceTransposeStep: 1,
+        unlockRequirement: 70,
+        description: 'Sing do-ti-do-re-do — the same five notes, lower neighbor first',
+        segmentId: 'voice',
+        prerequisites: ['voice_pivot_tonic'],
+      },
+      {
+        id: 'voice_arpeggio_triad',
+        name: 'Sing the Triad',
+        type: 'acoustic',
+        acousticKind: 'sing_sequence',
+        items: ['match'],
+        responseModes: ['sing'],
+        singAcceptAnyOctave: true,
+        singToleranceCents: 55,
+        singPerNoteHoldMs: 220,
+        sequenceShape: [0, 2, 4, 2, 0],
+        sequenceScale: 'major',
+        sequenceKeyRoot: 'C',
+        sequenceTransposeStep: 1,
+        unlockRequirement: 70,
+        description: 'Sing do-mi-sol-mi-do — the classical 1-3-5-3-1 arpeggio',
+        segmentId: 'voice',
+        prerequisites: ['voice_pivot_tonic'],
+        intro: [
+          {
+            idea: "Five notes: the tonic triad spelled out by the voice and back down.",
+            purpose: "1-3-5-3-1 is the Vaccai/Concone bread-and-butter vocalise. It's also the bridge from singing pitches to singing chord tones — every harmonic structure starts here.",
+            expectation: "Sing the five notes of the triad, ascending and descending.",
+          },
+        ],
+      },
+      {
+        id: 'voice_pentachord_major',
+        name: 'Pentachord (Major)',
+        type: 'acoustic',
+        acousticKind: 'sing_sequence',
+        items: ['match'],
+        responseModes: ['sing'],
+        singAcceptAnyOctave: true,
+        singToleranceCents: 55,
+        singPerNoteHoldMs: 200,
+        sequenceShape: [0, 1, 2, 3, 4, 3, 2, 1, 0],
+        sequenceScale: 'major',
+        sequenceKeyRoot: 'C',
+        sequenceTransposeStep: 1,
+        unlockRequirement: 70,
+        description: 'Sing 1-2-3-4-5-4-3-2-1 — the lower half of the scale, up and down',
+        segmentId: 'voice',
+        prerequisites: ['voice_arpeggio_triad'],
+        intro: [
+          {
+            idea: "Nine notes: the lower five degrees of the scale, traversed and returned.",
+            purpose: "The classic Italian pentachord vocalise. Stepwise motion across a perfect fifth without leaps — trains smooth voice-leading and sustained breath control.",
+            expectation: "Sing each of the nine notes in turn. The starting pitch climbs each round.",
+          },
+        ],
+      },
+      {
+        id: 'voice_pentachord_minor',
+        name: 'Pentachord (Minor)',
+        type: 'acoustic',
+        acousticKind: 'sing_sequence',
+        items: ['match'],
+        responseModes: ['sing'],
+        singAcceptAnyOctave: true,
+        singToleranceCents: 55,
+        singPerNoteHoldMs: 200,
+        sequenceShape: [0, 1, 2, 3, 4, 3, 2, 1, 0],
+        sequenceScale: 'natural_minor',
+        sequenceKeyRoot: 'A',
+        sequenceTransposeStep: 1,
+        unlockRequirement: 70,
+        description: 'Same nine-note pentachord shape, in natural minor',
+        segmentId: 'voice',
+        prerequisites: ['voice_pentachord_major'],
+        intro: [
+          {
+            idea: "Same shape, minor mode.",
+            purpose: "First exposure to the lowered third in the voice. The single most important interval distinction for hearing minor mode — and your ear learns it fastest by singing it.",
+            expectation: "Sing the same nine-note pattern, but in minor. Notice how the third feels different.",
+          },
+        ],
+      },
+      {
+        id: 'voice_scale_major',
+        name: 'Sing the Scale (Major)',
+        type: 'acoustic',
+        acousticKind: 'sing_sequence',
+        items: ['match'],
+        responseModes: ['sing'],
+        singAcceptAnyOctave: true,
+        singToleranceCents: 55,
+        singPerNoteHoldMs: 180,
+        sequenceShape: [0, 1, 2, 3, 4, 5, 6, 7, 6, 5, 4, 3, 2, 1, 0],
+        sequenceScale: 'major',
+        sequenceKeyRoot: 'C',
+        sequenceTransposeStep: 1,
+        unlockRequirement: 65,
+        description: 'Sing the full major scale, up and down',
+        segmentId: 'voice',
+        prerequisites: ['voice_pentachord_minor'],
+      },
+      {
+        id: 'voice_scale_minor',
+        tier: 'pro',
+        name: 'Sing the Scale (Minor)',
+        type: 'acoustic',
+        acousticKind: 'sing_sequence',
+        items: ['match'],
+        responseModes: ['sing'],
+        singAcceptAnyOctave: true,
+        singToleranceCents: 55,
+        singPerNoteHoldMs: 180,
+        sequenceShape: [0, 1, 2, 3, 4, 5, 6, 7, 6, 5, 4, 3, 2, 1, 0],
+        sequenceScale: 'natural_minor',
+        sequenceKeyRoot: 'A',
+        sequenceTransposeStep: 1,
+        unlockRequirement: 65,
+        description: 'Sing the full natural minor scale, up and down',
+        segmentId: 'voice',
+        prerequisites: ['voice_scale_major'],
       },
     ],
   },
 
-  // 2. TONALITY — feel the key center; basic cadence ID lives here
+  // 3. TONALITY — feel the key center; basic cadence ID lives here
   {
     id: 'tonality',
     name: 'Tonality',
@@ -192,7 +475,7 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
     ],
   },
 
-  // 3. PITCH (display: Scale Degrees) — degree recognition + modes
+  // 4. PITCH (display: Scale Degrees) — degree recognition + modes
   {
     id: 'pitch',
     name: 'Scale Degrees',
@@ -292,7 +575,7 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
     ],
   },
 
-  // 4. INTERVALS — full coverage harmonic + melodic asc/desc
+  // 5. INTERVALS — full coverage harmonic + melodic asc/desc
   {
     id: 'intervals',
     name: 'Intervals',
@@ -563,7 +846,7 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
     ],
   },
 
-  // 5. CHORDS — quality, inversions, in-key function (was scattered across pitch / triads / sevenths stubs)
+  // 6. CHORDS — quality, inversions, in-key function (was scattered across pitch / triads / sevenths stubs)
   {
     id: 'chords',
     name: 'Chords',
@@ -781,7 +1064,7 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
     ],
   },
 
-  // 6. PROGRESSIONS — cadences, common pop, jazz, secondary dominants, modulation
+  // 7. PROGRESSIONS — cadences, common pop, jazz, secondary dominants, modulation
   {
     id: 'progressions',
     name: 'Cadences & Progressions',
@@ -874,7 +1157,7 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
     ],
   },
 
-  // 7. JAZZ HARMONY — extensions, altered dominants, modal interchange, voicings
+  // 8. JAZZ HARMONY — extensions, altered dominants, modal interchange, voicings
   {
     id: 'jazz_harmony',
     name: 'Jazz Harmony',
@@ -957,7 +1240,7 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
     ],
   },
 
-  // 8. RHYTHM — empty stub. Batch 4 will populate (tap-back, subdivisions, meter).
+  // 9. RHYTHM — empty stub. Batch 4 will populate (tap-back, subdivisions, meter).
   {
     id: 'rhythm',
     name: 'Rhythm',
@@ -967,7 +1250,7 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
     levels: [],
   },
 
-  // 9. MELODIC DICTATION — empty stub. Batch 5 will populate (sequence input → free dictation).
+  // 10. MELODIC DICTATION — empty stub. Batch 5 will populate (sequence input → free dictation).
   {
     id: 'melodic_dictation',
     name: 'Melodic Dictation',
@@ -977,7 +1260,7 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
     levels: [],
   },
 
-  // 10. SIGHT SINGING — empty stub. Batch 6 will populate (sing-from-degrees, sing-from-notation).
+  // 11. SIGHT SINGING — empty stub. Batch 6 will populate (sing-from-degrees, sing-from-notation).
   {
     id: 'sight_singing',
     name: 'Sight Singing',
@@ -987,7 +1270,7 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
     levels: [],
   },
 
-  // 11. MODAL & MODERN — empty stub. Batch 8 will populate (color, polychords, post-tonal).
+  // 12. MODAL & MODERN — empty stub. Batch 8 will populate (color, polychords, post-tonal).
   {
     id: 'modal_modern',
     name: 'Modal & Modern',
