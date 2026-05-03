@@ -600,6 +600,8 @@ export default function Practice({
                 ? mobile
                   ? `repeat(${Math.min(options.length, 4)}, 1fr)`
                   : `repeat(${options.length}, 1fr)`
+                : level.type === 'progression'
+                ? 'repeat(2, 1fr)'  // progression labels are long (e.g. "I — V — vi — IV") — give them width
                 : mobile
                 ? 'repeat(2, 1fr)'
                 : options.length <= 3

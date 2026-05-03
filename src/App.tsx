@@ -50,6 +50,12 @@ const NON_TONAL_ACOUSTIC_KINDS: AcousticKind[] = [
   'match_pitch',
 ];
 
+// Question types whose audio already establishes their own tonal frame
+// (cadence/progression always plays a key-anchored chord sequence; inversion / chord_extension /
+// borrowed_chord / voicing run through buildDegreeChord which carries its own key context).
+// These don't need a separate scale-reference preamble.
+const SELF_KEYED_TYPES = new Set(['cadence', 'progression', 'chord_extension', 'borrowed_chord', 'voicing', 'inversion']);
+
 interface LessonConfig {
   establishTonality: boolean;
   maxQuestions: number;
@@ -398,6 +404,76 @@ export default function App() {
         itemType = 'match';
         correctAnswer = 'A4';
       }
+    } else if (level.type === 'cadence') {
+      const pick = level.items[Math.floor(Math.random() * level.items.length)];
+      itemType = pick;
+      correctAnswer = pick;
+      rootNote = currentScaleRoot;
+      try {
+        playedNotes = await audioEngine.playCadence(
+          rootNote,
+          pick as 'authentic' | 'plagal' | 'half' | 'deceptive',
+          level.cadenceMode ?? 'major',
+        );
+      } catch (err) { console.error('playCadence error:', err); }
+    } else if (level.type === 'inversion') {
+      const position = level.items[Math.floor(Math.random() * level.items.length)];
+      const qualities = level.inversionQualities ?? (level.inversionKind === 'seventh' ? ['dominant_7'] : ['major']);
+      const quality = qualities[Math.floor(Math.random() * qualities.length)];
+      itemType = position;
+      correctAnswer = position;
+      rootNote = currentScaleRoot;
+      try {
+        playedNotes = await audioEngine.playInversion(
+          rootNote,
+          quality as keyof typeof TRIADS | keyof typeof SEVENTH_CHORDS,
+          position as 'root' | 'first' | 'second' | 'third',
+          level.inversionKind ?? 'triad',
+        );
+      } catch (err) { console.error('playInversion error:', err); }
+    } else if (level.type === 'progression') {
+      const pick = level.items[Math.floor(Math.random() * level.items.length)];
+      itemType = pick;
+      correctAnswer = pick;
+      rootNote = currentScaleRoot;
+      try {
+        playedNotes = await audioEngine.playProgression(rootNote, pick);
+      } catch (err) { console.error('playProgression error:', err); }
+    } else if (level.type === 'chord_extension') {
+      const pick = level.items[Math.floor(Math.random() * level.items.length)];
+      itemType = pick;
+      correctAnswer = pick;
+      rootNote = currentScaleRoot;
+      try {
+        playedNotes = await audioEngine.playChordExtension(
+          rootNote,
+          level.extensionTarget ?? 'V',
+          pick as '9' | '11' | '13' | '7b9' | '7s9' | '7s11' | '7b13',
+        );
+      } catch (err) { console.error('playChordExtension error:', err); }
+    } else if (level.type === 'borrowed_chord') {
+      const pick = level.items[Math.floor(Math.random() * level.items.length)];
+      itemType = pick;
+      correctAnswer = pick;
+      rootNote = currentScaleRoot;
+      try {
+        playedNotes = await audioEngine.playBorrowedChord(
+          rootNote,
+          pick as 'iv' | 'bIII' | 'bVI' | 'bVII' | 'bII',
+        );
+      } catch (err) { console.error('playBorrowedChord error:', err); }
+    } else if (level.type === 'voicing') {
+      const pick = level.items[Math.floor(Math.random() * level.items.length)];
+      itemType = pick;
+      correctAnswer = pick;
+      rootNote = currentScaleRoot;
+      try {
+        playedNotes = await audioEngine.playVoicing(
+          rootNote,
+          level.voicingChord ?? 'maj7',
+          pick as 'closed' | 'drop2' | 'quartal' | 'upper_structure',
+        );
+      } catch (err) { console.error('playVoicing error:', err); }
     } else {
       const diatonicItems = filterDiatonicItems(level.items, level.type, currentScaleRoot, level.scaleDegrees);
       const pick = diatonicItems[Math.floor(Math.random() * diatonicItems.length)];
@@ -536,6 +612,9 @@ export default function App() {
       // First-time setup — pick keys for the session. For tonal lessons, we pick one
       // root per block and play a scale reference. For non-tonal lessons (beating, etc.)
       // there's no musical key, so we just seed a root and skip the scale playback.
+      // Self-keyed types (cadences, progressions, jazz chords) carry their own key context
+      // in the audio — we still pick keys + show the label, but skip the scale preamble.
+      const skipScalePreamble = SELF_KEYED_TYPES.has(currentLevel.type);
       if (scaleRoots.length === 0) {
         if (scaleLockRef.current) return;
         scaleLockRef.current = true;
@@ -545,7 +624,7 @@ export default function App() {
           : [audioEngine.getRandomRootNote()];
         setScaleRoots(roots);
         setCurrentScaleRoot(roots[0]);
-        if (establishTonality) {
+        if (establishTonality && !skipScalePreamble) {
           setIsPlayingScale(true);
           try {
             const { duration } = await audioEngine.playMajorScaleReference(roots[0], 4);
@@ -578,15 +657,19 @@ export default function App() {
             const newRoot = scaleRoots[blockIndex];
             setLastKeyChangeQuestion(stats.totalQuestions);
             setCurrentScaleRoot(newRoot);
-            setIsPlayingScale(true);
-            try {
-              const { duration } = await audioEngine.playMajorScaleReference(newRoot, 4);
-              await new Promise((r) => setTimeout(r, duration * 1000 + 500));
-            } finally {
-              setIsPlayingScale(false);
+            if (skipScalePreamble) {
               scaleLockRef.current = false;
+            } else {
+              setIsPlayingScale(true);
+              try {
+                const { duration } = await audioEngine.playMajorScaleReference(newRoot, 4);
+                await new Promise((r) => setTimeout(r, duration * 1000 + 500));
+              } finally {
+                setIsPlayingScale(false);
+                scaleLockRef.current = false;
+              }
+              return;
             }
-            return;
           }
         }
       }
@@ -651,6 +734,49 @@ export default function App() {
             );
           }
           break;
+        case 'cadence':
+          await audioEngine.playCadence(
+            currentQuestion.rootNote,
+            currentQuestion.itemType as 'authentic' | 'plagal' | 'half' | 'deceptive',
+            (currentLevel.cadenceMode ?? 'major'),
+          );
+          break;
+        case 'inversion': {
+          // We don't persist the chord quality across replay; pick a deterministic one tied to the question id.
+          const qualities = currentLevel.inversionQualities ?? (currentLevel.inversionKind === 'seventh' ? ['dominant_7'] : ['major']);
+          // Use the same quality that played first time would require persisting it; for simplicity use first.
+          const quality = qualities[0];
+          await audioEngine.playInversion(
+            currentQuestion.rootNote,
+            quality as keyof typeof TRIADS | keyof typeof SEVENTH_CHORDS,
+            currentQuestion.itemType as 'root' | 'first' | 'second' | 'third',
+            currentLevel.inversionKind ?? 'triad',
+          );
+          break;
+        }
+        case 'progression':
+          await audioEngine.playProgression(currentQuestion.rootNote, currentQuestion.itemType);
+          break;
+        case 'chord_extension':
+          await audioEngine.playChordExtension(
+            currentQuestion.rootNote,
+            currentLevel.extensionTarget ?? 'V',
+            currentQuestion.itemType as '9' | '11' | '13' | '7b9' | '7s9' | '7s11' | '7b13',
+          );
+          break;
+        case 'borrowed_chord':
+          await audioEngine.playBorrowedChord(
+            currentQuestion.rootNote,
+            currentQuestion.itemType as 'iv' | 'bIII' | 'bVI' | 'bVII' | 'bII',
+          );
+          break;
+        case 'voicing':
+          await audioEngine.playVoicing(
+            currentQuestion.rootNote,
+            currentLevel.voicingChord ?? 'maj7',
+            currentQuestion.itemType as 'closed' | 'drop2' | 'quartal' | 'upper_structure',
+          );
+          break;
       }
     } catch (err) {
       console.error('replay error:', err);
@@ -674,7 +800,12 @@ export default function App() {
     const fullDescription = `${currentQuestion.rootNote} ${getDisplayName(currentQuestion.correctAnswer)}`;
 
     let scaleDegree: number | undefined;
-    if (currentQuestion.type !== 'scale_degree' && currentQuestion.type !== 'mode') {
+    // Scale-degree mapping only makes sense for chord/interval drills where the chord root
+    // varies across the scale. For type=scale_degree (degree IS the answer), mode (no per-question root),
+    // and the new self-keyed types (cadence/progression/etc., where rootNote == currentScaleRoot by construction),
+    // computing it would always yield 0 — meaningless.
+    const NO_DEGREE_TYPES = new Set(['scale_degree', 'mode', 'cadence', 'progression', 'chord_extension', 'borrowed_chord', 'voicing', 'inversion']);
+    if (!NO_DEGREE_TYPES.has(currentQuestion.type)) {
       const chromatic = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
       const rootIdx = chromatic.indexOf(currentQuestion.rootNote);
       const scaleIdx = chromatic.indexOf(currentScaleRoot);

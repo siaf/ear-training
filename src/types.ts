@@ -24,10 +24,29 @@ export type ModeType =
 export type ScaleDegreeType = 
   | '1' | '2' | '3' | '4' | '5' | '6' | '7';
 
-export type ScaleDegreeContext = 
+export type ScaleDegreeContext =
   | 'major' | 'natural_minor' | 'major_triads' | 'minor_triads' | 'major_7ths' | 'minor_7ths';
 
-export type QuestionType = 'interval' | 'triad' | 'seventh_chord' | 'mode' | 'scale_degree' | 'acoustic';
+export type QuestionType =
+  | 'interval' | 'triad' | 'seventh_chord' | 'mode' | 'scale_degree' | 'acoustic'
+  | 'cadence' | 'inversion' | 'progression'
+  | 'chord_extension' | 'borrowed_chord' | 'voicing';
+
+// Cadence labels — what the four-chord progression resolves to.
+export type CadenceType = 'authentic' | 'plagal' | 'half' | 'deceptive';
+
+// Inversion positions. 'third' is only valid for 7th chords.
+export type InversionPosition = 'root' | 'first' | 'second' | 'third';
+export type InversionKind = 'triad' | 'seventh';
+
+// Voicing types for jazz_harmony segment.
+export type VoicingType = 'closed' | 'drop2' | 'quartal' | 'upper_structure';
+
+// Jazz extensions / alterations on a target diatonic chord (usually V).
+export type ExtensionLabel = '9' | '11' | '13' | '7b9' | '7s9' | '7s11' | '7b13';
+
+// Borrowed chords drawn from the parallel minor (in a major key).
+export type BorrowedChordLabel = 'iv' | 'bIII' | 'bVI' | 'bVII' | 'bII';
 
 export type AcousticKind = 'same_diff' | 'beating' | 'higher_lower' | 'consonance' | 'match_pitch' | 'sing_sequence';
 
@@ -147,6 +166,12 @@ export interface CurriculumLevel {
   sequenceScale?: DiatonicScale; // Scale to walk. Defaults to 'major'.
   sequenceKeyRoot?: string; // Tonic of the key, e.g. 'C'. Defaults to 'C'.
   sequenceTransposeStep?: number; // Scale-steps to shift start degree between questions. Defaults to 1.
+  // --- Cadences / progressions / jazz harmony ---
+  cadenceMode?: 'major' | 'minor'; // For type='cadence'. Defaults to 'major'.
+  inversionKind?: InversionKind; // For type='inversion'. Defaults to 'triad'.
+  inversionQualities?: string[]; // Triad / 7th qualities to randomize over for inversion drills. Defaults to ['major'] for triads, ['dominant_7'] for sevenths.
+  voicingChord?: 'maj7' | 'm7' | '7'; // For type='voicing' — chord whose voicing varies. Defaults to 'maj7'.
+  extensionTarget?: 'I' | 'IV' | 'V' | 'ii'; // For type='chord_extension' — which diatonic chord receives the extension. Defaults to 'V'.
 }
 
 export type Mascot = 'fable' | 'noir' | 'major' | 'pulse';

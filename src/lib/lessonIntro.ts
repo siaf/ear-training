@@ -10,11 +10,18 @@ import type { CurriculumLevel, LessonIntroCopy, Mascot } from '../types';
 const FIRST_IN_CONCEPT = new Set<string>([
   'found_higher_lower',          // very first lesson
   'ton_is_tonic',                // first tonality concept
+  'ton_cadence_basic',           // first cadence teaching
   'scale_degree_major_1',        // first scale-degree teaching
   'int_harmonic_4ths_5ths',      // first intervals teaching
   'level_4',                     // first triad teaching ("Tonic Triads")
+  'inv_triad_basic',             // first inversion teaching
   'level_7',                     // first 7th chord teaching
   'level_9',                     // first mode drill
+  'cad_full',                    // first full cadence drill
+  'prog_pop_diatonic',           // first progression drill
+  'jazz_dom_extensions',         // first jazz extension drill
+  'jazz_modal_interchange',      // first modal-interchange drill
+  'jazz_voicings',               // first voicing drill
 ]);
 
 // Comprehensive / mastery lessons get Major — end-of-unit warmth.
@@ -23,10 +30,14 @@ const CAPSTONE = new Set<string>([
   'scale_degree_minor',
   'level_6',                     // All Diatonic Triads
   'level_8',                     // Advanced Seventh Chords
+  'inv_triad_full',              // capstone for triad inversions
+  'inv_seventh',                 // capstone for 7th-chord inversions
   'level_10',                    // All Modes
   'int_all_harmonic',
   'int_all_melodic_asc',
   'int_all_melodic_desc',
+  'prog_modulation_pivot',       // capstone for progressions
+  'jazz_altered_dominants',      // capstone for jazz extensions
 ]);
 
 function pickMascot(level: CurriculumLevel): Mascot {
@@ -124,6 +135,42 @@ function getDefaultIntroBody(level: CurriculumLevel): IntroBody {
         idea: 'Modes are scales with distinct emotional fingerprints.',
         purpose: "Hearing the mode tells you the tonal flavor of a song before any words are spoken.",
         expectation: "You'll hear a scale. Pick the mode.",
+      };
+    case 'cadence':
+      return {
+        idea: 'A cadence is the way a phrase ends.',
+        purpose: 'Cadences are harmonic punctuation — full stop, comma, question mark. Hearing them is hearing the shape of a phrase.',
+        expectation: "You'll hear a four-chord progression. Tap the cadence.",
+      };
+    case 'inversion':
+      return {
+        idea: 'An inversion is the same chord with a different note in the bass.',
+        purpose: 'Inversions are how composers smooth voice leading and how pianists keep their hands moving without jumps.',
+        expectation: "You'll hear one chord. Tap which inversion.",
+      };
+    case 'progression':
+      return {
+        idea: 'A progression is a short sequence of chords with a recognizable identity.',
+        purpose: 'Most songs use a tiny vocabulary of progressions. Naming them by ear lets you transcribe in seconds, not hours.',
+        expectation: "You'll hear a short chord sequence. Tap which progression.",
+      };
+    case 'chord_extension':
+      return {
+        idea: 'An extension or alteration colors a basic 7th chord with one extra voice.',
+        purpose: 'Extensions are the working palette of jazz and modern pop. Telling V9 from V♭9 is what makes a chart audible by ear.',
+        expectation: "You'll hear a cadence to the target chord. Tap which extension.",
+      };
+    case 'borrowed_chord':
+      return {
+        idea: 'A borrowed chord visits the parallel minor for one moment, then returns to the major key.',
+        purpose: 'Modal interchange is the engine behind moody pop bridges and bittersweet movie soundtracks. Hearing the borrowing is hearing the mood shift.',
+        expectation: "You'll hear a four-chord phrase with one borrowed chord. Tap which one.",
+      };
+    case 'voicing':
+      return {
+        idea: 'A voicing is how a chord is laid out vertically.',
+        purpose: 'Same chord, different sound. Pianists and arrangers cycle voicings constantly — recognizing them tightens your harmonic ear.',
+        expectation: "You'll hear one chord. Tap which voicing.",
       };
   }
 

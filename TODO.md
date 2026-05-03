@@ -394,8 +394,79 @@ The chat-style onboarding now persists `{ ratings, voiceRange, experience, goal,
 - [ ] Optionally branch curriculum entry point by `goal` (improvise → start in intervals; transcribe → start in scale degrees).
 - [ ] Add Supabase columns + sync so onboarding answers persist across devices (mirrors current `profiles` sync pattern).
 
-### Curriculum expansion (Tier 2 — later session)
-18 of 20 segments in [`src/curriculum.ts`](src/curriculum.ts) are empty stubs. Only Pitch and Intervals are populated. Plan is to add real levels for Triads, 7th chords, Modes, Rhythm, etc. The code is already isolated — [`curriculum.ts`](src/curriculum.ts) is pure data, consumed by the view layer via `CURRICULUM`, `CURRICULUM_SEGMENTS`, `getCurrentLevel`, `canUnlockNextLevel`, `getDisplayName`. The Path route ([`Path.tsx`](src/routes/Path.tsx)) auto-hides empty segments, so adding levels instantly appears in the river.
+### Curriculum expansion — 8-batch plan
+
+[`src/curriculum.ts`](src/curriculum.ts) restructured 2026-05-03 into 11 segments. Path auto-hides empty stubs so each batch lights up its segment as it ships. Eight batches scoped, **Batches 1/2/3/7 shipped, Batches 4/5/6/8 outstanding** below. Each outstanding batch wants its own dedicated session — new engines + new level data + new UI input modes — and should not be rolled in with marketing or store-submission work.
+
+**Shipped 2026-05-03:**
+- ✅ **Batch 1** — segment restructure (24 → 11 segments), aug triad added to `level_6`, Roman/solfege/numbers display toggle (already wired in [Settings.tsx](src/routes/Settings.tsx) — verified end-to-end), `/jazz` copy softened until Batch 7's content lands.
+- ✅ **Batch 2** — `cadence` + `inversion` question types. New levels: `ton_cadence_basic` (authentic vs plagal), `cad_full` (4-cadence ID), `inv_triad_basic`, `inv_triad_full`, `inv_seventh`. Engine: [`audioEngine.playCadence`](src/audioEngine.ts), [`playInversion`](src/audioEngine.ts).
+- ✅ **Batch 3** — `progression` question type + table-driven progression playback. New levels: `prog_pop_diatonic`, `prog_jazz_cadence` (ii-V-I major + minor), `prog_secondary_dominants`, `prog_modulation_pivot`. Engine: [`audioEngine.playProgression`](src/audioEngine.ts) with key-offset support for modulations.
+- ✅ **Batch 7** — Jazz Harmony segment populated. New types: `chord_extension`, `borrowed_chord`, `voicing`. Levels: `jazz_dom_extensions` (9/11/13), `jazz_altered_dominants` (♭9/♯9/♯11/♭13), `jazz_modal_interchange` (iv/♭III/♭VI/♭VII), `jazz_voicings` (closed/drop-2/quartal/upper-structure). Engine: [`playChordExtension`](src/audioEngine.ts), [`playBorrowedChord`](src/audioEngine.ts), [`playVoicing`](src/audioEngine.ts).
+
+### Outstanding curriculum batches
+
+#### Batch 4 — Rhythm engine + 5 levels
+The biggest single new engine. Fills the empty `rhythm` segment in [`curriculum.ts`](src/curriculum.ts).
+- [ ] **Rhythm playback layer** in [`audioEngine.ts`](src/audioEngine.ts) — Tone.js `Transport` is already used; add a `playRhythmPattern(pattern, bpm)` that schedules clicks (drum or wood-block sample) on a beat grid.
+- [ ] **Tap-input grader** — new lib (`src/lib/rhythmGrader.ts`) that captures touch/click timestamps, aligns to expected beat positions, scores per-onset hit/miss with ms tolerance.
+- [ ] **Beat-grid input UI** — new component (`src/components/RhythmGrid.tsx`) for the dictation lesson: 1-bar, 4 beats × 4 subdivisions = 16 cells, tap on/off.
+- [ ] **New `QuestionType` value** `rhythm` + new `ResponseMode` value `tap` and `grid` in [`types.ts`](src/types.ts).
+- [ ] **Wire into [`App.tsx`](src/App.tsx)** — `generateQuestion` branch for `level.type === 'rhythm'`, `replaySound` branch.
+- [ ] **5 levels populated** in `rhythm` segment:
+  1. `rhy_same_diff` — two patterns, identical or not (free).
+  2. `rhy_tap_back` — hear, tap back; uses new `tap` response mode.
+  3. `rhy_subdivisions` — 8ths / 16ths / triplets / dotted (4-way pick).
+  4. `rhy_meter` — 2/4 vs 3/4 vs 4/4 vs 6/8 vs 5/4 identification.
+  5. `rhy_dictation` (Pro) — 1-bar grid input.
+- Estimated effort: **3–5 days**. Highest user-perceived value of the four outstanding batches because every musician needs rhythm work and current product has none.
+
+#### Batch 5 — Sequence-input melodic dictation + 4 levels
+Partly buildable on existing engine. Fills the empty `melodic_dictation` segment.
+- [ ] **Multi-step input UI** — extend [`Practice.tsx`](src/routes/Practice.tsx) so user can click a sequence of degree chips in order (current UI only takes one click per question). The chips themselves already render via [`DegreeChipLabel`](src/routes/Practice.tsx).
+- [ ] **New `ResponseMode` value** `sequence` in [`types.ts`](src/types.ts) (or extend the existing `select` to count sequence taps).
+- [ ] **Engine extension** — [`audioEngine.playScaleDegreeSequence(rootNote, degrees[])`](src/audioEngine.ts) playing a 3 / 5 / 7-note phrase in key with timing.
+- [ ] **Sequence grader** — compare user click sequence to expected degrees; partial credit per correct position.
+- [ ] **4 levels populated** in `melodic_dictation` segment:
+  1. `dict_3_note_in_key` — 3 notes, all from {1,3,5} (free).
+  2. `dict_5_note_in_key` — 5 notes, full diatonic (free first time, Pro thereafter).
+  3. `dict_phrase_diatonic` (Pro) — 8-note phrase in major.
+  4. `dict_phrase_chromatic` (Pro) — 8-note phrase with one chromatic note.
+- Estimated effort: **2–3 days** (most reuses existing scale-degree machinery; the multi-step input is the biggest delta).
+
+#### Batch 6 — Sight Singing with notation + 4 levels
+The biggest lift because it requires a notation rendering library. Fills the empty `sight_singing` segment.
+- [ ] **Pick library**: VexFlow (vector, mature, large bundle), OpenSheetMusicDisplay (renders MusicXML, heavier), abcjs (simpler, smaller, ABC-notation-driven). Default recommendation: **VexFlow** — staff + cents-accurate placement, matches the rest of the audio stack.
+- [ ] **Component**: `src/components/StaffNotation.tsx` that renders a single-voice phrase from a list of `{degree, duration}` tuples.
+- [ ] **Engine extension** — extend [`SingSequence`](src/components/SingSequence.tsx) to grade against a notation-driven target (already grades pitch via [pitchDetect.ts](src/lib/pitchDetect.ts); rhythm grading needs Batch 4's grader).
+- [ ] **New `QuestionType` value** `sight_sing` in [`types.ts`](src/types.ts).
+- [ ] **4 levels populated** in `sight_singing` segment:
+  1. `sing_degree_string` — show "3 5 4 3 1", sing it (no notation library needed; ships first).
+  2. `sing_solfege_string` — same with do-re-mi labels.
+  3. `sing_notation_diatonic` (Pro) — uses VexFlow.
+  4. `sing_notation_chromatic` (Pro) — full sight-singing with rhythm + cents grading; depends on Batch 4.
+- Estimated effort: **1–2 weeks** for the first usable version (Levels 1–2 are quick; level 3 is the VexFlow milestone; level 4 depends on Batch 4 being done first).
+- **Sequencing rule**: hold this batch until Batch 4 (rhythm) is shipped — level 4 needs the rhythm grader.
+
+#### Batch 8 — Modal & Modern + 5 levels (deepest tier)
+Smallest audience. Fills the empty `modal_modern` segment. All Pro.
+- [ ] New levels (no new question types — reuses existing engines):
+  1. `mod_modal_color` — characteristic notes per mode in context (extends `mode` type with single-note prompts in modal context).
+  2. `mod_polychord` — bass note + upper triad identification (extends `voicing` type with new variants `polychord_*`).
+  3. `mod_bitonal` — two simultaneous keys; user picks dominant key (new `bitonal` question type, or reuse `voicing` table-driven).
+  4. `mod_cluster_density` — sparse vs dense chromatic clusters (extends `chord_extension` with cluster items).
+  5. `mod_inner_voice` — pick out an inner line in a 4-voice texture (extends `interval` type with a "pick the middle voice" mode).
+- [ ] Audio engine additions: cluster-chord builder, bitonal-overlay playback, inner-voice highlight playback.
+- Estimated effort: **2–3 days** because question types are all extensions of existing ones.
+- **Sequencing rule**: ship last. Audience is composers / theory students / academic, not the broad jazz/transcribing/returning audience the marketing landings target.
+
+#### Order of operations + dependencies
+```
+Batch 4 (rhythm)         ── independent, ship first
+Batch 5 (dictation)      ── independent of Batch 4; can be parallel session
+Batch 6 (sight singing)  ── waits on Batch 4 (rhythm grader); levels 1–2 can ship independently
+Batch 8 (modal & modern) ── ships last; smallest audience
+```
 
 ### Push notifications
 Currently implemented as **local notifications** only (scheduled on the device). Remote push (server → device) would need FCM (Android) + APNs setup (iOS) which both require paid developer accounts, certs, and a backend to send them.

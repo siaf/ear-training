@@ -805,6 +805,295 @@ class AudioEngine {
     return this.feedbackSynth;
   }
 
+  // ---------------------------------------------------------------
+  // Chord helpers shared across cadence / progression / jazz playback
+  // ---------------------------------------------------------------
+
+  // Build absolute notes (e.g. ["C4","E4","G4"]) from a root pitch class + interval formula in semitones.
+  // Formula values can be negative (drop-2 voicings) or > 12 (extensions, inversions). The output is
+  // sorted by ascending pitch so it plays as a coherent chord.
+  private buildChordNotes(rootNote: string, formula: number[], baseOctave = 4): string[] {
+    const rootIndex = NOTES.indexOf(rootNote);
+    if (rootIndex === -1) throw new Error(`unknown root ${rootNote}`);
+    const items = formula.map((semis) => {
+      const totalSemis = rootIndex + semis;
+      const pcIndex = ((totalSemis % 12) + 12) % 12;
+      const octave = baseOctave + Math.floor(totalSemis / 12);
+      return { absSemis: totalSemis, label: `${NOTES[pcIndex]}${octave}` };
+    });
+    return items.sort((a, b) => a.absSemis - b.absSemis).map((x) => x.label);
+  }
+
+  // Build a triad or 7th by scale degree in a major key. Returns chord notes ready for the synth.
+  private buildDegreeChord(
+    keyRoot: string,
+    degree: number, // 0..6
+    quality: 'maj' | 'min' | 'dim' | 'aug' | 'maj7' | 'm7' | '7' | 'm7b5' | 'dim7',
+    baseOctave = 4,
+  ): string[] {
+    const scale = MODES.ionian;
+    const idx = ((degree % 7) + 7) % 7;
+    const chordRoot = this.getNoteFromSemitones(keyRoot, scale[idx]);
+    let formula: number[];
+    switch (quality) {
+      case 'maj': formula = TRIADS.major; break;
+      case 'min': formula = TRIADS.minor; break;
+      case 'dim': formula = TRIADS.diminished; break;
+      case 'aug': formula = TRIADS.augmented; break;
+      case 'maj7': formula = SEVENTH_CHORDS.major_7; break;
+      case 'm7':   formula = SEVENTH_CHORDS.minor_7; break;
+      case '7':    formula = SEVENTH_CHORDS.dominant_7; break;
+      case 'm7b5': formula = SEVENTH_CHORDS.half_diminished_7; break;
+      case 'dim7': formula = SEVENTH_CHORDS.diminished_7; break;
+    }
+    return this.buildChordNotes(chordRoot, formula, baseOctave);
+  }
+
+  // Play a sequence of chord-note arrays as a steady progression.
+  private async playChordSequence(chords: string[][], chordDurSec = 0.7): Promise<{ notes: string[]; duration: number }> {
+    await this.initialize();
+    const now = Tone.now();
+    const step = this.getAdjustedTime(chordDurSec);
+    chords.forEach((notes, i) => {
+      this.synth.triggerAttackRelease(notes, step * 0.95, now + i * step);
+    });
+    const duration = chords.length * step;
+    this.markPlayback(duration);
+    const flat = chords.flat();
+    return { notes: flat, duration };
+  }
+
+  // ---------------------------------------------------------------
+  // Cadences
+  // ---------------------------------------------------------------
+
+  async playCadence(
+    keyRoot: string,
+    cadenceType: 'authentic' | 'plagal' | 'half' | 'deceptive',
+    mode: 'major' | 'minor' = 'major',
+  ): Promise<string[]> {
+    await this.initialize();
+    // Major-key cadences. (Minor-key variant uses lowercase qualities by degree.)
+    const M = mode === 'major';
+    const degQuality = (deg: number, override?: 'maj' | 'min' | 'dim' | 'aug'): 'maj' | 'min' | 'dim' | 'aug' => {
+      if (override) return override;
+      const majQ: Array<'maj'|'min'|'dim'|'aug'> = ['maj','min','min','maj','maj','min','dim'];
+      const minQ: Array<'maj'|'min'|'dim'|'aug'> = ['min','dim','maj','min','min','maj','maj'];
+      return (M ? majQ : minQ)[deg];
+    };
+
+    let degrees: number[];
+    let qualities: Array<'maj'|'min'|'dim'|'aug'>;
+    switch (cadenceType) {
+      case 'authentic':
+        // I (or i) → IV → V → I  (V is always major in a real authentic cadence; in minor we raise the 7th)
+        degrees = [0, 3, 4, 0];
+        qualities = [degQuality(0), degQuality(3), 'maj', degQuality(0)];
+        break;
+      case 'plagal':
+        // I → V → IV → I  (the "amen" — IV→I at the end)
+        degrees = [0, 4, 3, 0];
+        qualities = [degQuality(0), 'maj', degQuality(3), degQuality(0)];
+        break;
+      case 'half':
+        // I → IV → ii → V (ends on V, unresolved)
+        degrees = [0, 3, 1, 4];
+        qualities = [degQuality(0), degQuality(3), degQuality(1), 'maj'];
+        break;
+      case 'deceptive':
+        // I → IV → V → vi (V "expected to resolve to I" — it lands on vi instead)
+        degrees = [0, 3, 4, 5];
+        qualities = [degQuality(0), degQuality(3), 'maj', degQuality(5)];
+        break;
+    }
+    const chords = degrees.map((d, i) => this.buildDegreeChord(keyRoot, d, qualities[i], 4));
+    const { notes } = await this.playChordSequence(chords, 0.75);
+    console.log(`🎼 Cadence ${cadenceType} in ${keyRoot} ${mode}`);
+    return notes;
+  }
+
+  // ---------------------------------------------------------------
+  // Inversions
+  // ---------------------------------------------------------------
+
+  async playInversion(
+    rootNote: string,
+    chordType: keyof typeof TRIADS | keyof typeof SEVENTH_CHORDS,
+    position: 'root' | 'first' | 'second' | 'third',
+    kind: 'triad' | 'seventh' = 'triad',
+  ): Promise<string[]> {
+    await this.initialize();
+    const formula = (kind === 'triad' ? TRIADS[chordType as keyof typeof TRIADS] : SEVENTH_CHORDS[chordType as keyof typeof SEVENTH_CHORDS]).slice();
+    if (!formula) throw new Error(`unknown chord ${chordType}`);
+    const idxByName: Record<typeof position, number> = { root: 0, first: 1, second: 2, third: 3 };
+    const rotateBy = idxByName[position];
+    if (rotateBy >= formula.length) {
+      // 'third' on a triad — fallback to root
+      console.warn(`inversion ${position} not valid for ${kind}; using root`);
+    }
+    // Rotate: move the lowest N notes up an octave so the next note is the bass.
+    const rotated = formula.slice();
+    for (let i = 0; i < Math.min(rotateBy, formula.length - 1); i++) {
+      const first = rotated.shift()!;
+      rotated.push(first + 12);
+    }
+    const notes = this.buildChordNotes(rootNote, rotated, 4);
+    console.log(`🎹 ${chordType} ${position}-inversion from ${rootNote}:`, notes);
+    this.synth.triggerAttackRelease(notes, '2n');
+    this.markPlayback(2.0);
+    return notes;
+  }
+
+  // ---------------------------------------------------------------
+  // Progressions (table-driven)
+  // ---------------------------------------------------------------
+
+  // Each progression chord is [degree (0..6), quality, optional semitone offset of the parent key].
+  // The offset lets a single progression switch key mid-sequence (modulations).
+  private static PROGRESSIONS: Record<string, Array<[number, 'maj' | 'min' | 'dim' | 'aug' | 'maj7' | 'm7' | '7' | 'm7b5', number?]>> = {
+    // Pop diatonic (major key)
+    'I_V_vi_IV': [[0,'maj'],[4,'maj'],[5,'min'],[3,'maj']],
+    'vi_IV_I_V': [[5,'min'],[3,'maj'],[0,'maj'],[4,'maj']],
+    'I_vi_IV_V': [[0,'maj'],[5,'min'],[3,'maj'],[4,'maj']],
+    'I_IV_V_I': [[0,'maj'],[3,'maj'],[4,'maj'],[0,'maj']],
+    // Jazz cadences
+    'ii_V_I_major': [[1,'m7'],[4,'7'],[0,'maj7']],
+    'ii_V_i_minor': [[1,'m7b5'],[4,'7'],[0,'m7']],
+    // Secondary dominants — V/X resolves to its target within the home key
+    'V_of_V':  [[0,'maj'],[1,'7'],[4,'maj'],[0,'maj']], // I → V/V (II7) → V → I
+    'V_of_vi': [[0,'maj'],[2,'7'],[5,'min'],[0,'maj']], // I → V/vi (III7) → vi → I
+    'V_of_ii': [[0,'maj'],[5,'7'],[1,'min'],[0,'maj']], // I → V/ii (VI7) → ii → I
+    'V_of_IV': [[0,'maj'],[0,'7'],[3,'maj'],[0,'maj']], // I → V/IV (I7) → IV → I
+    // Modulation cues — same opening, different ending. Listener decides if the key changed.
+    'stay_in_key':       [[0,'maj'],[3,'maj'],[4,'maj'],[0,'maj']],
+    'modulation_to_V':   [[0,'maj'],[3,'maj'],[4,'7',  0],[0,'maj', 7]], // pivot: V of C = I of G
+    'modulation_to_vi':  [[0,'maj'],[3,'maj'],[2,'7',  0],[0,'min', 9]], // III7 → vi (acts as i in new minor key)
+  };
+
+  async playProgression(keyRoot: string, progressionId: string): Promise<string[]> {
+    await this.initialize();
+    const def = AudioEngine.PROGRESSIONS[progressionId];
+    if (!def) throw new Error(`unknown progression ${progressionId}`);
+    const chords = def.map(([deg, q, keyOffsetSemis]) => {
+      const keyForChord = keyOffsetSemis ? this.getNoteFromSemitones(keyRoot, keyOffsetSemis) : keyRoot;
+      return this.buildDegreeChord(keyForChord, deg, q, 4);
+    });
+    const { notes } = await this.playChordSequence(chords, 0.7);
+    console.log(`🎶 Progression ${progressionId} in ${keyRoot}`);
+    return notes;
+  }
+
+  // ---------------------------------------------------------------
+  // Jazz extensions / altered dominants
+  // ---------------------------------------------------------------
+
+  // Plays a major-key cadence I → target7 → I, where target7 carries the named extension.
+  // Extensions: '9'/'11'/'13' on V7; alterations: '7b9', '7s9', '7s11', '7b13'.
+  async playChordExtension(
+    keyRoot: string,
+    target: 'I' | 'IV' | 'V' | 'ii',
+    extension: '9' | '11' | '13' | '7b9' | '7s9' | '7s11' | '7b13',
+  ): Promise<string[]> {
+    await this.initialize();
+    const targetDegree: Record<'I'|'IV'|'V'|'ii', number> = { I: 0, IV: 3, V: 4, ii: 1 };
+    const baseFormula: Record<'I'|'IV'|'V'|'ii', number[]> = {
+      I: SEVENTH_CHORDS.major_7,
+      IV: SEVENTH_CHORDS.major_7,
+      V: SEVENTH_CHORDS.dominant_7,
+      ii: SEVENTH_CHORDS.minor_7,
+    };
+    // Extension semitones above the chord root.
+    const extSemis: Record<typeof extension, number> = {
+      '9': 14, '11': 17, '13': 21,
+      '7b9': 13, '7s9': 15, '7s11': 18, '7b13': 20,
+    };
+    const scale = MODES.ionian;
+    const targetChordRoot = this.getNoteFromSemitones(keyRoot, scale[targetDegree[target]]);
+    const targetWithExt = this.buildChordNotes(targetChordRoot, [...baseFormula[target], extSemis[extension]], 4);
+    const I = this.buildDegreeChord(keyRoot, 0, 'maj', 4);
+    const { notes } = await this.playChordSequence([I, targetWithExt, I], 0.9);
+    console.log(`🎷 ${target}${extension} in ${keyRoot} (cadence I → ${target}${extension} → I)`);
+    return notes;
+  }
+
+  // ---------------------------------------------------------------
+  // Modal interchange (borrowed chords from the parallel minor)
+  // ---------------------------------------------------------------
+
+  async playBorrowedChord(
+    keyRoot: string,
+    chord: 'iv' | 'bIII' | 'bVI' | 'bVII' | 'bII',
+  ): Promise<string[]> {
+    await this.initialize();
+    // Borrowed chords measured in semitones from the major tonic.
+    const map: Record<typeof chord, { semis: number; quality: 'maj' | 'min' }> = {
+      iv:    { semis: 5,  quality: 'min' },  // IV becomes iv
+      bIII:  { semis: 3,  quality: 'maj' },  // ♭III major
+      bVI:   { semis: 8,  quality: 'maj' },  // ♭VI major
+      bVII:  { semis: 10, quality: 'maj' },  // ♭VII major
+      bII:   { semis: 1,  quality: 'maj' },  // Neapolitan ♭II major
+    };
+    const { semis, quality } = map[chord];
+    const borrowedRoot = this.getNoteFromSemitones(keyRoot, semis);
+    const formula = quality === 'maj' ? TRIADS.major : TRIADS.minor;
+    const borrowedChord = this.buildChordNotes(borrowedRoot, formula, 4);
+    const I = this.buildDegreeChord(keyRoot, 0, 'maj', 4);
+    const V = this.buildDegreeChord(keyRoot, 4, 'maj', 4);
+    const { notes } = await this.playChordSequence([I, borrowedChord, V, I], 0.8);
+    console.log(`🌗 borrowed ${chord} in ${keyRoot}`);
+    return notes;
+  }
+
+  // ---------------------------------------------------------------
+  // Voicings — same chord (e.g. Cmaj7), different vertical layouts
+  // ---------------------------------------------------------------
+
+  async playVoicing(
+    rootNote: string,
+    chordType: 'maj7' | 'm7' | '7',
+    voicing: 'closed' | 'drop2' | 'quartal' | 'upper_structure',
+  ): Promise<string[]> {
+    await this.initialize();
+    const formula =
+      chordType === 'maj7' ? SEVENTH_CHORDS.major_7
+      : chordType === 'm7' ? SEVENTH_CHORDS.minor_7
+      : SEVENTH_CHORDS.dominant_7;
+
+    let voiced: number[];
+    switch (voicing) {
+      case 'closed':
+        // Standard root-position voicing in a single octave.
+        voiced = formula.slice();
+        break;
+      case 'drop2': {
+        // Take the second-from-the-top voice and move it down an octave.
+        // For a 4-note chord [r, 3, 5, 7] sorted ascending, drop2 → [5-12, r, 3, 7]
+        const [a, b, c, d] = formula;
+        voiced = [c - 12, a, b, d];
+        break;
+      }
+      case 'quartal':
+        // Stack of 4ths from the chord root: r, 4, 7, 10 (semitone offsets — perfect 4ths).
+        // Maps to a "So What" / quartal voicing flavor for any chord type.
+        voiced = [0, 5, 10, 15];
+        break;
+      case 'upper_structure':
+        // Bass + a triad whose notes form the 9/3/13 (or appropriate upper extensions).
+        // For maj7: bass + D-major-triad-equivalent above (root, +14, +18, +21) → root + 9 + #11 + 13.
+        // For 7:   bass + Db-major-triad above   (root, +13, +17, +20) → root + b9 + 11 + b13 (alt sound).
+        // For m7:  bass + Eb-major-triad above   (root, +15, +19, +22) → root + #9-equivalent (m9 voicing).
+        voiced = chordType === '7'   ? [0, 13, 17, 20]
+              : chordType === 'm7'  ? [0, 15, 19, 22]
+              :                       [0, 14, 18, 21];
+        break;
+    }
+    const notes = this.buildChordNotes(rootNote, voiced, 4);
+    console.log(`🎺 ${chordType} ${voicing} from ${rootNote}:`, notes);
+    this.synth.triggerAttackRelease(notes, '2n');
+    this.markPlayback(2.0);
+    return notes;
+  }
+
   async playCorrectChime() {
     await this.initialize();
     const synth = this.getFeedbackSynth();
