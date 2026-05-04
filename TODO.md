@@ -404,22 +404,16 @@ The chat-style onboarding now persists `{ ratings, voiceRange, experience, goal,
 - ✅ **Batch 3** — `progression` question type + table-driven progression playback. New levels: `prog_pop_diatonic`, `prog_jazz_cadence` (ii-V-I major + minor), `prog_secondary_dominants`, `prog_modulation_pivot`. Engine: [`audioEngine.playProgression`](src/audioEngine.ts) with key-offset support for modulations.
 - ✅ **Batch 7** — Jazz Harmony segment populated. New types: `chord_extension`, `borrowed_chord`, `voicing`. Levels: `jazz_dom_extensions` (9/11/13), `jazz_altered_dominants` (♭9/♯9/♯11/♭13), `jazz_modal_interchange` (iv/♭III/♭VI/♭VII), `jazz_voicings` (closed/drop-2/quartal/upper-structure). Engine: [`playChordExtension`](src/audioEngine.ts), [`playBorrowedChord`](src/audioEngine.ts), [`playVoicing`](src/audioEngine.ts).
 
-### Outstanding curriculum batches
+**Shipped 2026-05-04:**
+- ✅ **Batch 4** — Rhythm engine + 5 levels populated in `rhythm` segment. New `rhythm` `QuestionType`. New `tap` and `grid` `ResponseMode` values. New components: [`RhythmTapPad`](src/components/RhythmTapPad.tsx) (listen → ready → replay+tap with a sweeping playhead), [`RhythmGrid`](src/components/RhythmGrid.tsx) (16-cell 4/4 dictation grid). New libs: [`rhythmGrader`](src/lib/rhythmGrader.ts) (greedy nearest-tap-within-tolerance grader, score = (recall + precision)/2; strict-equality grid grader) — covered by [rhythmGrader.test.ts](src/lib/rhythmGrader.test.ts) (7 tests). [`rhythmPatterns`](src/lib/rhythmPatterns.ts) holds the named tap-back + dictation pattern banks (quarters, syncopation, tresillo, 3-3-2; four-on-the-floor, backbeat, son clave, gallop). New audio engine methods: [`playRhythmOnsets`](src/audioEngine.ts) (returns onset times in performance.now() ms for grader), `playMeterPattern` (2/4–6/8 with accents), `playSubdivisionPattern` (8ths/16ths/triplets/dotted). Levels:
+  - `rhy_same_diff` (free) — same-or-different rhythm
+  - `rhy_tap_back` (free) — tap-along to the replay; tolerance ±140ms, 70% pass score
+  - `rhy_subdivisions` (Pro) — 8ths / 16ths / triplets / dotted ID
+  - `rhy_meter` (Pro) — 2/4 vs 3/4 vs 4/4 vs 6/8 vs 5/4 ID
+  - `rhy_dictation` (Pro) — 16-cell beat-grid dictation, strict equality
+  - **Open scope notes:** Tap-back is implemented as "tap along to replay" not "tap from memory" — simpler to grade and still real ear-training. Same-or-different replay is intentionally not stored on the Question (skipped in `replaySound`); reasonable since users get one shot at hearing the pair. Both choices are documented in code comments and can be revisited if user feedback wants a stricter version.
 
-#### Batch 4 — Rhythm engine + 5 levels
-The biggest single new engine. Fills the empty `rhythm` segment in [`curriculum.ts`](src/curriculum.ts).
-- [ ] **Rhythm playback layer** in [`audioEngine.ts`](src/audioEngine.ts) — Tone.js `Transport` is already used; add a `playRhythmPattern(pattern, bpm)` that schedules clicks (drum or wood-block sample) on a beat grid.
-- [ ] **Tap-input grader** — new lib (`src/lib/rhythmGrader.ts`) that captures touch/click timestamps, aligns to expected beat positions, scores per-onset hit/miss with ms tolerance.
-- [ ] **Beat-grid input UI** — new component (`src/components/RhythmGrid.tsx`) for the dictation lesson: 1-bar, 4 beats × 4 subdivisions = 16 cells, tap on/off.
-- [ ] **New `QuestionType` value** `rhythm` + new `ResponseMode` value `tap` and `grid` in [`types.ts`](src/types.ts).
-- [ ] **Wire into [`App.tsx`](src/App.tsx)** — `generateQuestion` branch for `level.type === 'rhythm'`, `replaySound` branch.
-- [ ] **5 levels populated** in `rhythm` segment:
-  1. `rhy_same_diff` — two patterns, identical or not (free).
-  2. `rhy_tap_back` — hear, tap back; uses new `tap` response mode.
-  3. `rhy_subdivisions` — 8ths / 16ths / triplets / dotted (4-way pick).
-  4. `rhy_meter` — 2/4 vs 3/4 vs 4/4 vs 6/8 vs 5/4 identification.
-  5. `rhy_dictation` (Pro) — 1-bar grid input.
-- Estimated effort: **3–5 days**. Highest user-perceived value of the four outstanding batches because every musician needs rhythm work and current product has none.
+### Outstanding curriculum batches
 
 #### Batch 5 — Sequence-input melodic dictation + 4 levels
 Partly buildable on existing engine. Fills the empty `melodic_dictation` segment.
@@ -460,12 +454,53 @@ Smallest audience. Fills the empty `modal_modern` segment. All Pro.
 - Estimated effort: **2–3 days** because question types are all extensions of existing ones.
 - **Sequencing rule**: ship last. Audience is composers / theory students / academic, not the broad jazz/transcribing/returning audience the marketing landings target.
 
+#### Batch 9 — Jazz & Rhythm research-driven gap-closing (NEW, derived from blog series 17–35)
+Both segments currently ship working core content, but the blog series 17–35 surfaced specific research-supported lessons that are missing. Each gap below comes from a published-on-the-Fifths-blog citation chain and would be a high-leverage curriculum addition. Most are extensions of existing question types, so engine work is minimal.
+
+**Jazz Harmony additions (segment `jazz_harmony`):**
+- [ ] **`jazz_bassline`** (free) — Given a 4-chord progression, identify the bass note of each chord. Berklee functional decomposition (Radley) puts bassline-listening as the *first* sub-skill before chord quality. New `bassline` question type or extension of `progression`. See [/blog/29](site/blog/29-guide-tones-deep-dive.md), [/blog/35](site/blog/35-bass-up-vs-melody-down.md).
+- [ ] **`jazz_third_quality`** (free) — Given a played chord with root in bass, identify whether 3rd is natural or flat. Binary classification, foundational. Extends existing `chord_extension`/`triad` machinery. See [/blog/29](site/blog/29-guide-tones-deep-dive.md).
+- [ ] **`jazz_seventh_quality`** (free) — Same for the 7th (natural vs flat). Pairs with third-quality lesson. See [/blog/29](site/blog/29-guide-tones-deep-dive.md).
+- [ ] **`jazz_guide_tones`** (Pro) — Given two pitches over a held bass, identify implied chord quality (maj7 / m7 / 7). The synthesis lesson — the closest single drill to what the Berklee functional tradition trains. See [/blog/29](site/blog/29-guide-tones-deep-dive.md).
+- [ ] **`jazz_guide_tone_line`** (Pro) — Given a 4-chord progression, sing only the guide tones (3rd or 7th) of each chord, in time. Reuses sing-sequence engine + existing pitch-detection grading. See [/blog/18](site/blog/18-singing-the-changes-berklee.md).
+- [ ] **Decompose `jazz_altered_dominants` into a sequence** — current 4-way classification is too compound. Split into 4 binary lessons (V7♭9 vs V7, V7♯9 vs V7, V7♯11 vs V7, V7♭13 vs V7), keeping the existing 4-way as the synthesis lesson. Each alteration has a distinct emotional color and trains a distinct cognitive distinction. See [/blog/31](site/blog/31-altered-dominants-colors.md).
+- [ ] **`jazz_minor_ii_V`** (Pro) — Separate lesson for iiø → V7♭9 → i (minor) vs ii → V → I (major). Currently bundled in `prog_jazz_cadence`; the minor ii-V uses half-diminished ii and altered V — different sound and function. See [/blog/31](site/blog/31-altered-dominants-colors.md).
+- [ ] **`jazz_blues_form`** (free) — 12-bar blues vs minor blues vs jazz blues recognition. Foundational jazz form, currently missing. 3-way classification per excerpt.
+- [ ] **`jazz_tritone_sub`** (Pro) — V7 vs ♭II7 → I (tritone substitution). First cousin of secondary dominants; in every standard.
+- [ ] **`jazz_turnaround`** (Pro) — Identify I-vi-ii-V vs iii-vi-ii-V vs I-VI7-ii-V (rhythm-changes turnaround). Berklee drills these explicitly.
+- [ ] **`jazz_enclosure_recognition`** (Pro) — Given an excerpt with a clear enclosure resolving to a chord tone, identify the target tone. Binary or 3-way. Bebop vocabulary entry-point. See [/blog/30](site/blog/30-enclosures-bebop.md).
+- [ ] **`jazz_avoid_tones`** (Pro) — Given a chord and a held tension, is it an *available* tension or an *avoid* note? Berklee Pro-level lesson; very practical for improvisers.
+
+**Rhythm additions (segment `rhythm`):**
+- [ ] **`rhy_simple_compound`** (free) — Binary: does each beat divide into 2 or into 3? Foundational and currently missing. Unlocks meter recognition downstream. See [/blog/27](site/blog/27-macrobeat-microbeat-gordon.md), [/blog/19](site/blog/19-takadimi-rhythm-syllables.md).
+- [ ] **`rhy_isochronous`** (free) — Binary: are the beats equal in length, or unequal (long-short)? Cognitively more basic than time-signature ID; right entry to odd-meter perception (Hannon & Trehub). See [/blog/21](site/blog/21-why-odd-meters-feel-hard.md).
+- [ ] **`rhy_macrobeat_tap`** (free) — Given an audio clip, tap on the macrobeat (the felt pulse). Disambiguates micro vs macro layer. Gordon's foundational rhythm skill. See [/blog/27](site/blog/27-macrobeat-microbeat-gordon.md).
+- [ ] **`rhy_odd_meter_grouping`** (Pro) — Identify 7/8 as 2+2+3 vs 3+2+2 vs 2+3+2 (same notes, different feel). The actual perceptual unit per Hannon & Trehub *aksak* literature. Currently `rhy_meter` lumps 5/4 in with no grouping focus. See [/blog/21](site/blog/21-why-odd-meters-feel-hard.md).
+- [ ] **`rhy_takadimi_speak`** (free) — Speak the rhythm in takadimi syllables before tapping. New `speak` response mode (or just a "ready" gating phase before tap). Cross-cultural pedagogical convergence. See [/blog/19](site/blog/19-takadimi-rhythm-syllables.md), [/blog/26](site/blog/26-speak-the-rhythm-before-you-play.md).
+- [ ] **`rhy_polyrhythm_3v2`** (Pro) — Hear and tap 3-against-2. Vuust polyrhythm fMRI; trainable, gateway to all polyrhythmic perception. See [/blog/25](site/blog/25-3-against-2-polyrhythm.md).
+- [ ] **`rhy_polyrhythm_4v3`** (Pro) — 4-against-3, builds on 3v2. See [/blog/25](site/blog/25-3-against-2-polyrhythm.md).
+- [ ] **`rhy_clave_direction`** (free) — 3-2 vs 2-3 son clave (binary entry); then son vs rumba clave (3-way). Universal global timeline pattern. See [/blog/23](site/blog/23-clave-the-pattern-organizing-popular-music.md).
+- [ ] **`rhy_swing_amount`** (Pro) — Place excerpt on straight↔shuffle 5-step continuum. More useful than binary "swung or not" — Friberg-Sundström swing-ratio curve. See [/blog/22](site/blog/22-swing-eighths-not-2-to-1.md).
+- [ ] **`rhy_5_7_9_subdivisions`** (Pro) — Beat divided in 5 (khanda), 7 (misra), 9 (sankirna). Konnakol's 5 gatis. Currently triplets is the only non-binary subdivision. See [/blog/20](site/blog/20-konnakol-rhythm-pedagogy.md).
+- [ ] **`rhy_real_recordings`** (Pro) — Use authentic recorded excerpts, not synthesized clicks. Perceptual templates for odd meters and global rhythms are built from real performances. See [/blog/21](site/blog/21-why-odd-meters-feel-hard.md), [/blog/23](site/blog/23-clave-the-pattern-organizing-popular-music.md).
+- [ ] **`rhy_tempo_change`** (free) — Did the tempo just speed up, slow down, or stay the same? Trainable; missing.
+- [ ] **`rhy_dictation_2bar` / `rhy_dictation_4bar` / `rhy_dictation_8bar`** (Pro) — Graduated working-memory arc beyond current 1-bar dictation. Each step roughly doubles working-memory load and explicitly trains chunking. Pre-step requires named-pattern recognition lessons (tresillo, son clave, swing eighths, gallop, etc.) already partly in [`rhythmPatterns.ts`](src/lib/rhythmPatterns.ts). See [/blog/28](site/blog/28-rhythmic-dictation-working-memory.md).
+
+**Voice section additions (cross-segment, low-priority):**
+- [ ] **`voice_jazz_syllables` mode** — Optional toggle on existing Voice section lessons that displays takadimi/scat syllables alongside notes. Pitch-detection grading unaffected; rhythmic-articulation training added for free. See [/blog/33](site/blog/33-why-jazz-vocalises-use-syllables.md), [/blog/34](site/blog/34-rhythmic-vocal-warm-ups.md).
+- [ ] **`voice_lip_trill_warmup`** — 60s pre-session optional vocal warm-up gate (lip trill on metronome subdivisions). Clinical-literature-supported. See [/blog/34](site/blog/34-rhythmic-vocal-warm-ups.md).
+- [ ] **`voice_konnakol_speak`** — Pure rhythmic-articulation lesson, no pitch. Speak gati pattern at increasing tempos against metronome. Unusual for ear-training apps. See [/blog/34](site/blog/34-rhythmic-vocal-warm-ups.md).
+
+**Estimated effort:** ~3-4 days for the high-priority subset (J2/J3/J4 guide-tone lessons + R1/R3 simple/compound + odd-meter grouping + R7 clave direction + R5 3-against-2). Most extend existing question types and require no new audio engine work — just new level data and lesson intros. The full Batch 9 list is ~1 week of focused work.
+
 #### Order of operations + dependencies
 ```
-Batch 4 (rhythm)         ── independent, ship first
-Batch 5 (dictation)      ── independent of Batch 4; can be parallel session
-Batch 6 (sight singing)  ── waits on Batch 4 (rhythm grader); levels 1–2 can ship independently
+Batch 4 (rhythm)         ── ✅ shipped 2026-05-04
+Batch 5 (dictation)      ── independent; recommended next
+Batch 6 (sight singing)  ── levels 1–2 independent; level 4 can now reuse Batch 4's rhythm grader
 Batch 8 (modal & modern) ── ships last; smallest audience
+Batch 9 (jazz/rhythm     ── independent; pairs naturally with the published blog
+gap-closing)                research; high-leverage; can ship in parallel with 5/6
 ```
 
 ### Push notifications

@@ -48,6 +48,12 @@ Every article cites primary sources. Where the evidence is contested or weaker t
 
 17. [The four lineages of jazz ear training (and why they don't agree)](./17-four-lineages-jazz-ear-training.md)
 18. [Singing the changes: how Berklee's functional jazz ear training works](./18-singing-the-changes-berklee.md)
+29. [Guide tones: the two notes that define every chord](./29-guide-tones-deep-dive.md)
+30. [Enclosures: the bebop vocal pattern with no classical equivalent](./30-enclosures-bebop.md)
+31. [Hearing altered dominants: ♭9, ♯9, ♯11, ♭13 each have a distinct color](./31-altered-dominants-colors.md)
+32. [The 12-key practice tradition: why jazz transposes everything (and how to do it without going crazy)](./32-12-key-practice-tradition.md)
+33. [Why jazz vocalises use syllables (and classical ones don't)](./33-why-jazz-vocalises-use-syllables.md)
+35. [Bass-up vs melody-down: two ways to internalize a chord progression by ear](./35-bass-up-vs-melody-down.md)
 
 ### Rhythm pedagogy and global rhythmic systems
 
@@ -56,6 +62,15 @@ Every article cites primary sources. Where the evidence is contested or weaker t
 21. [Why odd meters feel hard (and the trick that makes them feel easy)](./21-why-odd-meters-feel-hard.md)
 22. [Swing eighths are not 2:1 — what the research actually shows](./22-swing-eighths-not-2-to-1.md)
 23. [Clave: the four-bar pattern that organizes most of the world's popular music](./23-clave-the-pattern-organizing-popular-music.md)
+24. [Beat induction: how the newborn brain finds the pulse](./24-beat-induction-newborn-brain.md)
+25. [Why 3-against-2 is the polyrhythm to learn first](./25-3-against-2-polyrhythm.md)
+26. [Speak the rhythm before you play it: the cross-cultural convergence](./26-speak-the-rhythm-before-you-play.md)
+27. [Macrobeat and microbeat: Gordon's two-layer framework for hearing meter](./27-macrobeat-microbeat-gordon.md)
+28. [Rhythmic dictation: the working-memory arc from 1 bar to 8](./28-rhythmic-dictation-working-memory.md)
+
+### Bridging voice and rhythm
+
+34. [Rhythmic vocal warm-ups: where vocal pedagogy and rhythm pedagogy meet](./34-rhythmic-vocal-warm-ups.md)
 
 ---
 
