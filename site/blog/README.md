@@ -44,6 +44,19 @@ Every article cites primary sources. Where the evidence is contested or weaker t
 15. [How vocalises are actually transposed — and why it isn't the cycle of fifths](./15-how-vocalises-are-transposed.md)
 16. [Designing a Voice section: the ear training curriculum gap most apps miss](./16-designing-a-voice-section.md)
 
+### Jazz ear training and the four lineages
+
+17. [The four lineages of jazz ear training (and why they don't agree)](./17-four-lineages-jazz-ear-training.md)
+18. [Singing the changes: how Berklee's functional jazz ear training works](./18-singing-the-changes-berklee.md)
+
+### Rhythm pedagogy and global rhythmic systems
+
+19. [Takadimi: rhythm syllables as functional rhythm labels](./19-takadimi-rhythm-syllables.md)
+20. [Konnakol: the South Indian rhythm pedagogy that's quietly remaking Western drum education](./20-konnakol-rhythm-pedagogy.md)
+21. [Why odd meters feel hard (and the trick that makes them feel easy)](./21-why-odd-meters-feel-hard.md)
+22. [Swing eighths are not 2:1 — what the research actually shows](./22-swing-eighths-not-2-to-1.md)
+23. [Clave: the four-bar pattern that organizes most of the world's popular music](./23-clave-the-pattern-organizing-popular-music.md)
+
 ---
 
 If you want to skip ahead to the practice that all of this implies, [Fifths](https://fifths.io) is the app we built around it.
