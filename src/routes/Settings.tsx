@@ -12,6 +12,12 @@ export type Preset = 'beginner' | 'balanced' | 'studio';
 
 export type VoiceRange = 'higher' | 'mixed' | 'lower';
 export type SingDifficulty = 'strict' | 'standard' | 'forgiving';
+// Feedback timing per the Metcalfe / Kornell-and-Finn / Opitz literature: a brief pause
+// between answer and reveal produces better long-term retention than immediate feedback.
+//   immediate    — current behaviour, reveal on tap.
+//   delayed_short— ~2.5s pause before reveal; user sits with their answer.
+//   batched      — feedback withheld inside a 5-question block; summary at the end.
+export type FeedbackTiming = 'immediate' | 'delayed_short' | 'batched';
 
 export interface SettingsState {
   synth: SynthType;
@@ -21,7 +27,20 @@ export interface SettingsState {
   voiceRange?: VoiceRange; // Optional: only used by sing-mode lessons. Undefined = 'mixed'.
   singDifficulty?: SingDifficulty; // User-level tolerance adjustment. Undefined = 'standard'.
   degreeNotation?: DegreeNotation; // How scale-degree answers are labeled. Undefined = 'roman'.
+  feedbackTiming?: FeedbackTiming; // Defaults to 'immediate'. Daily Review forces 'delayed_short'.
 }
+
+export const DEFAULT_FEEDBACK_TIMING: FeedbackTiming = 'immediate';
+export const FEEDBACK_TIMING_LABELS: Record<FeedbackTiming, string> = {
+  immediate: 'instant',
+  delayed_short: 'short pause',
+  batched: 'after 5',
+};
+export const FEEDBACK_TIMING_DELAY_MS: Record<FeedbackTiming, number> = {
+  immediate: 0,
+  delayed_short: 2500,
+  batched: 0, // batched mode handled by counting reveals, not by delay
+};
 
 export const DEFAULT_VOICE_RANGE: VoiceRange = 'mixed';
 export const DEFAULT_SING_DIFFICULTY: SingDifficulty = 'standard';
@@ -493,6 +512,20 @@ export default function Settings({
                       onClick={() => onChange({ ...settings, degreeNotation: n })}
                     >
                       {DEGREE_NOTATION_LABELS[n]}
+                    </Bean>
+                  ))}
+                </div>
+              </Row>
+              <Row label="feedback timing">
+                <div style={{ display: 'flex', gap: 6 }}>
+                  {(['immediate', 'delayed_short', 'batched'] as FeedbackTiming[]).map((f) => (
+                    <Bean
+                      key={f}
+                      tone={(settings.feedbackTiming ?? DEFAULT_FEEDBACK_TIMING) === f ? 'ink' : 'soft'}
+                      size="sm"
+                      onClick={() => onChange({ ...settings, feedbackTiming: f })}
+                    >
+                      {FEEDBACK_TIMING_LABELS[f]}
                     </Bean>
                   ))}
                 </div>

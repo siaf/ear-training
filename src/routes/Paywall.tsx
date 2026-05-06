@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { Check } from 'lucide-react';
 import { useBreakpoint } from '../lib/useBreakpoint';
 import { Bean, Brand, ColorPill } from '../components/primitives';
 import { phCapture } from '../lib/posthog';
@@ -251,7 +252,7 @@ export default function Paywall({ trigger, currentPlan, onSelect, onDismiss }: P
                         lineHeight: 1.4,
                       }}
                     >
-                      <span style={{ color: 'var(--mint-ink)', fontWeight: 700 }}>✓</span>
+                      <Check size={14} strokeWidth={3} color="var(--mint-ink)" />
                       <span>{f}</span>
                     </li>
                   ))}

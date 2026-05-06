@@ -1,3 +1,5 @@
+import * as React from 'react';
+import { Check } from 'lucide-react';
 import { useBreakpoint } from '../lib/useBreakpoint';
 import { Bean, Brand, ColorPill, ProgressBar } from '../components/primitives';
 import { CurriculumLevel, SessionStats } from '../types';
@@ -22,7 +24,7 @@ function Scorecard({
   bg,
 }: {
   label: string;
-  value: string;
+  value: React.ReactNode;
   sub?: string;
   bg: string;
 }) {
@@ -110,7 +112,9 @@ export default function Results({
         )}
         <div style={{ padding: mobile ? '0 22px 20px' : '32px 44px 40px', maxWidth: 1100, margin: '0 auto', width: '100%', boxSizing: 'border-box' }}>
         <ColorPill tone={canUnlock ? 'mint' : 'lav'} style={{ marginBottom: 14 }}>
-          {canUnlock ? '✓ level unlocked' : '✓ session complete'}
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+            <Check size={13} strokeWidth={3} /> {canUnlock ? 'level unlocked' : 'session complete'}
+          </span>
         </ColorPill>
         <h1
           style={{
@@ -138,7 +142,12 @@ export default function Results({
           <Scorecard label="Accuracy" value={`${stats.accuracy.toFixed(0)}%`} sub={`${stats.correctAnswers}/${stats.totalQuestions}`} bg="var(--mint)" />
           <Scorecard label="Questions" value={`${stats.totalQuestions}`} sub="answered" bg="var(--butter)" />
           <Scorecard label="Target" value={`${level.unlockRequirement}%`} sub={canUnlock ? 'passed' : `−${shortfall.toFixed(0)}%`} bg="var(--coral)" />
-          <Scorecard label="Session" value={`${avgResponse ? '✓' : '—'}`} sub="recorded" bg="var(--lav)" />
+          <Scorecard
+            label="Session"
+            value={avgResponse ? <Check size={28} strokeWidth={3} color="var(--lav-ink)" /> : '—'}
+            sub="recorded"
+            bg="var(--lav)"
+          />
         </div>
 
         {/* Coach note + mastery nudge */}

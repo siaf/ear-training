@@ -69,6 +69,56 @@ export function getLessonIntro(level: CurriculumLevel): LessonIntroCopy[] {
   return [{ ...base, mascot: pickMascot(level) }];
 }
 
+// One-page intros for queue-driven sessions. The underlying lesson's per-concept intro
+// (e.g. "Some notes feel like they want to move…") is misleading when the user's about
+// to face questions sampled across many lessons — so for review/interleave we replace
+// it with a single page that frames the *session* itself.
+
+export function getMixedPracticeIntro(): LessonIntroCopy[] {
+  return [
+    {
+      idea: "10 questions, every kind you've cleared.",
+      purpose:
+        "Mixing categories beats repeating one — research calls it contextual interference. You'll spot the kind of question first, then answer it.",
+      expectation: "First tap the category (chord / interval / cadence / …). Then answer it like normal.",
+      mascot: 'major',
+    },
+  ];
+}
+
+/**
+ * Checkpoint sessions are scoped to a curated cluster (e.g. "Fourths & Fifths Mix"),
+ * so the intro names the cluster instead of the generic Mixed Practice frame. If the
+ * cluster spans multiple categories, the user still gets the category-pick gate; if
+ * it's single-category (3 lessons of the same type) the gate auto-passes and the
+ * expectation copy reflects that.
+ */
+export function getCheckpointIntro(name: string, hasCategoryGate: boolean): LessonIntroCopy[] {
+  return [
+    {
+      idea: `${name} — short mix of what you just covered.`,
+      purpose:
+        'Cluster reviews lock in skills while they\'re still close in working memory — short blocks of mixed items beat re-running one lesson.',
+      expectation: hasCategoryGate
+        ? 'First tap the category, then answer like normal.'
+        : '10 questions, mixed across the lessons in this cluster.',
+      mascot: 'major',
+    },
+  ];
+}
+
+export function getDailyReviewIntro(): LessonIntroCopy[] {
+  return [
+    {
+      idea: "Today's Review — items the spacing schedule says you're due on.",
+      purpose:
+        "A short pull from old lessons to keep what you've learned from leaking back out. The forgetting curve doesn't care about streaks.",
+      expectation: 'Mixed types, immediate next on each answer.',
+      mascot: 'major',
+    },
+  ];
+}
+
 type IntroBody = Omit<LessonIntroCopy, 'mascot' | 'expression'>;
 
 function getDefaultIntroBody(level: CurriculumLevel): IntroBody {

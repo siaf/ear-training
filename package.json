@@ -11,6 +11,8 @@
     "test:watch": "vitest",
     "build:mobile": "CAPACITOR_BUILD=1 tsc && CAPACITOR_BUILD=1 vite build",
     "build:web": "WEB_APP_BUILD=1 tsc && WEB_APP_BUILD=1 vite build",
+    "build:tool:cof": "esbuild site/tools/circle-of-fifths/_src/main.jsx --loader:.jsx=jsx --tsconfig-raw='{\"compilerOptions\":{\"jsx\":\"react\"}}' --target=es2017 --minify --legal-comments=none --outfile=site/tools/circle-of-fifths/circle-of-fifths.js",
+    "build:tools": "npm run build:tool:cof",
     "cap:sync": "npm run build:mobile && cap sync",
     "ios": "npm run build:mobile && cap sync ios && cap open ios",
     "android": "npm run build:mobile && cap sync android && cap open android",
@@ -18,7 +20,7 @@
     "android:run": "npm run build:mobile && cap sync android && cap run android",
     "sync:site-brand": "rsync -a --delete public/brand/ site/brand/",
     "build:blog": "node scripts/build-blog.mjs",
-    "predeploy:site": "npm run sync:site-brand && npm run build:blog",
+    "predeploy:site": "npm run sync:site-brand && npm run build:blog && npm run build:tools",
     "deploy:site": "wrangler pages deploy"
   },
   "dependencies": {

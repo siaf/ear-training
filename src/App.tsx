@@ -14,10 +14,28 @@ import {
   type MasteryMap,
 } from './lib/itemMastery';
 import { getDueItems, countDueItems, type DueItem } from './lib/spacedReview';
+import { fadePrimerForMastery } from './lib/primer';
+import { getCrossSegmentRecommendation } from './lib/recommendations';
+import { createRotationState, nextRotatedTimbre, type TimbreRotationState } from './lib/timbreRotation';
+import {
+  buildInterleaveQueue,
+  categoriesInQueue,
+  categoryForLevel,
+  type InterleaveCategory,
+  type InterleaveItem,
+} from './lib/interleaving';
+import { type Checkpoint } from './lib/checkpoints';
 import Path from './routes/Path';
 import PracticeRoute from './routes/Practice';
 import Results from './routes/Results';
-import Settings, { DEFAULT_VOICE_RANGE, SettingsState, VOICE_RANGE_BASE_OCTAVE, VOICE_RANGE_NOTES } from './routes/Settings';
+import Settings, {
+  DEFAULT_FEEDBACK_TIMING,
+  DEFAULT_VOICE_RANGE,
+  FEEDBACK_TIMING_DELAY_MS,
+  SettingsState,
+  VOICE_RANGE_BASE_OCTAVE,
+  VOICE_RANGE_NOTES,
+} from './routes/Settings';
 import Stats from './routes/Stats';
 import Landing from './routes/Landing';
 import Onboarding from './routes/Onboarding';
@@ -42,7 +60,7 @@ import AuthSheet from './components/AuthSheet';
 import BottomTabs, { BottomTabRoute } from './components/BottomTabs';
 import { haptics } from './lib/haptics';
 import { cancelStreakReminder, requestNotificationPermission, scheduleStreakReminder } from './lib/notifications';
-import { getLessonIntro } from './lib/lessonIntro';
+import { getCheckpointIntro, getDailyReviewIntro, getLessonIntro, getMixedPracticeIntro } from './lib/lessonIntro';
 import { parseRouteFromUrl, syncUrl, usePopStateRoute } from './lib/routing';
 import { ThemePreference, loadThemePreference, useTheme } from './lib/theme';
 
@@ -67,6 +85,61 @@ const SELF_KEYED_TYPES = new Set(['cadence', 'progression', 'chord_extension', '
 
 // Rhythm levels are non-tonal — no scale reference, no key label.
 const NON_TONAL_TYPES = new Set(['rhythm']);
+
+type PrimerKind = NonNullable<CurriculumLevel['primerKind']>;
+
+/**
+ * Resolve the primer for a level, accounting for type-based defaults.
+ * Self-keyed types (cadence/progression/etc.) and non-tonal types skip the primer.
+ * Returns 'none' when no preamble should play.
+ */
+function defaultPrimerKindForLevel(level: CurriculumLevel): PrimerKind {
+  const nonTonalAcoustic = level.type === 'acoustic' && level.acousticKind
+    ? NON_TONAL_ACOUSTIC_KINDS.includes(level.acousticKind)
+    : false;
+  if (nonTonalAcoustic || NON_TONAL_TYPES.has(level.type)) return 'none';
+  if (SELF_KEYED_TYPES.has(level.type)) return 'none';
+  return 'scale';
+}
+
+function resolvePrimerKind(level: CurriculumLevel): PrimerKind {
+  return level.primerKind ?? defaultPrimerKindForLevel(level);
+}
+
+/**
+ * Play the primer for a key root and return the duration in seconds the caller
+ * should wait before unlocking input. Returns 0 when no primer should play.
+ */
+async function playPrimer(rootNote: string, kind: PrimerKind): Promise<number> {
+  switch (kind) {
+    case 'none':
+      return 0;
+    case 'scale': {
+      const { duration } = await audioEngine.playMajorScaleReference(rootNote, 4);
+      return duration;
+    }
+    case 'cadence': {
+      // I-IV-V-I authentic cadence — Krumhansl establishes a key faster than scale alone.
+      await audioEngine.playCadence(rootNote, 'authentic', 'major');
+      // playChordSequence uses ~0.75s per chord × 4 chords = ~3s; mark a similar wait.
+      return 3.0;
+    }
+    case 'cadence_then_scale': {
+      await audioEngine.playCadence(rootNote, 'authentic', 'major');
+      await new Promise((r) => setTimeout(r, 3000));
+      const { duration } = await audioEngine.playMajorScaleReference(rootNote, 4);
+      return duration;
+    }
+    case 'drone': {
+      // Brief tonic drone (~3s) to anchor the key by tonic alone — desirable difficulty
+      // for advanced lessons where a full primer would be over-scaffolding.
+      await audioEngine.toggleDrone(rootNote, true);
+      await new Promise((r) => setTimeout(r, 3000));
+      await audioEngine.toggleDrone(rootNote, false);
+      return 0;
+    }
+  }
+}
 
 interface LessonConfig {
   establishTonality: boolean;
@@ -198,8 +271,14 @@ export default function App() {
   const [isPlayingScale, setIsPlayingScale] = useState(false);
   const [lastKeyChangeQuestion, setLastKeyChangeQuestion] = useState<number>(-1);
   const [introDismissed, setIntroDismissed] = useState(false);
+  // True when the user has answered but feedback hasn't been revealed yet (delayed_short mode).
+  // Kept separate from showFeedback so Practice can render a "thinking..." indicator
+  // without triggering the green/red feedback layout.
+  const [feedbackPending, setFeedbackPending] = useState(false);
   const scaleLockRef = useRef(false);
   const autoAdvanceTimerRef = useRef<number | null>(null);
+  // Pending-feedback reveal timer. Cleaned up on unmount, route change, and handleNext.
+  const pendingFeedbackTimerRef = useRef<number | null>(null);
   const [debugMode, setDebugMode] = useState(initial.debugMode);
   const [syncState, setSyncState] = useState<SyncState>('disabled');
   const [userEmail, setUserEmail] = useState<string | null>(null);
@@ -215,6 +294,9 @@ export default function App() {
   const masteryRef = useRef<MasteryMap>(loadMastery());
   // Adjacent-question dedupe ring buffer (most-recent-last). Reset on startSession.
   const recentItemTypesRef = useRef<string[]>([]);
+  // Timbre-rotation state. Engages mid-session once accuracy crosses the floor on a
+  // not-yet-completed lesson. Reset on startSession.
+  const timbreRotationRef = useRef<TimbreRotationState>(createRotationState());
   // Set of `${levelId}::${item}` keys already seen in the current session — feeds the
   // recency bonus in getItemWeight so untouched items don't vanish under up-weighting.
   const seenThisSessionRef = useRef<Set<string>>(new Set());
@@ -224,6 +306,24 @@ export default function App() {
   const [reviewSession, setReviewSession] = useState<{ queue: DueItem[]; cursor: number } | null>(null);
   const reviewSessionRef = useRef(reviewSession);
   useEffect(() => { reviewSessionRef.current = reviewSession; }, [reviewSession]);
+  // Mixed Practice / interleaving session (#5). Same shape as reviewSession but the queue
+  // is sampled from completed lessons rather than the Leitner schedule, and the user must
+  // tap a category before answering each question (contextual-interference benefit).
+  // `label` and `kind` distinguish the global Mixed-Practice tile from a curated checkpoint
+  // session — used for the intro page title and copy.
+  const [interleaveSession, setInterleaveSession] = useState<
+    | { queue: InterleaveItem[]; cursor: number; kind: 'global'; label: null }
+    | { queue: InterleaveItem[]; cursor: number; kind: 'checkpoint'; label: string }
+    | null
+  >(null);
+  const interleaveSessionRef = useRef(interleaveSession);
+  useEffect(() => { interleaveSessionRef.current = interleaveSession; }, [interleaveSession]);
+  // Tracks whether the user has tapped any category for the *current* interleave question.
+  // Reset on each handleNext. Once true, the answer chips become available.
+  const [interleaveCategoryPicked, setInterleaveCategoryPicked] = useState<boolean>(false);
+  // The category the user actually tapped (right or wrong). Used to render a soft hint
+  // "actually a [correct]" when wrong. Null until they tap.
+  const [interleaveCategoryAttempt, setInterleaveCategoryAttempt] = useState<InterleaveCategory | null>(null);
   useEffect(() => { completedLevelsRef.current = completedLevels; }, [completedLevels]);
   useEffect(() => { settingsRef.current = settings; }, [settings]);
   useEffect(() => { hasEverPracticedRef.current = hasEverPracticed; }, [hasEverPracticed]);
@@ -244,14 +344,19 @@ export default function App() {
   const ANON_LESSON_LIMIT = 7;
   const pendingPurchaseRef = useRef<string | null>(null);
   const pendingStartRef = useRef<string | null>(null);
-  // In review mode, currentLevel flips per-question to the queue's current item's source level.
-  // Each question is sampled from a different lesson (mixed-level review).
+  // In review or interleave mode, currentLevel flips per-question to the queue's current
+  // item's source level. Each question is sampled from a different lesson.
   const reviewActiveItem =
     reviewSession && reviewSession.cursor < reviewSession.queue.length
       ? reviewSession.queue[reviewSession.cursor]
       : null;
-  const currentLevel = reviewActiveItem
-    ? CURRICULUM.find((l) => l.id === reviewActiveItem.levelId) ?? getCurrentLevel(completedLevels, proActive)
+  const interleaveActiveItem =
+    interleaveSession && interleaveSession.cursor < interleaveSession.queue.length
+      ? interleaveSession.queue[interleaveSession.cursor]
+      : null;
+  const queueActiveLevelId = reviewActiveItem?.levelId ?? interleaveActiveItem?.levelId ?? null;
+  const currentLevel = queueActiveLevelId
+    ? CURRICULUM.find((l) => l.id === queueActiveLevelId) ?? getCurrentLevel(completedLevels, proActive)
     : selectedLevelId
     ? CURRICULUM.find((l) => l.id === selectedLevelId) ?? getCurrentLevel(completedLevels, proActive)
     : getCurrentLevel(completedLevels, proActive);
@@ -369,9 +474,12 @@ export default function App() {
       setLastKeyChangeQuestion(-1);
       setIntroDismissed(false);
       setSessionStartedAt(Date.now());
-      // Reset per-session sampling state (dedupe buffer + seen-this-session set).
+      // Reset per-session sampling state (dedupe buffer + seen-this-session set + timbre rotation).
       recentItemTypesRef.current = [];
       seenThisSessionRef.current = new Set();
+      timbreRotationRef.current = createRotationState();
+      setInterleaveCategoryPicked(false);
+      setInterleaveCategoryAttempt(null);
       setRoute('practice');
       cancelStreakReminder().catch(() => {});
       const level = CURRICULUM.find((l) => l.id === levelId);
@@ -415,6 +523,38 @@ export default function App() {
     void startSession(due[0].levelId);
   }, [completedLevels, startSession]);
 
+  /**
+   * Start a Mixed Practice (interleaving) session. Samples 10 (level, item) tuples across
+   * the user's completed lessons with category-level dedupe. The Practice route gates answer
+   * chips behind a category-pick step per question (contextual-interference benefit).
+   */
+  const startInterleaveSession = useCallback(async () => {
+    const queue = buildInterleaveQueue(completedLevels, 10);
+    if (queue.length < 2) return;
+    setInterleaveSession({ queue, cursor: 0, kind: 'global', label: null });
+    setInterleaveCategoryPicked(false);
+    setInterleaveCategoryAttempt(null);
+    void startSession(queue[0].levelId);
+  }, [completedLevels, startSession]);
+
+  /**
+   * Start a curated checkpoint session — same engine as Mixed Practice, but sources are
+   * limited to the checkpoint's `levelIds` and the intro/title reflect the checkpoint name.
+   * If the checkpoint's lessons all share a single category (e.g. Fourths & Fifths Mix is
+   * 100% interval), the category-pick gate auto-passes — there's nothing to disambiguate.
+   */
+  const startCheckpointSession = useCallback(
+    async (cp: Checkpoint) => {
+      const queue = buildInterleaveQueue(cp.levelIds, 10);
+      if (queue.length < 2) return;
+      setInterleaveSession({ queue, cursor: 0, kind: 'checkpoint', label: cp.name });
+      setInterleaveCategoryPicked(false);
+      setInterleaveCategoryAttempt(null);
+      void startSession(queue[0].levelId);
+    },
+    [startSession],
+  );
+
   const generateQuestion = useCallback(async () => {
     const level = currentLevel;
     let playedNotes: string[] = [];
@@ -425,14 +565,18 @@ export default function App() {
     let pendingRhythmOnsets: number[] | undefined;
     let pendingRhythmGrid: boolean[] | undefined;
 
-    // Review-mode override: when the Daily Review tile started a session, the queue carries
-    // (levelId, item) tuples picked by the Leitner scheduler. We force the item to that value
-    // and skip the weighted/dedupe picker. The orchestrator already swapped `currentLevel` to
-    // the queue item's source level so playback paths "just work".
+    // Review / interleave mode override: when a queue-driven session is active, the queue
+    // carries (levelId, item) tuples picked by the scheduler / sampler. We force the item
+    // to that value and skip the weighted/dedupe picker. The orchestrator already swapped
+    // `currentLevel` to the queue item's source level so playback paths "just work".
     const rs = reviewSessionRef.current;
-    const forcedItem = rs && rs.cursor < rs.queue.length && rs.queue[rs.cursor].levelId === level.id
-      ? rs.queue[rs.cursor].item
-      : null;
+    const is = interleaveSessionRef.current;
+    const forcedItem =
+      rs && rs.cursor < rs.queue.length && rs.queue[rs.cursor].levelId === level.id
+        ? rs.queue[rs.cursor].item
+        : is && is.cursor < is.queue.length && is.queue[is.cursor].levelId === level.id
+        ? is.queue[is.cursor].item
+        : null;
     const pickItem = (items: string[]): string => {
       if (forcedItem !== null) return forcedItem;
       return pickItemWithDedupe(level.id, items, recentItemTypesRef.current, masteryRef.current, seenThisSessionRef.current);
@@ -443,6 +587,14 @@ export default function App() {
     while (audioEngine.isPlaybackActive()) {
       await new Promise((r) => setTimeout(r, 40));
     }
+
+    // Timbre rotation (#9) — once the learner is past acquisition on a not-yet-completed
+    // lesson, rotate the synth question-to-question to break timbre-specific learning.
+    // Restored to the user's chosen synth at endSession.
+    const sessionAccuracyPct = stats.totalQuestions > 0 ? (stats.correctAnswers / stats.totalQuestions) * 100 : 0;
+    const isLevelCompleted = completedLevels.includes(level.id);
+    const rotatedSynth = nextRotatedTimbre(level, isLevelCompleted, stats.totalQuestions, sessionAccuracyPct, timbreRotationRef.current);
+    if (rotatedSynth) audioEngine.setSynthType(rotatedSynth);
 
     if (level.type === 'scale_degree') {
       const randomDegree = pickItem(level.items);
@@ -716,10 +868,21 @@ export default function App() {
 
   const endSession = useCallback(() => {
     const finalStats = analytics.getSessionStats();
-    // Review sessions don't unlock anything (they pull from already-completed lessons).
+    // Restore the user's chosen synth in case timbre rotation (#9) swapped it mid-session.
+    if (timbreRotationRef.current.rotating) {
+      audioEngine.setSynthType(settings.synth as SynthType);
+      timbreRotationRef.current = createRotationState();
+    }
+    // Queue-driven sessions (review / interleave) don't unlock anything — they pull from
+    // already-completed lessons.
     const inReview = reviewSessionRef.current !== null;
+    const inInterleave = interleaveSessionRef.current !== null;
+    const inQueueSession = inReview || inInterleave;
     if (inReview) setReviewSession(null);
-    const unlocked = !inReview && canUnlockNextLevel(currentLevel.id, finalStats.accuracy);
+    if (inInterleave) setInterleaveSession(null);
+    setInterleaveCategoryPicked(false);
+    setInterleaveCategoryAttempt(null);
+    const unlocked = !inQueueSession && canUnlockNextLevel(currentLevel.id, finalStats.accuracy);
     const firstUnlock = unlocked && !completedLevels.includes(currentLevel.id);
     if (unlocked) {
       setCompletedLevels((prev) => (prev.includes(currentLevel.id) ? prev : [...prev, currentLevel.id]));
@@ -771,7 +934,7 @@ export default function App() {
       haptics.heavy();
     }
     setRoute('results');
-  }, [analytics, completedLevels, currentLevel.id, currentLevel.type, sessionStartedAt, hasEverPracticed, isSignedIn, proActive]);
+  }, [analytics, completedLevels, currentLevel.id, currentLevel.type, sessionStartedAt, hasEverPracticed, isSignedIn, proActive, settings.synth]);
 
   /* ---------- Question orchestration ---------- */
 
@@ -785,12 +948,17 @@ export default function App() {
     const run = async () => {
       const { establishTonality, maxQuestions, questionsPerKey } = lessonCfg;
 
+      // Pick the primer to play before each key block. Falls back to type-based defaults
+      // (e.g. 'none' for self-keyed and non-tonal lessons) when the level doesn't override.
+      // #7 fading then downgrades the kind based on recent best accuracy for this lesson.
+      // Interleave sessions skip the primer entirely — different lesson per question, no key
+      // continuity to leverage; the user is mentally categorizing each question independently.
+      const basePrimer = interleaveSession ? 'none' : resolvePrimerKind(currentLevel);
+      const primerKind = fadePrimerForMastery(basePrimer, currentLevel.id);
+      const skipPreamble = primerKind === 'none';
       // First-time setup — pick keys for the session. For tonal lessons, we pick one
-      // root per block and play a scale reference. For non-tonal lessons (beating, etc.)
-      // there's no musical key, so we just seed a root and skip the scale playback.
-      // Self-keyed types (cadences, progressions, jazz chords) carry their own key context
-      // in the audio — we still pick keys + show the label, but skip the scale preamble.
-      const skipScalePreamble = SELF_KEYED_TYPES.has(currentLevel.type);
+      // root per block. For non-tonal lessons (beating, etc.) there's no musical key,
+      // so we just seed a root and skip the preamble.
       if (scaleRoots.length === 0) {
         if (scaleLockRef.current) return;
         scaleLockRef.current = true;
@@ -800,10 +968,10 @@ export default function App() {
           : [audioEngine.getRandomRootNote()];
         setScaleRoots(roots);
         setCurrentScaleRoot(roots[0]);
-        if (establishTonality && !skipScalePreamble) {
+        if (establishTonality && !skipPreamble) {
           setIsPlayingScale(true);
           try {
-            const { duration } = await audioEngine.playMajorScaleReference(roots[0], 4);
+            const duration = await playPrimer(roots[0], primerKind);
             await new Promise((r) => setTimeout(r, duration * 1000 + 500));
           } finally {
             setIsPlayingScale(false);
@@ -815,9 +983,12 @@ export default function App() {
         return;
       }
 
-      // Review sessions end when the queue is exhausted, not at maxQuestions.
+      // Queue-driven sessions (review / interleave) end when the queue is exhausted,
+      // not at maxQuestions.
       const reviewExhausted = reviewSession !== null && reviewSession.cursor >= reviewSession.queue.length;
-      if (reviewExhausted || (reviewSession === null && stats.totalQuestions >= maxQuestions)) {
+      const interleaveExhausted = interleaveSession !== null && interleaveSession.cursor >= interleaveSession.queue.length;
+      const inQueueSession = reviewSession !== null || interleaveSession !== null;
+      if (reviewExhausted || interleaveExhausted || (!inQueueSession && stats.totalQuestions >= maxQuestions)) {
         endSession();
         return;
       }
@@ -835,12 +1006,12 @@ export default function App() {
             const newRoot = scaleRoots[blockIndex];
             setLastKeyChangeQuestion(stats.totalQuestions);
             setCurrentScaleRoot(newRoot);
-            if (skipScalePreamble) {
+            if (skipPreamble) {
               scaleLockRef.current = false;
             } else {
               setIsPlayingScale(true);
               try {
-                const { duration } = await audioEngine.playMajorScaleReference(newRoot, 4);
+                const duration = await playPrimer(newRoot, primerKind);
                 await new Promise((r) => setTimeout(r, duration * 1000 + 500));
               } finally {
                 setIsPlayingScale(false);
@@ -982,18 +1153,47 @@ export default function App() {
   };
 
   const handleAnswer = (answer: string) => {
-    if (!currentQuestion || showFeedback) return;
+    if (!currentQuestion || showFeedback || feedbackPending) return;
     setSelectedAnswer(answer);
-    setShowFeedback(true);
 
     const isCorrect = answer === currentQuestion.correctAnswer;
-    if (isCorrect) {
-      haptics.success();
-      audioEngine.playCorrectChime();
-    } else {
-      haptics.warning();
-      audioEngine.playIncorrectBuzz();
-    }
+    // Daily Review forces delayed feedback per the curriculum-improvements playbook —
+    // the spaced-review setting benefits most from the desirable-difficulty pause.
+    const effectiveTiming = reviewSessionRef.current !== null
+      ? 'delayed_short'
+      : settings.feedbackTiming ?? DEFAULT_FEEDBACK_TIMING;
+    const delayMs = FEEDBACK_TIMING_DELAY_MS[effectiveTiming];
+
+    const revealFeedback = () => {
+      setFeedbackPending(false);
+      setShowFeedback(true);
+      if (isCorrect) {
+        haptics.success();
+        audioEngine.playCorrectChime();
+      } else {
+        haptics.warning();
+        audioEngine.playIncorrectBuzz();
+      }
+      // On correct, flash green briefly then advance automatically.
+      if (isCorrect) {
+        if (autoAdvanceTimerRef.current !== null) window.clearTimeout(autoAdvanceTimerRef.current);
+        autoAdvanceTimerRef.current = window.setTimeout(() => {
+          autoAdvanceTimerRef.current = null;
+          setCurrentQuestion(null);
+          setSelectedAnswer(null);
+          setShowFeedback(false);
+          // Queue-driven sessions: advance the cursor and reset the interleave category gate
+          // so the next question pulls a different item. Without this the queue stays at
+          // cursor=0 and the same item gets re-asked indefinitely (and the session can't
+          // exhaust because `interleaveExhausted` / `reviewExhausted` never trip).
+          setReviewSession((rs) => (rs ? { ...rs, cursor: rs.cursor + 1 } : null));
+          setInterleaveSession((is) => (is ? { ...is, cursor: is.cursor + 1 } : null));
+          setInterleaveCategoryPicked(false);
+          setInterleaveCategoryAttempt(null);
+        }, 650);
+      }
+    };
+
     const responseTime = Date.now() - questionStartTime;
     const fullDescription = `${currentQuestion.rootNote} ${getDisplayName(currentQuestion.correctAnswer)}`;
 
@@ -1035,15 +1235,17 @@ export default function App() {
     recordMasteryAnswer(masteryRef.current, currentLevel.id, currentQuestion.itemType, isCorrect);
     saveMastery(masteryRef.current);
 
-    // On correct, flash the green feedback briefly then advance automatically.
-    if (isCorrect) {
-      if (autoAdvanceTimerRef.current !== null) window.clearTimeout(autoAdvanceTimerRef.current);
-      autoAdvanceTimerRef.current = window.setTimeout(() => {
-        autoAdvanceTimerRef.current = null;
-        setCurrentQuestion(null);
-        setSelectedAnswer(null);
-        setShowFeedback(false);
-      }, 650);
+    // Reveal — immediate or after a delay (#8 desirable-difficulty per Metcalfe / Kornell-Finn).
+    // Batched mode falls back to delayed_short for v1; per-block summary UI is a follow-up.
+    if (delayMs > 0) {
+      setFeedbackPending(true);
+      if (pendingFeedbackTimerRef.current !== null) window.clearTimeout(pendingFeedbackTimerRef.current);
+      pendingFeedbackTimerRef.current = window.setTimeout(() => {
+        pendingFeedbackTimerRef.current = null;
+        revealFeedback();
+      }, delayMs);
+    } else {
+      revealFeedback();
     }
   };
 
@@ -1062,11 +1264,25 @@ export default function App() {
       window.clearTimeout(autoAdvanceTimerRef.current);
       autoAdvanceTimerRef.current = null;
     }
+    if (pendingFeedbackTimerRef.current !== null) {
+      window.clearTimeout(pendingFeedbackTimerRef.current);
+      pendingFeedbackTimerRef.current = null;
+    }
     setCurrentQuestion(null);
     setSelectedAnswer(null);
     setShowFeedback(false);
-    // In review mode, advance the cursor so the next question pulls a different due item.
+    setFeedbackPending(false);
+    // Advance queue-driven sessions so the next question pulls a different item.
     setReviewSession((rs) => (rs ? { ...rs, cursor: rs.cursor + 1 } : null));
+    setInterleaveSession((is) => (is ? { ...is, cursor: is.cursor + 1 } : null));
+    setInterleaveCategoryPicked(false);
+    setInterleaveCategoryAttempt(null);
+  };
+
+  const handlePickInterleaveCategory = (cat: InterleaveCategory) => {
+    if (interleaveCategoryPicked) return;
+    setInterleaveCategoryAttempt(cat);
+    setInterleaveCategoryPicked(true);
   };
 
   const handlePracticeAgain = () => {
@@ -1122,22 +1338,52 @@ export default function App() {
   }
 
   if (route === 'practice') {
+    // Compute category-gate state first — it feeds both the intro copy and the Practice props.
+    const queueCategories = interleaveSession ? categoriesInQueue(interleaveSession.queue) : [];
+    const interleaveHasGate = queueCategories.length >= 2;
     if (!introDismissed) {
+      // Queue-driven sessions show a single session-level intro instead of the underlying
+      // lesson's per-concept intro — the latter is misleading when questions are sampled
+      // across many lessons (and the mascot/concept won't match the actual questions).
+      // Checkpoint sessions name the cluster; the global Mixed Practice tile keeps its
+      // generic frame; review sessions get the spacing pitch.
+      const introPages =
+        interleaveSession?.kind === 'checkpoint'
+          ? getCheckpointIntro(interleaveSession.label, interleaveHasGate)
+          : interleaveSession
+          ? getMixedPracticeIntro()
+          : reviewSession
+          ? getDailyReviewIntro()
+          : getLessonIntro(currentLevel);
+      const introTitle =
+        interleaveSession?.kind === 'checkpoint'
+          ? interleaveSession.label
+          : interleaveSession
+          ? 'Mixed Practice'
+          : reviewSession
+          ? "Today's Review"
+          : currentLevel.name;
       return (
         <LessonIntro
-          pages={getLessonIntro(currentLevel)}
-          lessonName={currentLevel.name}
+          pages={introPages}
+          lessonName={introTitle}
           onContinue={() => setIntroDismissed(true)}
           onExit={() => setRoute('path')}
         />
       );
     }
+    // Interleave session: surface the category-pick gate per question. If the queue collapses
+    // to a single category (curated checkpoints often do — e.g. "Fourths & Fifths" is 100%
+    // interval), the gate would just be a tautological one-button tap, so we skip it.
+    const interleaveCorrectCategory = interleaveSession && interleaveHasGate ? categoryForLevel(currentLevel) : null;
+    const interleaveCategoryOptions = interleaveSession && interleaveHasGate ? queueCategories : null;
     return (
       <PracticeRoute
         level={currentLevel}
         question={currentQuestion}
         selectedAnswer={selectedAnswer}
         showFeedback={showFeedback}
+        feedbackPending={feedbackPending}
         stats={stats}
         currentScaleRoot={currentScaleRoot}
         scaleRootIndexInSession={Math.floor(stats.totalQuestions / lessonCfg.questionsPerKey)}
@@ -1149,6 +1395,11 @@ export default function App() {
         establishTonality={lessonCfg.establishTonality}
         singDifficulty={settings.singDifficulty}
         degreeNotation={settings.degreeNotation}
+        interleaveCorrectCategory={interleaveCorrectCategory}
+        interleaveCategoryOptions={interleaveCategoryOptions}
+        interleaveCategoryAttempt={interleaveCategoryAttempt}
+        interleaveCategoryPicked={interleaveCategoryPicked}
+        onPickInterleaveCategory={handlePickInterleaveCategory}
         onReplay={replaySound}
         onAnswer={handleAnswer}
         onPick={handlePick}
@@ -1297,6 +1548,9 @@ export default function App() {
         isSignedIn={isSignedIn}
         dueCount={countDueItems(masteryRef.current, completedLevels)}
         onStartReview={() => { void startReviewSession(); }}
+        onStartInterleave={() => { void startInterleaveSession(); }}
+        recommendation={getCrossSegmentRecommendation(completedLevels, currentLevel.id, proActive)}
+        onStartCheckpoint={(cp) => { void startCheckpointSession(cp); }}
       />
       {isMobile && tabsActive && <BottomTabs active={tabsActive} onChange={(r) => setRoute(r)} />}
       {showAuth && <AuthSheet onClose={() => setShowAuth(false)} />}

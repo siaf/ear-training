@@ -501,6 +501,9 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
         description: 'Identify the tonic triad notes (1, 3, 5) in a major scale',
         segmentId: 'pitch',
         prerequisites: ['ton_is_tonic'],
+        // Cadence then scale: Krumhansl tonal-hierarchy says the cadence locks the key
+        // faster than a scale alone. Pair establishes both function (cadence) and contour (scale).
+        primerKind: 'cadence_then_scale',
         intro: [
           {
             idea: 'Every note in a key has a number — 1 through 7.',
@@ -524,6 +527,7 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
         description: 'Identify scale degrees 1-5 in a major scale',
         segmentId: 'pitch',
         prerequisites: ['scale_degree_major_1'],
+        primerKind: 'cadence_then_scale',
       },
       {
         id: 'scale_degree_major_full',
@@ -535,6 +539,7 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
         description: 'Identify all 7 scale degrees in a major scale',
         segmentId: 'pitch',
         prerequisites: ['scale_degree_major_2'],
+        primerKind: 'cadence_then_scale',
       },
       {
         id: 'scale_degree_minor',
@@ -985,6 +990,9 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
         description: 'Identify triads built on each scale degree in major',
         segmentId: 'chords',
         prerequisites: ['level_6', 'scale_degree_major_full'],
+        // Advanced: cadence alone is enough scaffolding. Skip the scale to keep the
+        // chord-quality decision in focus rather than re-cuing the diatonic shape.
+        primerKind: 'cadence',
       },
       {
         id: 'scale_degree_minor_triads',
@@ -997,6 +1005,7 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
         description: 'Identify triads built on each scale degree in minor',
         segmentId: 'chords',
         prerequisites: ['scale_degree_major_triads', 'scale_degree_minor'],
+        primerKind: 'cadence',
       },
       {
         id: 'level_7',

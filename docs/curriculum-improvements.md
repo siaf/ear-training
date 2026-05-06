@@ -84,7 +84,7 @@ These were on the prior science-review list and are now done:
 
 ---
 
-### 5. Mixed Practice / interleaving mode
+### 5. Mixed Practice / interleaving mode ✅ shipped 2026-05-06 (Engine v2)
 
 **Problem.** Sessions are 100% one lesson type. The contextual-interference literature (Carter & Grahn 2016, music-specific) shows interleaving across categories produces better long-term retention and transfer than blocked practice.
 
@@ -98,7 +98,7 @@ These were on the prior science-review list and are now done:
 
 ---
 
-### 6. Cadence as primer for scale-degree questions
+### 6. Cadence as primer for scale-degree questions ✅ shipped 2026-05-06 (Engine v2)
 
 **Problem.** Infrastructure exists, not wired. [App.tsx:631](../src/App.tsx) calls `audioEngine.playMajorScaleReference` to establish tonality. [audioEngine.ts:874](../src/audioEngine.ts) already implements proper cadences (built for the cadence lesson). The two haven't been connected. Per Krumhansl's tonal-hierarchy work, a cadence establishes a key more strongly and faster than a scale alone.
 
@@ -112,7 +112,7 @@ These were on the prior science-review list and are now done:
 
 ---
 
-### 7. Fading the primer at higher mastery
+### 7. Fading the primer at higher mastery ✅ shipped 2026-05-06 (Engine v2)
 
 **Problem.** Primers play before every key change regardless of skill level. Once a learner has the key internalized, the cadence/scale becomes redundant scaffolding.
 
@@ -125,7 +125,7 @@ These were on the prior science-review list and are now done:
 
 ---
 
-### 8. Brief delayed-feedback option for review sessions
+### 8. Brief delayed-feedback option for review sessions ✅ shipped 2026-05-06 (Engine v2)
 
 **Problem.** All feedback is immediate ([Practice.tsx](../src/routes/Practice.tsx)). The delayed-feedback / desirable-difficulty literature (Metcalfe, Kornell & Finn 2009; Opitz et al. 2011) shows a short pause between answer and reveal produces better retention.
 
@@ -139,7 +139,7 @@ These were on the prior science-review list and are now done:
 
 ---
 
-### 9. Timbre rotation
+### 9. Timbre rotation ✅ shipped 2026-05-06 (Engine v2)
 
 **Problem.** Practice is piano-only at the surface. The McAdams / Hou timbre-generalization studies show that perceptual learning is specific to the training timbre unless training explicitly varies it.
 
@@ -203,11 +203,11 @@ Polychords, bitonal, post-tonal. Niche; lowest priority.
 | 2 | Daily Review tile | engine + UI | M | #1 | ✅ Batch 4.5 |
 | 3 | Adjacent-question deduplication | engine | S | — | ✅ Batch 4.5 |
 | 4 | Session length tuned to item-set size | curriculum + engine | S | — | ✅ Batch 4.5 |
-| 5 | Mixed Practice / interleaving mode | engine + UI | L | #1, #3 | deferred → Batch 9 |
-| 6 | Cadence-as-primer wiring | engine | S | — | deferred → Batch 9 |
-| 7 | Primer fading | engine | S | #6 | deferred → Batch 9 |
-| 8 | Delayed-feedback option | engine + UI | M | — | deferred → Batch 9 |
-| 9 | Timbre rotation | engine | M | — | deferred → Batch 9 |
+| 5 | Mixed Practice / interleaving mode | engine + UI | L | #1, #3 | ✅ Engine v2 |
+| 6 | Cadence-as-primer wiring | engine | S | — | ✅ Engine v2 |
+| 7 | Primer fading | engine | S | #6 | ✅ Engine v2 |
+| 8 | Delayed-feedback option | engine + UI | M | — | ✅ Engine v2 |
+| 9 | Timbre rotation | engine | M | — | ✅ Engine v2 |
 | 10 | Stable/unstable reorder | curriculum | XS | — | ✅ Batch 4.5 |
 | 11a | Melodic Dictation segment | curriculum + new lesson type | L | — | next (Batch 5) |
 | 11b | Sight Singing segment | curriculum | M | — | Batch 6 |
@@ -215,3 +215,68 @@ Polychords, bitonal, post-tonal. Niche; lowest priority.
 | 11d | Modal & Modern segment | curriculum | M | — | Batch 8 |
 
 **Update 2026-05-04:** items #1, #2, #3, #4, #10 all shipped as **Batch 4.5** in a single bundle (engine intelligence layer). Items #5–#9 are deferred to a future "engine v2" batch (Batch 9) — they're worth doing but bigger and more architectural, not blocking the remaining content batches.
+
+**Update 2026-05-06:** **Engine v2** shipped — items #5, #6, #7, #8, #9 all in. New modules:
+
+- [`src/lib/primer.ts`](../src/lib/primer.ts) + `playPrimer` helper in App.tsx — `primerKind: 'scale' | 'cadence' | 'cadence_then_scale' | 'drone' | 'none'` on `CurriculumLevel` (#6). Faded one rung when recent best ≥90% on this lesson (#7). Major scale-degree lessons in pitch segment switched to `cadence_then_scale`; harmonic-degree advanced lessons to `cadence`.
+- [`src/lib/timbreRotation.ts`](../src/lib/timbreRotation.ts) — engages mid-session once accuracy ≥75% on a not-yet-completed lesson, round-robin across `piano / sine / triangle / guitar / violin / cello`. Restores user's chosen synth at session end (#9).
+- [`src/lib/interleaving.ts`](../src/lib/interleaving.ts) — 10-question session sampled across all completed lessons, with category-pick gate per question (contextual-interference benefit) (#5). Closely-related types (triad / inversion / voicing) collapse to a single "chord" category in the picker. Surfaced as a "Mix it up" action row inside [`TodayPanel`](../src/components/TodayPanel.tsx) (see UI consolidation note below).
+- `feedbackTiming` setting in [`Settings.tsx`](../src/routes/Settings.tsx) + `feedbackPending` UI in [`Practice.tsx`](../src/routes/Practice.tsx) — `immediate` / `delayed_short` (~2.5s pause before reveal) / `batched` (currently aliased to delayed_short — per-block summary UI is a follow-up). Daily Review forces `delayed_short` regardless of user setting (#8).
+- [`src/lib/recommendations.ts`](../src/lib/recommendations.ts) — surfaces a cross-segment lesson nudge when the gap between the user's strongest and weakest segments exceeds 20pp on ≥8 attempts each. Suggests an unstarted lesson in the weak segment. Renders as a "Try {lesson}" action row inside `TodayPanel`.
+- **Verification:** 125/125 tests passing (was 95; +8 primer +7 timbreRotation +8 interleaving +7 recommendations). Typecheck clean. Vite production build clean.
+
+**Engine v2 deferred / follow-ups:**
+- Batched-feedback mode currently aliases to delayed_short. The block-summary UI (5-question card with per-question correctness) is a separate component that's worth its own session.
+- Vocal/voice timbre sample for the timbre-rotation pool (per the doc — "biggest transfer leak today is piano-only"). Holding off until we have a hosted vocal sample set or build our own.
+
+---
+
+### Curated mid-section checkpoints (Engine v2 follow-up, shipped 2026-05-06)
+
+Mixed Practice (#5) launched as one global tile that samples across *all* completed lessons. This is great for end-of-day practice but coarse for the "I just finished fourths/fifths/thirds — mix them up" case the contextual-interference literature is strongest on (the items are still in working memory).
+
+**What shipped:** [`src/lib/checkpoints.ts`](../src/lib/checkpoints.ts) defines a hand-curated `CHECKPOINTS` array of cluster mixes, rendered as **inline path nodes** between lesson clusters (Flag icon, butter palette, "MIX" badge) — not as tiles above the path. The node anchors after the LAST constituent lesson in segment order, so the user walks the path and naturally encounters "Fourths & Fifths Mix" right after clearing those three lessons. Supersession (`supersedes: ['int_4ths_5ths_mix', 'int_3rds_mix', 'int_6ths_mix']` on `int_consonant_mix`) is computed in `getAvailableCheckpoints()` for tile-based callers, but path render shows every checkpoint at its natural anchor (locked or unlocked) so the user gets a visual roadmap of upcoming review milestones.
+
+The data is curated rather than auto-grouped (e.g. "all completed lessons in a segment") because:
+- Intervals has 18 lessons across 6 size classes × 3 presentations — segment-completion is far too coarse, the user wants a 4ths-5ths mix the moment those 3 lessons are done.
+- Pedagogical clusters don't always map to contiguous prereq chains (e.g. "consonant intervals" pulls from 4ths/5ths, 3rds, and 6ths — three independent sub-clusters).
+
+**Curated groups (~16):**
+- Foundations: `foundations_all` (all 4 ear primitives once cleared)
+- Tonality: `tonality_basics_mix` (stable/unstable + tonic + major/minor + cadences)
+- Pitch: `pitch_major_mix` (1-3-5 + 1-5 + full)
+- Intervals: `int_4ths_5ths_mix`, `int_3rds_mix`, `int_6ths_mix` (per-class, 3 lessons each); `int_consonant_mix` (the 9 consonant lessons, supersedes the three above); `int_dissonant_mix` (the 9 dissonant lessons); `int_all_mix` (3 capstone all-intervals levels, supersedes consonant + dissonant)
+- Chords: `chord_thirds_mix`, `chord_triads_mix`, `chord_inversions_mix`, `chord_diatonic_mix`
+- Progressions: `progressions_mix` (5 lessons)
+- Jazz: `jazz_mix` (4 lessons)
+- Rhythm: `rhythm_mix` (5 lessons)
+
+Voice is intentionally omitted — sing-mode lessons don't render answer chips and the category gate has nothing to gate.
+
+**Engine reuse:** `startCheckpointSession(cp)` in [App.tsx](../src/App.tsx) just calls `buildInterleaveQueue(cp.levelIds, 10)` — identical engine path as the global Mixed Practice tile. The category-pick gate auto-skips for single-category checkpoints (e.g. `int_4ths_5ths_mix` is 100% interval, no disambiguation needed). Intro page uses the checkpoint's name + a cluster-specific copy via `getCheckpointIntro()`.
+
+**Verification:** 133/133 tests passing (+8 checkpoints).
+
+---
+
+### UI consolidation (Engine v2 follow-up, shipped 2026-05-06)
+
+After landing the Engine v2 features, three separate action tiles (Daily Review, Mixed Practice, Cross-segment Recommendation) sat stacked above the path on Path screen — eating ~240px of mobile scroll real estate. The path itself also exposed checkpoint mixes as a fourth tile family, plus the right rail held the "Today" stats card and the upsell. Five competing surfaces.
+
+**What shipped:**
+- [`src/components/TodayPanel.tsx`](../src/components/TodayPanel.tsx) — single unified hub combining today's stats (minutes / streak) with the three action rows (Today's Review / Try X / Mix it up). Renders in the desktop right rail AND above-the-path on mobile. Replaces the three standalone tiles, which were deleted (`DailyReviewTile`, `MixedPracticeTile`, `RecommendationTile` are gone from the codebase).
+- [`src/components/UpsellCard.tsx`](../src/components/UpsellCard.tsx) — extracted from inline JSX in `Path.tsx` so the same "Save your progress" / "Go Pro" card renders on both desktop (right rail, below TodayPanel) AND mobile (below TodayPanel, above the path). Mobile gets slightly tighter padding/mascot sizing.
+- **Checkpoint nodes inline on the path** — moved from a tile-above-the-path to actual `RiverNode`-style circles rendered between lesson clusters. Anchored at the last constituent lesson in segment order. `Flag` icon (lucide), butter palette, "MIX" badge. Locked when prereqs not met. The `CheckpointTile` component was deleted.
+- **Lucide icon system** ([`src/lib/lessonIcons.tsx`](../src/lib/lessonIcons.tsx)) — replaces the prior 5-glyph SVG `LevelIcon` and the emoji `segment.icon` field with a unified resolver:
+  - Section banner icon = lucide component (Headphones / Mic / Anchor / Hash / Ruler / Piano / Music3 / Sparkles / Drum / PenLine / Mic2 / Compass).
+  - Lessons inherit their section's icon by default — so a Voice lesson now visually belongs to the Voice section instead of rendering generic headphones.
+  - Specific overrides where useful: Foundations primitives get distinct ear/wave icons; Voice basics use Mic / Anchor; intervals use 2-char text labels (`3rd`, `4·5`, `TT`, etc.); chord/inversion/voicing lessons use Layers; rhythm meter uses `4/4`; sing-sequence uses Mic2.
+  - `Trophy` for last-in-segment, `Lock` for locked.
+  - All emojis purged from user-facing UI: 🔥 → `Flame`, ✓ → `Check`, ✦/↗/⇆ → `RotateCcw` / `ArrowUpRight` / `Shuffle`.
+
+**Bug fixes during the consolidation:**
+- `formatDegree('stable', …)` was crashing on `parseInt('stable')` → NaN → `ROMAN_BASE[NaN].toLowerCase()`. Fixed by routing `itemGroups` lessons through `answerLabel` (so they render "Stable" not via the Roman-numeral path) and defensively returning the raw string from `formatDegree` when input isn't numeric. The crash surfaced during Mixed Practice when `ton_stable_unstable` was sampled.
+- Auto-advance on correct answers in queue-driven sessions (review / interleave) wasn't bumping the queue cursor or resetting the interleave category gate, causing the same item to re-ask indefinitely. Both `revealFeedback`'s autoAdvance and `handleNext` now cleanly advance cursors + reset gate state.
+- Mixed Practice was showing the underlying lesson's per-concept intro (e.g. "In Tune or Beating"). Now queue-driven sessions get a single session-level intro frame: `getMixedPracticeIntro()` for global mix, `getDailyReviewIntro()` for review, `getCheckpointIntro(name, hasGate)` for cluster checkpoints. Mascot is `major` (capstone warmth).
+
+**Deployed:** 2026-05-06 to `https://app.fifths.io/` via `wrangler pages deploy dist --project-name=fifths-app --branch=main`.

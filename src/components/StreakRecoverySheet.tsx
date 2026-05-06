@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { Flame } from 'lucide-react';
 import { Bean, Blob, Squiggle } from './primitives';
 
 interface Props {
@@ -72,10 +73,10 @@ export default function StreakRecoverySheet({ streakDays, hoursSince, onRecover,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontSize: 18,
+                color: 'var(--coral-ink)',
               }}
             >
-              🔥
+              <Flame size={18} strokeWidth={2.4} fill="var(--coral)" />
             </div>
             <div style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--ink-3)', letterSpacing: 1, textTransform: 'uppercase' }}>
               {streakDays}-day streak · {Math.round(hoursSince)}h since last

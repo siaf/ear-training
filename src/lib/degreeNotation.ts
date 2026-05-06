@@ -91,7 +91,15 @@ export function formatDegree(
   context: ScaleDegreeContext | undefined,
   notation: DegreeNotation,
 ): DegreeParts {
-  const idx = Math.max(0, Math.min(6, parseInt(degree, 10) - 1));
+  // itemGroups lessons (e.g. 'stable'/'unstable', 'tonic'/'not_tonic') call us with
+  // bucket names, not digits. parseInt('stable') → NaN → ROMAN_BASE[NaN] is undefined,
+  // which used to crash romanCase via toLowerCase. Fall back to the raw string so
+  // callers always render *something* legible even if the chip path is misrouted.
+  const parsed = parseInt(degree, 10);
+  if (!Number.isFinite(parsed)) {
+    return { acc: '', main: degree, sup: '' };
+  }
+  const idx = Math.max(0, Math.min(6, parsed - 1));
   const { mode, ask } = parse(context);
 
   if (notation === 'number') {

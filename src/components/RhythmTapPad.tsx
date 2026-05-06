@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { Check } from 'lucide-react';
 import { audioEngine } from '../audioEngine';
 import { gradeTaps, type TapGradeResult } from '../lib/rhythmGrader';
 
@@ -186,7 +187,7 @@ export default function RhythmTapPad({
           touchAction: 'manipulation',
         }}
       >
-        {phase === 'listen' ? '· · ·' : phase === 'ready' ? 'start' : phase === 'tap' ? 'tap' : '✓'}
+        {phase === 'listen' ? '· · ·' : phase === 'ready' ? 'start' : phase === 'tap' ? 'tap' : <Check size={mobile ? 28 : 38} strokeWidth={3} />}
       </button>
 
       {phase === 'ready' && (

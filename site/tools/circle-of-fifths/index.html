@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Circle of Fifths — interactive wheel with sound, modes & chord progressions · Fifths</title>
+<meta name="description" content="Free interactive circle of fifths. Click any wedge to hear the chord. Switch tonic, switch mode, see the key signature, hear common progressions, and learn how chords resolve. Works on phone and desktop. No signup.">
+<link rel="canonical" href="https://fifths.io/tools/circle-of-fifths/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Circle of Fifths — interactive wheel with sound · Fifths">
+<meta property="og:description" content="Click any wedge to hear the chord. Change tonic and mode in one tap. See key signatures, common progressions, and resolution targets.">
+<meta property="og:url" content="https://fifths.io/tools/circle-of-fifths/">
+<meta property="og:image" content="https://fifths.io/brand/screenshots/circle-of-fifths-tool.png">
+<meta property="og:image:alt" content="Circle of fifths — interactive wheel showing C major Ionian with diatonic chords colour-coded">
+<meta property="og:image:width" content="1320">
+<meta property="og:image:height" content="1328">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://fifths.io/brand/screenshots/circle-of-fifths-tool.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/brand/favicons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/brand/favicons/favicon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/brand/favicons/favicon-180.png">
+<meta name="theme-color" content="#fff8ef">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Non-blocking fonts: preload as=style + onload-swap to stylesheet.
+     Saves ~3000 ms FCP/LCP on mobile per Lighthouse. -->
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=DM+Serif+Display:ital@0;1&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=DM+Serif+Display:ital@0;1&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;600&display=swap"></noscript>
+<link rel="stylesheet" href="/styles.css">
+<!-- Umami analytics -->
+<script defer src="https://cloud.umami.is/script.js" data-website-id="8cc10640-f114-49ab-8572-036552f64527"></script>
+<script defer src="/posthog.js"></script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-LJYKXFDR9L"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-LJYKXFDR9L');
+  gtag('config', 'AW-17007845333');
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "SoftwareApplication",
+      "name": "Circle of Fifths — interactive",
+      "applicationCategory": "EducationalApplication",
+      "operatingSystem": "Web",
+      "url": "https://fifths.io/tools/circle-of-fifths/",
+      "description": "Free interactive circle of fifths. Click any wedge to hear the chord; change tonic and mode; see key signatures and common chord progressions.",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "publisher": { "@type": "Organization", "name": "Fifths", "url": "https://fifths.io/" }
+    },
+    {
+      "@type": "HowTo",
+      "name": "How to use the circle of fifths to find chords in a key",
+      "description": "Use the circle of fifths to identify the diatonic chords in any major or minor key, hear how they sound, and see common chord progressions.",
+      "step": [
+        { "@type": "HowToStep", "name": "Pick a tonic", "text": "Choose any of the 14 tonics in the left rail. The wheel re-centers so your tonic is highlighted in coral." },
+        { "@type": "HowToStep", "name": "Pick a mode", "text": "Pick Ionian for major or Aeolian for natural minor. The wheel updates to show which chords are diatonic to the new mode and which are chromatic." },
+        { "@type": "HowToStep", "name": "Click a chord", "text": "Click a wedge to hear the triad. Shift-click for the seventh chord. The Now-reading panel shows the chord symbol, Roman numeral, interval from tonic, and notes." },
+        { "@type": "HowToStep", "name": "Play a progression", "text": "Use the Common progressions panel to play familiar loops like I–V–vi–IV or ii–V–I. Each chord lights up on the wheel as it plays." },
+        { "@type": "HowToStep", "name": "Modulate", "text": "Use Where to go next to jump to a closely-related key (dominant, subdominant, relative minor) or to hear a borrowed chord." }
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        { "@type": "Question", "name": "What is the circle of fifths in simple terms?", "acceptedAnswer": { "@type": "Answer", "text": "It is a wheel of all 12 musical keys arranged so that neighbours share most of their notes. Going one step clockwise rises by a fifth and adds one sharp; one step counterclockwise falls by a fifth and adds one flat." } },
+        { "@type": "Question", "name": "How do you use the circle of fifths?", "acceptedAnswer": { "@type": "Answer", "text": "Three core uses: figure out the key signature for any key without counting accidentals; find the diatonic chords for any key (the four chords adjacent to the tonic plus the relative minor); and navigate modulations, since keys close on the circle share chords and are easy to move between." } },
+        { "@type": "Question", "name": "How can I memorize the circle of fifths?", "acceptedAnswer": { "@type": "Answer", "text": "The two classic mnemonics: 'Father Charles Goes Down And Ends Battle' for the order of sharps clockwise (F♯ C♯ G♯ D♯ A♯ E♯ B♯), and the same sentence reversed — 'Battle Ends And Down Goes Charles' Father' — for the order of flats counterclockwise." } },
+        { "@type": "Question", "name": "Does the circle of fifths work for bass clef?", "acceptedAnswer": { "@type": "Answer", "text": "Yes — the key signature is identical in treble clef and bass clef. C major has zero accidentals on either staff; G major has one sharp (F♯) on either staff. The clef only changes which lines and spaces represent which notes, not which keys have which signatures." } },
+        { "@type": "Question", "name": "What is the difference between the circle of fifths and the circle of fourths?", "acceptedAnswer": { "@type": "Answer", "text": "They are the same circle read in opposite directions. Clockwise equals ascending fifths (or descending fourths). Counterclockwise equals descending fifths (or ascending fourths). Jazz pedagogy commonly calls it the circle of fourths; classical pedagogy more often calls it the circle of fifths." } },
+        { "@type": "Question", "name": "Is this tool free?", "acceptedAnswer": { "@type": "Answer", "text": "Yes — fully free, no signup, no email gate. Audio runs locally in your browser. If you want to train your ear to recognize these chords by sound, try the Fifths app." } }
+      ]
+    }
+  ]
+}
+</script>
+<style>
+  /* === Circle of fifths tool — design tokens (mirrored from src/tokens.css) === */
+  :root {
+    --r-sm: 10px;
+    --r-md: 18px;
+    --r-lg: 26px;
+    --sh-sm: 0 1px 2px rgba(42,29,58,0.06), 0 2px 6px rgba(42,29,58,0.05);
+    --sh-md: 0 4px 14px rgba(42,29,58,0.10), 0 2px 5px rgba(42,29,58,0.06);
+    --sh-lg: 0 16px 40px rgba(42,29,58,0.14), 0 6px 12px rgba(42,29,58,0.08);
+  }
+
+  /* The shared site stylesheet sets --disp to DM Serif Display. The tool's design
+     uses Fraunces for display. Override locally so the tool matches its design,
+     but keep DM Serif Display as a fallback. */
+  body { --disp: 'Fraunces', 'DM Serif Display', Georgia, serif; }
+
+  /* The tool gets full bleed — clear the marketing site's wrap container. */
+  body.cof-body { background: var(--page); min-height: 100vh; }
+
+  /* Reserve space for the React-mounted tool so the SEO content below
+     it doesn't shift down ~1500px when React hydrates. Without this
+     CLS jumps to ~0.86 on mobile. The actual rendered tool fills this
+     min-height; if React fails to load we keep an empty rectangle. */
+  #root { min-height: 1700px; }
+  @media (max-width: 720px) { #root { min-height: 2400px; } }
+
+  kbd {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 5px;
+    background: var(--card);
+    border: 1px solid var(--hairline);
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--ink-2);
+    box-shadow: 0 1px 0 var(--hairline);
+  }
+
+  .cof-page {
+    max-width: 1480px;
+    margin: 0 auto;
+    padding: 18px 32px 40px;
+  }
+
+  .cof-tool-strip {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 18px; flex-wrap: wrap;
+    padding: 10px 0 16px;
+    margin-bottom: 14px;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .cof-tool-strip h1 {
+    font-family: var(--disp);
+    font-weight: 700;
+    font-size: 28px;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    margin: 0;
+    color: var(--ink-1);
+  }
+  .cof-tool-strip h1 em { font-style: italic; color: var(--coral-ink); }
+  .cof-tool-strip .cof-eyebrow {
+    font-family: var(--mono); font-size: 11px; color: var(--ink-3);
+  }
+  .cof-tool-strip .cof-eyebrow kbd + kbd { margin-left: 2px; }
+
+  .cof-grid {
+    display: grid;
+    grid-template-columns: 280px 1fr 320px;
+    gap: 22px;
+    align-items: start;
+  }
+  @media (max-width: 1180px) {
+    .cof-grid { grid-template-columns: 240px 1fr 280px; gap: 16px; }
+  }
+  @media (max-width: 980px) {
+    .cof-grid { grid-template-columns: 1fr; }
+  }
+
+  /* === Compact view — phone-sized layout: single column, narrower wheel,
+       hides decorative bits. Toggle: <html data-cof-view="compact"> ===*/
+  [data-cof-view="compact"] .cof-page { max-width: 420px; padding: 12px 14px 28px; }
+  [data-cof-view="compact"] .cof-tool-strip { padding: 6px 0 10px; margin-bottom: 10px; }
+  [data-cof-view="compact"] .cof-tool-strip h1 { font-size: 22px; }
+  [data-cof-view="compact"] .cof-tool-strip .cof-eyebrow { display: none; }
+  [data-cof-view="compact"] .cof-grid { grid-template-columns: 1fr; gap: 12px; }
+  [data-cof-view="compact"] .cof-rail-left  { order: 2; }
+  [data-cof-view="compact"] .cof-stage      { order: 1; }
+  [data-cof-view="compact"] .cof-rail-right { order: 3; }
+  [data-cof-view="compact"] .cof-stage { padding: 6px 0 0; gap: 12px; }
+  [data-cof-view="compact"] .cof-stage-inner { max-width: 340px; }
+  [data-cof-view="compact"] .cof-keysig { transform: scale(0.7); transform-origin: center; }
+  [data-cof-view="compact"] .cof-card h3.cof-h3 { font-size: 11px; }
+  [data-cof-view="compact"] .cof-card { border-radius: 16px; padding: 14px 14px; }
+  [data-cof-view="compact"] .cof-card--readout { min-height: 0; }
+  [data-cof-view="compact"] .cof-foot { display: none; }
+  [data-cof-view="compact"] .cof-piano-wrap { max-width: 100% !important; }
+
+  .cof-rail { display: flex; flex-direction: column; gap: 14px; }
+
+  .cof-card {
+    background: var(--card);
+    border: 1px solid var(--hairline);
+    border-radius: 20px;
+    padding: 18px 20px;
+  }
+  .cof-card--readout { min-height: 200px; }
+
+  .cof-h3 {
+    font-family: var(--ui);
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin: 0 0 12px;
+  }
+  .cof-h3 .cof-keyname {
+    text-transform: none;
+    letter-spacing: 0.04em;
+    color: var(--ink-1);
+    font-weight: 700;
+  }
+
+  .cof-stage {
+    display: flex; flex-direction: column; align-items: center; gap: 18px;
+    padding: 20px 12px 6px;
+  }
+  .cof-stage-inner {
+    position: relative;
+    width: 100%;
+    max-width: 640px;
+    aspect-ratio: 1 / 1;
+  }
+  .cof-stage-inner > svg {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+  }
+  .cof-legend {
+    width: 100%;
+    max-width: 640px;
+  }
+
+  .cof-foot {
+    margin-top: 22px;
+    text-align: center;
+  }
+
+  /* SEO content section below the tool. */
+  .cof-seo {
+    max-width: 760px;
+    margin: 56px auto 24px;
+    padding: 0 20px;
+    font-family: var(--ui);
+    color: var(--ink-2);
+    line-height: 1.65;
+  }
+  .cof-seo h2 {
+    font-family: var(--disp);
+    font-weight: 700;
+    font-size: 24px;
+    color: var(--ink-1);
+    letter-spacing: -0.01em;
+    margin: 36px 0 12px;
+  }
+  .cof-seo h3 {
+    font-family: var(--ui);
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--ink-1);
+    margin: 20px 0 8px;
+  }
+  .cof-seo p { margin: 0 0 14px; font-size: 15px; }
+  .cof-seo ul { padding-left: 20px; margin: 0 0 16px; }
+  .cof-seo li { margin: 6px 0; font-size: 15px; }
+  .cof-seo a { color: var(--coral-ink); }
+  .cof-seo .cta {
+    margin: 28px 0 0;
+    padding: 18px 20px;
+    background: var(--coral-soft);
+    border: 1px solid var(--coral);
+    border-radius: 16px;
+  }
+  .cof-seo .cta strong { color: var(--coral-ink); }
+  .cof-seo .cta a { color: #fff; background: var(--coral); padding: 8px 14px; border-radius: 999px; text-decoration: none; font-weight: 600; display: inline-block; margin-top: 8px; }
+
+  @keyframes cof-pulse {
+    0%   { opacity: 1; transform: scale(1); }
+    100% { opacity: 0; transform: scale(1.04); }
+  }
+
+  /* Reduce motion */
+  @media (prefers-reduced-motion: reduce) {
+    .cof-page * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  }
+</style>
+
+<!-- React (production) + Tone — JSX is pre-compiled at build time, no Babel runtime. -->
+<script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/tone@14.7.77/build/Tone.js"></script>
+<script src="circle-of-fifths.js" defer></script>
+</head>
+<body class="cof-body">
+
+<header class="nav">
+  <a href="/" class="brand" aria-label="Fifths">
+    <img src="/brand/logos/logo-horizontal-light.png" alt="Fifths" width="120" height="28"/>
+  </a>
+  <nav class="nav-links">
+    <a href="/tools/">All tools</a>
+    <a href="/blog/circle-of-fifths-explained/">What is the circle of fifths?</a>
+    <a href="/blog/">Blog</a>
+    <a href="https://app.fifths.io" data-ph-track data-ph-cta="nav-app">Open the app</a>
+  </nav>
+</header>
+
+<div id="root"></div>
+
+<!-- App bundle is loaded above (circle-of-fifths.js, pre-compiled from _src/main.jsx). -->
+
+<!-- ============= SEO content (visible, crawlable) ============= -->
+<section class="cof-seo">
+  <h2>What is the circle of fifths?</h2>
+  <p>The <strong>circle of fifths</strong> is a wheel of all twelve major and minor keys, arranged so that adjacent keys differ by exactly one accidental. C major sits at the top with no sharps or flats; clockwise, each step rises by a perfect fifth and adds one sharp. Counterclockwise, each step falls by a fifth and adds one flat. After twelve steps in either direction you arrive back at C.</p>
+  <figure style="margin: 16px 0 24px; text-align: center;">
+    <picture>
+      <source srcset="/brand/screenshots/circle-of-fifths-tool.webp" type="image/webp">
+      <img src="/brand/screenshots/circle-of-fifths-tool.png"
+           alt="Circle of fifths chart showing C major Ionian: tonic C in coral; major chords F and G; minor chords A, D, E; diminished B; with relative minors Am, Dm, Em on the inner ring."
+           loading="lazy" decoding="async"
+           width="660" height="660"
+           style="max-width: 100%; height: auto; border-radius: 18px; box-shadow: var(--sh-md); background: var(--card);">
+    </picture>
+    <figcaption style="font-family: var(--mono); font-size: 11px; color: var(--ink-3); margin-top: 6px; letter-spacing: 0.04em;">
+      Circle of fifths — C major (Ionian). Diatonic chords coloured; chromatic chords faded. Try the live version above.
+    </figcaption>
+  </figure>
+  <p>It is the most-printed single diagram in Western music theory, and one of the few tools that working musicians eventually internalize. Print versions and <strong>circle of fifths charts</strong> have been classroom staples for centuries. For the longer pedagogical tour — origins, mechanics, and what musicians actually use it for — read <a href="/blog/circle-of-fifths-explained/">The circle of fifths, explained</a>.</p>
+
+  <h2>How to use this tool</h2>
+  <ul>
+    <li><strong>Pick a tonic</strong> — choose any of the 14 keys in the left rail. The wheel re-centers and the tonic wedge turns coral.</li>
+    <li><strong>Pick a mode</strong> — Ionian for major, Aeolian for natural minor, plus the five other church modes. Diatonic chords stay coloured; chromatic chords fade.</li>
+    <li><strong>Click a wedge</strong> to hear its triad. <kbd>shift</kbd>+click for the seventh chord. Right-click (or <kbd>⌘</kbd>+click) to set that note as the new tonic.</li>
+    <li><strong>Play a progression</strong> — the <em>Common progressions</em> card has familiar loops (I–V–vi–IV, ii–V–I, doo-wop, andalusian) wired to play through automatically.</li>
+    <li><strong>Modulate</strong> — the <em>Where to go next</em> card lists closely related keys and borrowed chords. Tap a related key to jump there.</li>
+    <li><strong>Switch view</strong> — press <kbd>v</kbd> to toggle between scale-degree labels (I, ii, iii…) and interval labels (P1, M3, P5…).</li>
+  </ul>
+
+  <h2>Modes and key signatures</h2>
+  <p>The modes share the same notes but assign a different note as the tonal center, which changes which scale degree is "home" and therefore how the same key signature feels. Picking a mode in this tool re-colours the wheel so you can see at a glance which chords are diatonic to the new mode and which sit outside it.</p>
+  <ul>
+    <li><strong>Ionian</strong> — the major scale; bright, stable, the textbook home base.</li>
+    <li><strong>Dorian</strong> — minor with a raised 6th; jazz, modal funk, "So What", "Oye Como Va".</li>
+    <li><strong>Phrygian</strong> — minor with a flat 2nd; flamenco, metal, dark and Spanish-flavoured.</li>
+    <li><strong>Lydian</strong> — major with a raised 4th; floating, dreamy, often used for film soundtracks.</li>
+    <li><strong>Mixolydian</strong> — major with a flat 7th; rock, Celtic, blues.</li>
+    <li><strong>Aeolian</strong> — natural minor; the standard pop/rock minor key.</li>
+    <li><strong>Locrian</strong> — minor with a flat 5th; rare, unstable, mostly a theoretical mode.</li>
+  </ul>
+
+  <h2>Circle of fifths for minor keys</h2>
+  <p>Every position on the circle has a <strong>relative minor</strong> — a minor key that shares the same key signature as the major one above it. A minor is the relative minor of C major, E minor of G major, and so on. In this tool, switching the mode picker to <em>Aeolian</em> re-centres the wheel on the natural minor; the inner ring's italic minor labels (Am, Em, Bm…) shift to show which chords are diatonic to the new <strong>circle of fifths minor scale</strong>. Use the Display toggle to dim non-diatonic chords if you want only the minor-key chords lit up.</p>
+
+  <h2>Common chord progressions</h2>
+  <p>The <strong>circle of fifths chord progressions</strong> baked into this tool are the ones you actually hear in songs:</p>
+  <ul>
+    <li><strong>I – V – vi – IV</strong> — the so-called "Axis of Awesome" pop progression powering thousands of songs.</li>
+    <li><strong>ii – V – I</strong> — the foundational jazz turnaround. Hear the V7 pull toward I and you have the central cadence in tonal harmony.</li>
+    <li><strong>I – vi – IV – V</strong> — 1950s doo-wop, still everywhere.</li>
+    <li><strong>i – ♭VII – ♭VI – V</strong> — the andalusian cadence; flamenco, surf, classical.</li>
+    <li><strong>I – ♭VII – IV – I</strong> — the rock/blues mixolydian anthem.</li>
+  </ul>
+  <p>Click the play button on any progression to hear it loop. Chord chips light up as each chord plays.</p>
+
+  <h2>How to memorize the circle of fifths</h2>
+  <p>The two oldest mnemonics still beat every flashcard app:</p>
+  <ul>
+    <li><strong>Sharps clockwise</strong> — "<em>F</em>ather <em>C</em>harles <em>G</em>oes <em>D</em>own <em>A</em>nd <em>E</em>nds <em>B</em>attle" (F♯ C♯ G♯ D♯ A♯ E♯ B♯).</li>
+    <li><strong>Flats counterclockwise</strong> — read the same sentence backwards: "<em>B</em>attle <em>E</em>nds <em>A</em>nd <em>D</em>own <em>G</em>oes <em>C</em>harles' <em>F</em>ather" (B♭ E♭ A♭ D♭ G♭ C♭ F♭).</li>
+    <li>The <strong>tonics themselves</strong> follow the same pattern: clockwise from C, you ascend by perfect fifths (C → G → D → A → E → B → F♯). Counterclockwise, you descend by fifths (C → F → B♭ → E♭ → A♭ → D♭ → G♭).</li>
+  </ul>
+  <p>Practical drill: pick a tonic in the tool, click around the wheel, and try to predict the key signature in the centre disc <em>before</em> the staff updates. Two minutes a day for two weeks usually fixes it.</p>
+
+  <h2>Frequently asked questions</h2>
+  <h3>What is the circle of fifths in simple terms?</h3>
+  <p>It's a wheel of all 12 musical keys arranged so that neighbours share most of their notes. Going one step clockwise rises by a fifth and adds one sharp; one step counterclockwise falls by a fifth and adds one flat. That's it — the rest is what you can do with that arrangement.</p>
+
+  <h3>How do you use the circle of fifths?</h3>
+  <p>Three core uses: (1) figure out the key signature for any key without counting accidentals, (2) find the diatonic chords for any key (the four chords adjacent to the tonic plus the relative minor), and (3) navigate modulations — keys close on the circle share chords, so they're easy to move between.</p>
+
+  <h3>Does this work for bass clef?</h3>
+  <p>The key signature stays the same regardless of clef — C major has zero accidentals in <strong>treble clef</strong> and <strong>bass clef</strong>. The tool currently shows the treble clef staff in the centre, but the sharps and flats it displays apply identically to bass-clef readings.</p>
+
+  <h3>Is this free?</h3>
+  <p>Yes. No signup, no email gate. Audio runs locally in your browser. If you find it useful and want to drill the chords until you can recognize them by ear, try the <a href="https://app.fifths.io">Fifths app</a>.</p>
+
+  <h3>Why doesn't sound play on my iPhone?</h3>
+  <p>iOS requires a user gesture before audio can start. Tap any wedge or any chord button — the first tap unlocks audio, every tap after that plays normally.</p>
+
+  <h3>Circle of fifths or circle of fourths?</h3>
+  <p>They are the same circle read in opposite directions. Clockwise = ascending fifths (or descending fourths). Most jazz pedagogy refers to "the <strong>circle of fourths</strong>" because the standard practice direction is counterclockwise; classical pedagogy more often calls it "the circle of fifths". Either name is correct.</p>
+
+  <h3>Why are some chords faded?</h3>
+  <p>Turn on <em>Dim non-diatonic</em> in the Display panel. Faded wedges are chords that lie outside the current mode — useful for spotting which chords are "borrowed" or chromatic.</p>
+
+  <div class="cta">
+    <p><strong>Want to train your ear to hear these chords?</strong> Fifths is the ear-training app built around the same colour-coded model as this tool — but it tells you exactly which chords, intervals, and scale degrees you keep getting wrong, then drills those.</p>
+    <a href="https://app.fifths.io" data-ph-track data-ph-cta="seo-bottom">Try Fifths free →</a>
+  </div>
+</section>
+
+<footer class="site-foot">
+  <p><a href="/">Home</a> · <a href="/blog/">Blog</a> · <a href="/blog/circle-of-fifths-explained/">About the circle of fifths</a> · <a href="/privacy/">Privacy</a> · <a href="/terms/">Terms</a></p>
+  <p class="site-foot-mark">fifths.io · 2026</p>
+</footer>
+
+</body>
+</html>

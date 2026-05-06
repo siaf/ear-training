@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { Check } from 'lucide-react';
 import { audioEngine } from '../audioEngine';
 import { Blob } from './primitives';
 import {
@@ -196,14 +197,11 @@ export default function SingPrompt({
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: mobile ? 56 : 76,
-              lineHeight: 1,
               color: 'var(--mint-ink)',
               pointerEvents: 'none',
-              fontWeight: 700,
             }}
           >
-            ✓
+            <Check size={mobile ? 56 : 76} strokeWidth={3} />
           </div>
         )}
       </div>

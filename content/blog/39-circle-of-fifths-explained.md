@@ -90,7 +90,7 @@ If you need to play a song a different key — to fit a singer's range, to match
 
 A standard printed circle of fifths is a wheel: twelve sectors, the major key letter on the outside, the relative minor on the inside, the key-signature accidentals (♯ or ♭ count) at the rim. Most music classrooms have one on the wall.
 
-Many digital and interactive versions show additional information on top of the basic structure — the diatonic chords for each key, common-tone modulations, mode shifts (parallel minor, parallel major), or chord substitutions. These are useful study tools but are extensions of the basic circle, not the circle itself.
+Many digital and interactive versions show additional information on top of the basic structure — the diatonic chords for each key, common-tone modulations, mode shifts (parallel minor, parallel major), or chord substitutions. These are useful study tools but are extensions of the basic circle, not the circle itself. (We host one: [an interactive circle of fifths](/tools/circle-of-fifths/) that plays each chord, shows the key signature, and lets you switch tonic and mode in one click.)
 
 ## Why the circle is the foundation of ear training for harmony
 

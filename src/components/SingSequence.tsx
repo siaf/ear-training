@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { Check } from 'lucide-react';
 import { audioEngine } from '../audioEngine';
 import { Blob } from './primitives';
 import {
@@ -290,13 +291,11 @@ export default function SingSequence({
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: mobile ? 40 : 56,
               color: 'var(--mint-ink)',
               pointerEvents: 'none',
-              fontWeight: 700,
             }}
           >
-            ✓
+            <Check size={mobile ? 40 : 56} strokeWidth={3} />
           </div>
         )}
       </div>

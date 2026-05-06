@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Sparkles } from 'lucide-react';
 import { useBreakpoint } from '../lib/useBreakpoint';
 import { Bean, Blob, Brand, ColorPill, KeyChip, Squiggle } from '../components/primitives';
 
@@ -60,7 +61,9 @@ export default function Landing({ onStart, onDemo }: Props) {
       >
         <div>
           <ColorPill tone="coral" style={{ marginBottom: mobile ? 14 : 24 }}>
-            ✦ ear training
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+              <Sparkles size={12} strokeWidth={2.4} /> ear training
+            </span>
           </ColorPill>
           <h1
             style={{

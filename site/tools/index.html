@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Free music theory tools — circle of fifths, ear trainers, and more · Fifths</title>
+<meta name="description" content="Free, in-browser music theory tools from Fifths. Interactive circle of fifths with sound, ear trainers, vocal range tools — no signup, works on phone and desktop.">
+<link rel="canonical" href="https://fifths.io/tools/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Free music theory tools · Fifths">
+<meta property="og:description" content="Interactive, in-browser music theory tools — circle of fifths, ear trainers, and more. No signup.">
+<meta property="og:url" content="https://fifths.io/tools/">
+<meta property="og:image" content="https://fifths.io/brand/screenshots/circle-of-fifths-tool.png">
+<meta property="og:image:alt" content="Free music theory tools from Fifths">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://fifths.io/brand/screenshots/circle-of-fifths-tool.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/brand/favicons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/brand/favicons/favicon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/brand/favicons/favicon-180.png">
+<meta name="theme-color" content="#fff8ef">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap"></noscript>
+<link rel="stylesheet" href="/styles.css">
+<script defer src="https://cloud.umami.is/script.js" data-website-id="8cc10640-f114-49ab-8572-036552f64527"></script>
+<script defer src="/posthog.js"></script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-LJYKXFDR9L"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-LJYKXFDR9L');
+  gtag('config', 'AW-17007845333');
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "name": "Free music theory tools",
+  "url": "https://fifths.io/tools/",
+  "description": "Free, in-browser music theory and ear training tools from Fifths.",
+  "publisher": { "@type": "Organization", "name": "Fifths", "url": "https://fifths.io/" },
+  "hasPart": [
+    {
+      "@type": "SoftwareApplication",
+      "name": "Circle of Fifths — interactive",
+      "url": "https://fifths.io/tools/circle-of-fifths/",
+      "applicationCategory": "EducationalApplication",
+      "operatingSystem": "Web",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+    }
+  ]
+}
+</script>
+<style>
+  .tools-hero { padding: 56px 0 32px; }
+  .tools-hero .pill { margin-bottom: 16px; }
+  .tools-hero h1 {
+    font-family: var(--disp); font-weight: 700; font-size: 46px; line-height: 1.08;
+    letter-spacing: -0.02em; margin: 0 0 16px; color: var(--ink-1); max-width: 820px;
+  }
+  .tools-hero h1 .coral { color: var(--coral-ink); font-style: italic; }
+  .tools-hero .lede {
+    font-size: 18px; color: var(--ink-2); max-width: 660px; margin: 0 0 12px; line-height: 1.55;
+  }
+  .tools-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 22px;
+    margin: 32px 0 56px;
+  }
+  .tool-card {
+    background: var(--card);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-lg);
+    padding: 0;
+    overflow: hidden;
+    display: flex; flex-direction: column;
+    transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+    color: inherit; text-decoration: none;
+  }
+  .tool-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--sh-md);
+    border-color: var(--coral);
+  }
+  .tool-card .thumb {
+    aspect-ratio: 16 / 10;
+    background: var(--page-2);
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+  .tool-card .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .tool-card.coming-soon .thumb {
+    background: linear-gradient(135deg, var(--page-2), var(--page-3));
+    color: var(--ink-3); font-family: var(--mono); font-size: 12px; letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .tool-card .body { padding: 18px 20px 20px; flex: 1; display: flex; flex-direction: column; gap: 8px; }
+  .tool-card .badge {
+    align-self: flex-start;
+    font-family: var(--mono); font-size: 10.5px; font-weight: 600;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    padding: 3px 10px; border-radius: 999px;
+    background: var(--coral-soft); color: var(--coral-ink);
+  }
+  .tool-card .badge.muted { background: var(--page-2); color: var(--ink-3); }
+  .tool-card h2 {
+    font-family: var(--disp); font-weight: 700; font-size: 22px;
+    color: var(--ink-1); letter-spacing: -0.01em;
+    margin: 0; line-height: 1.2;
+  }
+  .tool-card p {
+    margin: 0; color: var(--ink-2); font-size: 14px; line-height: 1.5;
+  }
+  .tool-card .meta {
+    margin-top: auto; padding-top: 8px;
+    display: flex; gap: 12px; flex-wrap: wrap;
+    font-family: var(--mono); font-size: 11px; color: var(--ink-3);
+    letter-spacing: 0.04em;
+  }
+  .tool-card .meta span::before { content: '· '; opacity: 0.5; }
+  .tool-card .meta span:first-child::before { content: ''; }
+  .tools-rail {
+    background: var(--page-2);
+    border-radius: var(--r-lg);
+    padding: 28px 32px;
+    margin: 32px 0 56px;
+    border: 1px solid var(--hairline);
+  }
+  .tools-rail h2 {
+    font-family: var(--disp); font-weight: 700; font-size: 22px;
+    color: var(--ink-1); margin: 0 0 8px; letter-spacing: -0.01em;
+  }
+  .tools-rail p { margin: 0 0 16px; color: var(--ink-2); font-size: 15px; line-height: 1.6; max-width: 680px; }
+  .tools-rail a.btn-coral { display: inline-block; }
+
+  @media (max-width: 720px) {
+    .tools-hero { padding: 32px 0 16px; }
+    .tools-hero h1 { font-size: 32px; }
+    .tools-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <a href="/" class="brand" aria-label="Fifths">
+    <img src="/brand/logos/logo-horizontal-light.png" alt="Fifths" width="120" height="28"/>
+  </a>
+  <nav class="nav-links">
+    <a href="/">App</a>
+    <a href="/tools/">Tools</a>
+    <a href="/blog/">Blog</a>
+    <a href="https://app.fifths.io" data-ph-track data-ph-cta="tools-index-nav">Open the app</a>
+  </nav>
+</header>
+
+<main class="wrap">
+
+  <section class="tools-hero">
+    <span class="pill">✦ free in-browser tools</span>
+    <h1>Music theory tools, <span class="coral">free</span> and in your browser.</h1>
+    <p class="lede">Interactive tools for working musicians, students, and teachers — built around the same scale-degree-first model as the Fifths ear-training app. No signup, no email, audio runs locally.</p>
+  </section>
+
+  <section class="tools-grid">
+    <a class="tool-card" href="/tools/circle-of-fifths/">
+      <div class="thumb">
+        <picture>
+          <source srcset="/brand/screenshots/circle-of-fifths-tool.webp" type="image/webp">
+          <img src="/brand/screenshots/circle-of-fifths-tool.png"
+               alt="Circle of fifths interactive tool — C major Ionian shown with diatonic chords colour-coded"
+               loading="lazy" decoding="async" width="640" height="400">
+        </picture>
+      </div>
+      <div class="body">
+        <span class="badge">live</span>
+        <h2>Circle of Fifths — interactive</h2>
+        <p>Click any wedge to hear the chord. Switch tonic and mode in one tap. See the key signature, the diatonic chords, and common progressions like ii–V–I and I–V–vi–IV that play through automatically.</p>
+        <div class="meta">
+          <span>14 tonics × 7 modes</span>
+          <span>web audio</span>
+          <span>printable</span>
+        </div>
+      </div>
+    </a>
+
+    <div class="tool-card coming-soon">
+      <div class="thumb">soon</div>
+      <div class="body">
+        <span class="badge muted">coming</span>
+        <h2>Vocal range test</h2>
+        <p>Sing into your mic, see your range mapped to a piano keyboard, and find your voice type — soprano, alto, tenor, baritone, bass. No signup. Result is shareable.</p>
+        <div class="meta">
+          <span>pitch detection</span>
+          <span>shareable</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="tool-card coming-soon">
+      <div class="thumb">soon</div>
+      <div class="body">
+        <span class="badge muted">coming</span>
+        <h2>Interval ear trainer</h2>
+        <p>Hear an interval, name it. Free, no-signup version of the core Fifths trainer — major/minor seconds through octaves, in any key.</p>
+        <div class="meta">
+          <span>13 intervals</span>
+          <span>any key</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="tool-card coming-soon">
+      <div class="thumb">soon</div>
+      <div class="body">
+        <span class="badge muted">coming</span>
+        <h2>Note identification</h2>
+        <p>Treble and bass clef quizzer. Read a note off the staff, hit the keyboard. Tracks accuracy by clef, by note, by ledger position.</p>
+        <div class="meta">
+          <span>treble · bass</span>
+          <span>printable</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="tool-card coming-soon">
+      <div class="thumb">soon</div>
+      <div class="body">
+        <span class="badge muted">coming</span>
+        <h2>Chord progression generator</h2>
+        <p>Pick a key and a vibe. Get a four-bar progression with audio playback, leadsheet symbols, and Roman numerals — for songwriting, practice, or teaching.</p>
+        <div class="meta">
+          <span>any key</span>
+          <span>audio</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="tool-card coming-soon">
+      <div class="thumb">soon</div>
+      <div class="body">
+        <span class="badge muted">coming</span>
+        <h2>Solfege practice</h2>
+        <p>Drill movable-do solfege with hand signs, in any key, with audio. Includes chromatic and minor variants for choral and Kodály classroom use.</p>
+        <div class="meta">
+          <span>movable-do</span>
+          <span>chromatic</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="tools-rail">
+    <h2>Why we make these free</h2>
+    <p>Every tool here is a hands-on version of something we teach inside the <a href="https://app.fifths.io">Fifths ear-training app</a>. The tools work on their own — no signup, no email gate, audio runs locally — and if you find them useful, the app is the next step: it tracks <em>which</em> intervals, scale degrees, and keys keep tripping you up, and drills those specifically.</p>
+    <a href="https://app.fifths.io" class="btn btn-coral" data-ph-track data-ph-cta="tools-index">Try the app free →</a>
+  </section>
+
+</main>
+
+<footer class="site-foot">
+  <p><a href="/">Home</a> · <a href="/tools/">Tools</a> · <a href="/blog/">Blog</a> · <a href="/privacy/">Privacy</a> · <a href="/terms/">Terms</a></p>
+  <p class="site-foot-mark">fifths.io · 2026</p>
+</footer>
+
+</body>
+</html>

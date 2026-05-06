@@ -168,6 +168,14 @@ export interface CurriculumLevel {
   questionsPerKey?: number; // Questions per key block. Ignored when establishTonality is false.
   establishTonality?: boolean; // Explicit override. Defaults to true for pitch lessons, false for non-tonal acoustic kinds (same_diff, beating, higher_lower, consonance, match_pitch).
   intro?: LessonIntro; // Optional override — falls back to a type-based default. Single page or sequence of pages.
+  // What plays before each key block to establish the tonal frame.
+  //   'scale'             — major scale up & down (current default for tonal lessons).
+  //   'cadence'           — I–IV–V–I (Krumhansl establishes a key faster than a scale alone).
+  //   'cadence_then_scale'— cadence followed by scale; strongest priming, useful for scale-degree drills.
+  //   'drone'             — sustained tonic; for advanced/transfer drills.
+  //   'none'              — no primer (self-keyed lessons or non-tonal).
+  // Defaults: 'scale' for tonal lessons; 'none' for non-tonal acoustic / rhythm / self-keyed types.
+  primerKind?: 'scale' | 'cadence' | 'cadence_then_scale' | 'drone' | 'none';
   itemGroups?: Record<string, string[]>; // Bucket items into answer groups, e.g. { stable: ['1','3','5'], unstable: ['2','4','6','7'] }
   responseModes?: ResponseMode[]; // Allowed response modes for prompts in this level. Defaults to ['select']. e.g. ['sing'] = pure sing-back, ['select','sing'] = mixed.
   singProbability?: number; // When responseModes includes both, probability (0..1) that a prompt is sing-mode. Defaults to 0.5.

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { Check } from 'lucide-react';
 import { Bean, Blob } from './primitives';
 import { signInWithGoogle, signInWithMagicLink } from '../lib/syncEngine';
 import { phCapture } from '../lib/posthog';
@@ -215,7 +216,9 @@ export default function AuthSheet({ onClose }: Props) {
                   marginBottom: 6,
                 }}
               >
-                ✓ link sent
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                  <Check size={12} strokeWidth={3} /> link sent
+                </span>
               </div>
               <h2
                 style={{

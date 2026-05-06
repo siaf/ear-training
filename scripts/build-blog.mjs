@@ -56,6 +56,7 @@ ${articleDate ? `<meta property="article:published_time" content="${articleDate}
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap">
 <link rel="stylesheet" href="/styles.css">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="8cc10640-f114-49ab-8572-036552f64527"></script>
+<script defer src="/posthog.js"></script>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-LJYKXFDR9L"></script>
 <script>
 window.dataLayer = window.dataLayer || [];
@@ -189,6 +190,8 @@ ${siteFooter}
 // appear in the sitemap. Keep this list in sync with site/<dir>/index.html.
 const STATIC_PAGES = [
   { url: '/', priority: '1.0', changefreq: 'weekly' },
+  { url: '/tools/', priority: '0.85', changefreq: 'monthly' },
+  { url: '/tools/circle-of-fifths/', priority: '0.9', changefreq: 'monthly' },
   { url: '/jazz/', priority: '0.8', changefreq: 'monthly' },
   { url: '/classical/', priority: '0.8', changefreq: 'monthly' },
   { url: '/transcribing/', priority: '0.8', changefreq: 'monthly' },

@@ -237,13 +237,13 @@ export class AnalyticsEngine {
 
     // Overall performance
     if (stats.accuracy >= 90) {
-      insights.push('🎉 Excellent performance! You\'re ready for the next level.');
+      insights.push("Excellent performance! You're ready for the next level.");
     } else if (stats.accuracy >= 75) {
-      insights.push('👍 Good work! A bit more practice and you\'ll master this level.');
+      insights.push("Good work! A bit more practice and you'll master this level.");
     } else if (stats.accuracy >= 60) {
-      insights.push('📚 Keep practicing. Focus on the items you\'re struggling with.');
+      insights.push("Keep practicing. Focus on the items you're struggling with.");
     } else {
-      insights.push('💪 This level is challenging. Take your time and focus on one item at a time.');
+      insights.push('This level is challenging. Take your time and focus on one item at a time.');
     }
 
     // Interval weaknesses (most specific) - prioritize for interval lessons
@@ -251,28 +251,28 @@ export class AnalyticsEngine {
       const weakIntervals = stats.intervalWeaknesses.filter(w => w.attempts >= 2 && w.accuracy < 70);
       if (weakIntervals.length > 0) {
         const intervalContext = weakIntervals.slice(0, 1).map(w => w.context).join(', ');
-        insights.push(`🎯 Focus on: ${intervalContext}`);
+        insights.push(`Focus on: ${intervalContext}`);
       }
-      
+
       // Show strong areas for intervals
       const strongIntervals = stats.intervalWeaknesses.filter(w => w.attempts >= 2 && w.accuracy >= 85);
       if (strongIntervals.length > 0) {
         const intervalContext = strongIntervals.slice(0, 1).map(w => w.context).join(', ');
-        insights.push(`✨ You're strong at: ${intervalContext}`);
+        insights.push(`Strong at: ${intervalContext}`);
       }
     } else {
       // For non-interval lessons, show item-level weaknesses
       const weakItems = stats.weaknesses.filter(w => w.attempts >= 2 && w.accuracy < 60);
       if (weakItems.length > 0) {
         const itemNames = weakItems.slice(0, 3).map(w => w.item).join(', ');
-        insights.push(`🎯 Focus on: ${itemNames}`);
+        insights.push(`Focus on: ${itemNames}`);
       }
-      
+
       // Identify strong areas for non-interval lessons
       const strongItems = stats.weaknesses.filter(w => w.attempts >= 2 && w.accuracy >= 90);
       if (strongItems.length > 0) {
         const itemNames = strongItems.slice(0, 2).map(w => w.item).join(', ');
-        insights.push(`✨ You're strong at: ${itemNames}`);
+        insights.push(`Strong at: ${itemNames}`);
       }
     }
 
@@ -281,7 +281,7 @@ export class AnalyticsEngine {
       const weakDegrees = stats.scaleDegreeWeaknesses.filter(w => w.attempts >= 2 && w.accuracy < 60);
       if (weakDegrees.length > 0) {
         const degreeContext = weakDegrees.slice(0, 2).map(w => w.context).join(', ');
-        insights.push(`📍 Struggle with: ${degreeContext}`);
+        insights.push(`Struggle with: ${degreeContext}`);
       }
     }
 
@@ -295,7 +295,7 @@ export class AnalyticsEngine {
       const shouldShowConfusion = isIntervalLesson ? uniqueItems.size > 2 : uniqueItems.size > 2;
       
       if (topConfusion.count >= 2 && shouldShowConfusion) {
-        insights.push(`⚠️ Often confuse ${topConfusion.actuallyWas} with ${topConfusion.mistook}`);
+        insights.push(`Often confuse ${topConfusion.actuallyWas} with ${topConfusion.mistook}`);
       }
     }
 

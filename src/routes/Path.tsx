@@ -4,7 +4,12 @@ import { CURRICULUM, CURRICULUM_SEGMENTS, isLevelUnlocked } from '../curriculum'
 import { CurriculumLevel, CurriculumSegment } from '../types';
 import { Bean, Brand } from '../components/primitives';
 import DesktopSidebar from '../components/DesktopSidebar';
-import DailyReviewTile from '../components/DailyReviewTile';
+import TodayPanel from '../components/TodayPanel';
+import UpsellCard, { type UpsellMode } from '../components/UpsellCard';
+import type { Recommendation } from '../lib/recommendations';
+import { CHECKPOINTS, type Checkpoint } from '../lib/checkpoints';
+import { Flag, Flame, Lock as LockIcon } from 'lucide-react';
+import { getLessonIconRender, getSegmentIcon, type LessonIconRender } from '../lib/lessonIcons';
 import { mascotForColor, segmentColor } from '../lib/segmentColors';
 
 type NodeState = 'done' | 'current' | 'locked';
@@ -26,146 +31,52 @@ interface Props {
   dueCount?: number;
   /** Called when the user taps the Daily Review tile. */
   onStartReview?: () => void;
+  /** Called when the user taps the Mixed Practice tile. Hidden if user has fewer than 2 completed lessons. */
+  onStartInterleave?: () => void;
+  /** Cross-segment recommendation surfaced when one segment lags the others. Null = hide tile. */
+  recommendation?: Recommendation | null;
+  /** Called when the user taps a checkpoint node on the path itself. */
+  onStartCheckpoint?: (cp: Checkpoint) => void;
 }
 
 /* ---------- Right rail (desktop only) ---------- */
-type UpsellMode = 'none' | 'create_account' | 'go_pro';
 function PathRightRail({
   streakDays,
   todayMinutes,
+  recommendation,
+  dueCount,
+  completedCount,
+  onStartLevel,
+  onStartReview,
+  onStartInterleave,
   upsell,
   onUpsellClick,
 }: {
   streakDays: number;
   todayMinutes: number;
+  recommendation?: Recommendation | null;
+  dueCount: number;
+  completedCount: number;
+  onStartLevel: (id: string) => void;
+  onStartReview?: () => void;
+  onStartInterleave?: () => void;
   upsell: UpsellMode;
   onUpsellClick?: () => void;
 }) {
   return (
-    <aside style={{ width: 260, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 14 }}>
-      {/* Today — Pulse = streaks / daily practice per brand kit */}
-      <div
-        style={{
-          position: 'relative',
-          background: 'var(--sky)',
-          borderRadius: 'var(--r-lg)',
-          padding: '18px 20px',
-          border: '2px solid var(--ink-1)',
-          boxShadow: '0 4px 0 var(--sky-ink), 0 8px 20px rgba(42,29,58,0.1)',
-          overflow: 'hidden',
-        }}
-      >
-        <img
-          src={`${import.meta.env.BASE_URL}brand/mascots/pulse/excited.png`}
-          alt=""
-          aria-hidden
-          style={{
-            position: 'absolute',
-            right: -8,
-            bottom: -6,
-            width: 80,
-            height: 'auto',
-            pointerEvents: 'none',
-            filter: 'drop-shadow(0 4px 8px rgba(42,29,58,0.15))',
-          }}
-        />
-        <div style={{ fontSize: 11, color: 'var(--sky-ink)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1.4 }}>
-          today
-        </div>
-        <div style={{ fontFamily: 'var(--disp)', fontSize: 36, fontWeight: 400, color: 'var(--ink-1)', margin: '4px 0 2px', lineHeight: 1 }}>
-          {todayMinutes} min
-        </div>
-        <div style={{ fontSize: 13, color: 'var(--ink-2)' }}>
-          streak · <span style={{ color: 'var(--coral-ink)', fontWeight: 600 }}>🔥 {streakDays}</span>
-        </div>
-      </div>
-      {upsell !== 'none' && onUpsellClick && (
-        /* Mode-dependent upsell card. Fable mascot = encouragement / "hand on your shoulder" per brand kit. */
-        <button
-          onClick={onUpsellClick}
-          style={{
-            position: 'relative',
-            textAlign: 'left',
-            background: upsell === 'create_account' ? 'var(--mint)' : 'var(--lav)',
-            borderRadius: 'var(--r-lg)',
-            padding: '18px 20px',
-            border: '2px solid var(--ink-1)',
-            boxShadow: upsell === 'create_account'
-              ? '0 4px 0 var(--mint-ink), 0 8px 20px rgba(42,29,58,0.1)'
-              : '0 4px 0 var(--lav-ink), 0 8px 20px rgba(42,29,58,0.1)',
-            cursor: 'pointer',
-            font: 'inherit',
-            color: 'var(--ink-1)',
-            overflow: 'hidden',
-          }}
-        >
-          <img
-            src={`${import.meta.env.BASE_URL}brand/mascots/fable/excited.png`}
-            alt=""
-            aria-hidden
-            style={{
-              position: 'absolute',
-              right: -6,
-              bottom: -6,
-              width: 80,
-              height: 'auto',
-              pointerEvents: 'none',
-              filter: 'drop-shadow(0 4px 8px rgba(42,29,58,0.15))',
-            }}
-          />
-          {upsell === 'create_account' ? (
-            <>
-              <div style={{ fontSize: 11, color: 'var(--mint-ink)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1.4 }}>
-                save your progress
-              </div>
-              <div
-                style={{
-                  fontFamily: 'var(--disp)',
-                  fontStyle: 'italic',
-                  fontSize: 18,
-                  fontWeight: 400,
-                  margin: '4px 0 6px',
-                  lineHeight: 1.15,
-                  maxWidth: '70%',
-                }}
-              >
-                Take it with you.
-              </div>
-              <div style={{ fontSize: 12.5, color: 'var(--ink-2)', lineHeight: 1.5, maxWidth: '68%' }}>
-                Sign in with email — practice follows you to any device.
-              </div>
-              <div style={{ marginTop: 10, fontSize: 12, fontWeight: 700, color: 'var(--mint-ink)', letterSpacing: 0.2 }}>
-                create account →
-              </div>
-            </>
-          ) : (
-            <>
-              <div style={{ fontSize: 11, color: 'var(--lav-ink)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1.4 }}>
-                Fifths pro
-              </div>
-              <div
-                style={{
-                  fontFamily: 'var(--disp)',
-                  fontStyle: 'italic',
-                  fontSize: 18,
-                  fontWeight: 400,
-                  margin: '4px 0 6px',
-                  lineHeight: 1.15,
-                  maxWidth: '70%',
-                }}
-              >
-                Unlimited history.
-              </div>
-              <div style={{ fontSize: 12.5, color: 'var(--ink-2)', lineHeight: 1.5, maxWidth: '68%' }}>
-                Cloud sync, full analytics, weak-item auto-drills, Pro lessons.
-              </div>
-              <div style={{ marginTop: 10, fontSize: 12, fontWeight: 700, color: 'var(--lav-ink)', letterSpacing: 0.2 }}>
-                see plans →
-              </div>
-            </>
-          )}
-        </button>
-      )}
+    <aside style={{ width: 280, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <TodayPanel
+        streakDays={streakDays}
+        todayMinutes={todayMinutes}
+        recommendation={recommendation}
+        dueCount={dueCount}
+        completedCount={completedCount}
+        mobile={false}
+        onStartLevel={onStartLevel}
+        onStartReview={onStartReview}
+        onStartInterleave={onStartInterleave}
+      />
+      {onUpsellClick && <UpsellCard mode={upsell} mobile={false} onClick={onUpsellClick} />}
     </aside>
   );
 }
@@ -239,7 +150,7 @@ function RiverNode({
   const isLocked = state === 'locked';
   const sz = mobile ? 62 : 82;
 
-  const iconKind = isLocked ? 'lock' : getIconKind(level, isLastInSegment);
+  const iconRender = getLessonIconRender(level, isLastInSegment, isLocked);
   const iconSize = mobile ? 28 : 36;
 
   const shadow = isDone
@@ -354,7 +265,7 @@ function RiverNode({
             padding: 0,
           }}
         >
-          <LevelIcon kind={iconKind} size={iconSize} />
+          <NodeIconBody render={iconRender} size={iconSize} />
         </button>
         {proLocked && (
           <span
@@ -428,50 +339,175 @@ function RiverNode({
   );
 }
 
-type IconKind = 'star' | 'trophy' | 'headphones' | 'home' | 'lock';
-
-function getIconKind(level: CurriculumLevel, isLastInSegment: boolean): IconKind {
-  if (isLastInSegment) return 'trophy';
-  if (level.type === 'acoustic') return 'headphones';
-  if (level.segmentId === 'tonality') return 'home';
-  return 'star';
-}
-
-function LevelIcon({ kind, size }: { kind: IconKind; size: number }) {
-  const common = { width: size, height: size, viewBox: '0 0 24 24', fill: 'currentColor' } as const;
-  switch (kind) {
-    case 'star':
-      return (
-        <svg {...common}>
-          <path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6-5.9-3.4-5.9 3.4 1.3-6.6L2.5 9.4l6.6-.8z" />
-        </svg>
-      );
-    case 'trophy':
-      return (
-        <svg {...common}>
-          <path d="M7 4h10v2h3.5a1 1 0 011 1v2a4 4 0 01-4 4h-.3a5 5 0 01-4.2 3.9V19h3v2H8v-2h3v-2.1A5 5 0 016.8 13h-.3a4 4 0 01-4-4V7a1 1 0 011-1H7V4zm0 4H4v1a2 2 0 002 2h1V8zm10 0v3h1a2 2 0 002-2V8h-3z" />
-        </svg>
-      );
-    case 'headphones':
-      return (
-        <svg {...common}>
-          <path d="M12 3a9 9 0 00-9 9v6a2 2 0 002 2h3v-8H5v-.2A7 7 0 1119 12v.2h-3V20h3a2 2 0 002-2v-6a9 9 0 00-9-9z" />
-        </svg>
-      );
-    case 'home':
-      return (
-        <svg {...common}>
-          <path d="M12 2.8L3 10v11h6v-6h6v6h6V10z" />
-        </svg>
-      );
-    case 'lock':
-      return (
-        <svg {...common}>
-          <path d="M7 10V7a5 5 0 1110 0v3h1a2 2 0 012 2v8a2 2 0 01-2 2H6a2 2 0 01-2-2v-8a2 2 0 012-2h1zm2 0h6V7a3 3 0 10-6 0v3z" />
-        </svg>
-      );
+/**
+ * Render whatever the lesson-icon resolver produced — a lucide component OR a short
+ * text label (e.g. "3rd", "TT") — at the requested size, centered. Used by both
+ * RiverNode (regular lessons) and CheckpointNode (mix nodes use a Flag icon directly).
+ */
+function NodeIconBody({ render, size }: { render: LessonIconRender; size: number }) {
+  if (render.kind === 'lucide') {
+    const Icon = render.Component;
+    return <Icon size={size} strokeWidth={2.2} />;
   }
+  // Text label — sized to roughly match icon visual weight. We use the display font
+  // and a slight italic tilt to feel hand-set rather than mechanical.
+  const fontSize = render.text.length <= 2 ? size * 0.78 : size * 0.62;
+  return (
+    <span
+      style={{
+        fontFamily: 'var(--disp)',
+        fontStyle: 'italic',
+        fontWeight: 700,
+        fontSize,
+        lineHeight: 1,
+        letterSpacing: -0.01,
+      }}
+    >
+      {render.text}
+    </span>
+  );
 }
+
+/**
+ * Checkpoint node — a "mix" milestone rendered inline on the path between lesson
+ * clusters. Anchored after the LAST constituent lesson in segment order, so the user
+ * walks the path and naturally encounters "Fourths & Fifths Mix" right after clearing
+ * those three lessons.
+ *
+ * Visual: butter-tinted circle with a star icon and a "MIX" badge — visually distinct
+ * from regular lesson nodes (segment-tinted, varied icons) so the user can scan the
+ * path and see the review checkpoints at a glance. Locked state mirrors RiverNode.
+ */
+function CheckpointNode({
+  checkpoint,
+  idx,
+  locked,
+  mobile,
+  onClick,
+}: {
+  checkpoint: Checkpoint;
+  idx: number;
+  locked: boolean;
+  mobile: boolean;
+  onClick: () => void;
+}) {
+  // Same wave parameters as RiverNode so the checkpoint sits on the same S-curve.
+  // Half-step offset (idx + 0.5) puts it visually between siblings rather than overlapping.
+  const amplitude = mobile ? 70 : 130;
+  const offset = Math.sin((idx + 0.5) * 0.85) * amplitude;
+  const sz = mobile ? 62 : 82;
+  const iconSize = mobile ? 28 : 36;
+
+  const shadow = locked
+    ? '0 5px 0 rgba(42,29,58,0.10)'
+    : '0 6px 0 var(--butter-ink), 0 10px 20px rgba(42,29,58,0.18)';
+
+  return (
+    <div style={{ position: 'relative', marginBottom: mobile ? 22 : 18 }}>
+      <div
+        style={{
+          position: 'relative',
+          display: 'flex',
+          justifyContent: 'center',
+          transform: `translateX(${offset}px)`,
+          zIndex: 2,
+        }}
+      >
+        <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+          <button
+            onClick={onClick}
+            disabled={locked}
+            aria-label={locked ? `${checkpoint.name} (locked — clear the cluster's lessons first)` : checkpoint.name}
+            style={{
+              width: sz,
+              height: sz,
+              borderRadius: '50%',
+              background: locked ? 'var(--card)' : 'var(--butter)',
+              border: `3px solid ${locked ? 'var(--ink-5)' : 'var(--ink-1)'}`,
+              boxShadow: shadow,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: locked ? 'var(--ink-4)' : 'var(--butter-ink)',
+              cursor: locked ? 'not-allowed' : 'pointer',
+              padding: 0,
+            }}
+          >
+            <NodeIconBody
+              render={{ kind: 'lucide', Component: locked ? LockIcon : Flag }}
+              size={iconSize}
+            />
+          </button>
+          {!locked && (
+            <span
+              aria-hidden
+              style={{
+                position: 'absolute',
+                top: -6,
+                right: -6,
+                padding: '2px 8px',
+                borderRadius: 999,
+                background: 'var(--ink-1)',
+                color: 'var(--page)',
+                fontSize: 10,
+                fontWeight: 700,
+                letterSpacing: 0.6,
+                fontFamily: 'var(--ui)',
+                border: '1.5px solid var(--ink-1)',
+                boxShadow: '0 2px 0 var(--ink-1)',
+                zIndex: 4,
+              }}
+            >
+              MIX
+            </span>
+          )}
+          <div
+            style={{
+              padding: '4px 12px',
+              borderRadius: 999,
+              background: locked ? 'rgba(255,255,255,0.85)' : 'var(--butter-soft)',
+              color: locked ? 'var(--ink-3)' : 'var(--butter-ink)',
+              fontSize: mobile ? 11 : 12,
+              fontWeight: 600,
+              fontStyle: 'italic',
+              fontFamily: 'var(--disp)',
+              whiteSpace: 'nowrap',
+              maxWidth: mobile ? 200 : 280,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              border: locked ? 'none' : '1.5px solid var(--butter-ink)',
+            }}
+          >
+            {checkpoint.name}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Group checkpoints by their anchor lesson within a single segment. The anchor is the
+ * LAST lesson of the checkpoint's `levelIds` in segment-order — so a "consonant intervals
+ * mix" anchors after the last 6ths lesson, not before. Cross-segment checkpoints are
+ * skipped (none exist today; defensive).
+ */
+function checkpointAnchorsForSegment(segment: CurriculumSegment): Map<string, Checkpoint[]> {
+  const anchors = new Map<string, Checkpoint[]>();
+  for (const cp of CHECKPOINTS) {
+    if (cp.segmentId !== segment.id) continue;
+    let lastIdx = -1;
+    for (let i = segment.levels.length - 1; i >= 0; i--) {
+      if (cp.levelIds.includes(segment.levels[i].id)) { lastIdx = i; break; }
+    }
+    if (lastIdx === -1) continue;
+    const anchorId = segment.levels[lastIdx].id;
+    if (!anchors.has(anchorId)) anchors.set(anchorId, []);
+    anchors.get(anchorId)!.push(cp);
+  }
+  return anchors;
+}
+
 
 function StickyBanner({
   segment,
@@ -529,7 +565,14 @@ function StickyBanner({
           {segment.name}
         </div>
       </div>
-      <span style={{ fontSize: mobile ? 22 : 28, flexShrink: 0 }}>{segment.icon}</span>
+      {(() => {
+        const SegIcon = getSegmentIcon(segment.id);
+        return (
+          <span style={{ display: 'inline-flex', flexShrink: 0, color: palette.ink }}>
+            <SegIcon size={mobile ? 22 : 28} strokeWidth={2.2} />
+          </span>
+        );
+      })()}
     </div>
   );
 }
@@ -545,6 +588,7 @@ function RiverInner({
   onProTap,
   isPro,
   currentNodeRef,
+  onStartCheckpoint,
 }: {
   segments: CurriculumSegment[];
   mobile: boolean;
@@ -556,6 +600,7 @@ function RiverInner({
   onProTap: (levelId: string) => void;
   isPro: boolean;
   currentNodeRef: React.MutableRefObject<HTMLDivElement | null>;
+  onStartCheckpoint?: (cp: Checkpoint) => void;
 }) {
   return (
     <div style={{ paddingBottom: mobile ? 30 : 40 }}>
@@ -564,6 +609,7 @@ function RiverInner({
         const sectionNextId = segment.levels.find(
           (l) => !completed.has(l.id) && isLevelUnlocked(l, completedArr, { unlockAll: debug }),
         )?.id;
+        const checkpointAnchors = checkpointAnchorsForSegment(segment);
         return (
           <section key={segment.id} style={{ position: 'relative' }}>
             <StickyBanner segment={segment} unitIdx={si} mobile={mobile} />
@@ -575,14 +621,14 @@ function RiverInner({
                 padding: mobile ? '36px 0 28px' : '48px 0 36px',
               }}
             >
-              {segment.levels.map((level, li) => {
+              {segment.levels.flatMap((level, li) => {
                 const proLocked = level.tier === 'pro' && !isPro;
                 const state = resolveState(level, completed, completedArr, level.id === currentLevelId, debug);
                 const isStart = level.id === currentLevelId;
                 const isSectionNext = level.id === sectionNextId;
                 const isLast = li === segment.levels.length - 1;
-                return (
-                  <div key={level.id} ref={isStart ? currentNodeRef : undefined}>
+                const out: React.ReactNode[] = [
+                  <div key={`l-${level.id}`} ref={isStart ? currentNodeRef : undefined}>
                     <RiverNode
                       level={level}
                       idx={li}
@@ -601,8 +647,27 @@ function RiverInner({
                         onStart(level.id);
                       }}
                     />
-                  </div>
-                );
+                  </div>,
+                ];
+                // Inline checkpoint nodes anchored after this lesson — one or more curated
+                // mix milestones that review the cluster the user just walked through.
+                const cps = checkpointAnchors.get(level.id);
+                if (cps && onStartCheckpoint) {
+                  for (const cp of cps) {
+                    const locked = !cp.levelIds.every((id) => completed.has(id));
+                    out.push(
+                      <CheckpointNode
+                        key={`cp-${cp.id}`}
+                        checkpoint={cp}
+                        idx={li}
+                        locked={locked}
+                        mobile={mobile}
+                        onClick={() => onStartCheckpoint(cp)}
+                      />,
+                    );
+                  }
+                }
+                return out;
               })}
             </div>
           </section>
@@ -627,6 +692,9 @@ export default function Path({
   isSignedIn = false,
   dueCount = 0,
   onStartReview,
+  onStartInterleave,
+  recommendation = null,
+  onStartCheckpoint,
 }: Props) {
   const upsellMode: UpsellMode = isPro
     ? 'none'
@@ -689,7 +757,9 @@ export default function Path({
             >
               <Brand />
               <div style={{ display: 'flex', gap: 10, alignItems: 'center', fontSize: 12 }}>
-                <span style={{ color: 'var(--coral-ink)', fontWeight: 600 }}>🔥 {streakDays}</span>
+                <span style={{ color: 'var(--coral-ink)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                  <Flame size={13} strokeWidth={2.4} fill="var(--coral)" /> {streakDays}
+                </span>
                 <span style={{ color: 'var(--ink-3)' }}>{todayMinutes}m today</span>
               </div>
             </div>
@@ -788,13 +858,26 @@ export default function Path({
           >
             <div style={{ flex: mobile ? 'none' : 1, minWidth: 0 }}>
               <div style={{ maxWidth: mobile ? undefined : 720, margin: '0 auto' }}>
-                {dueCount > 0 && onStartReview && (
-                  <DailyReviewTile
-                    dueCount={dueCount}
-                    hasCompletedAny={completedLevels.length > 0}
-                    mobile={mobile}
-                    onStart={onStartReview}
-                  />
+                {/* Mobile: render the unified Today panel above the path. Desktop has it
+                    in the right rail instead. Replaces what used to be three standalone
+                    tiles (DailyReview / Recommendation / Mixed Practice) stacked here. */}
+                {mobile && (
+                  <div style={{ margin: '12px 14px 18px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    <TodayPanel
+                      streakDays={streakDays}
+                      todayMinutes={todayMinutes}
+                      recommendation={recommendation}
+                      dueCount={dueCount}
+                      completedCount={completedLevels.length}
+                      mobile
+                      onStartLevel={onStart}
+                      onStartReview={onStartReview}
+                      onStartInterleave={onStartInterleave}
+                    />
+                    {onUpsellClick && (
+                      <UpsellCard mode={upsellMode} mobile onClick={onUpsellClick} />
+                    )}
+                  </div>
                 )}
                 <RiverInner
                   segments={segments}
@@ -807,6 +890,7 @@ export default function Path({
                   onProTap={onProTap}
                   isPro={isPro}
                   currentNodeRef={currentNodeRef}
+                  onStartCheckpoint={onStartCheckpoint}
                 />
               </div>
             </div>
@@ -814,6 +898,12 @@ export default function Path({
               <PathRightRail
                 streakDays={streakDays}
                 todayMinutes={todayMinutes}
+                recommendation={recommendation}
+                dueCount={dueCount}
+                completedCount={completedLevels.length}
+                onStartLevel={onStart}
+                onStartReview={onStartReview}
+                onStartInterleave={onStartInterleave}
                 upsell={upsellMode}
                 onUpsellClick={onUpsellClick}
               />

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ArrowRight, Check, Music as MusicIcon, Play as PlayIcon, Settings as SettingsIcon, X as XIcon } from 'lucide-react';
+import { ArrowRight, Check, Flame, Music as MusicIcon, Play as PlayIcon, Settings as SettingsIcon, X as XIcon } from 'lucide-react';
 import { Bean, Blob, ColorPill, useTicker } from '../components/primitives';
 import { getDisplayName } from '../curriculum';
 import { CurriculumLevel, Question, SessionStats } from '../types';
@@ -13,12 +13,28 @@ import { gradeGrid } from '../lib/rhythmGrader';
 import { encodeGrid } from '../lib/rhythmPatterns';
 import { SingDifficulty, effectiveSingTolerance } from './Settings';
 import { DegreeNotation, DEFAULT_DEGREE_NOTATION, formatDegree, formatDegreeText } from '../lib/degreeNotation';
+import {
+  INTERLEAVE_CATEGORY_LABELS,
+  type InterleaveCategory,
+} from '../lib/interleaving';
 
 interface Props {
   level: CurriculumLevel;
   question: Question | null;
   selectedAnswer: string | null;
   showFeedback: boolean;
+  /** True when the user has answered but reveal is delayed (delayed_short feedback timing). */
+  feedbackPending?: boolean;
+  /** Mixed-practice (#5) — correct category for the current question, null when not interleaving. */
+  interleaveCorrectCategory?: InterleaveCategory | null;
+  /** Category chips to render in the picker (the union of categories in the queue). */
+  interleaveCategoryOptions?: InterleaveCategory[] | null;
+  /** What the user last tapped in the picker. Null until they tap. */
+  interleaveCategoryAttempt?: InterleaveCategory | null;
+  /** Has the user tapped any category for this question? Once true, answer chips unlock. */
+  interleaveCategoryPicked?: boolean;
+  /** Handler for category taps. */
+  onPickInterleaveCategory?: (cat: InterleaveCategory) => void;
   stats: SessionStats;
   currentScaleRoot: string;
   scaleRootIndexInSession: number;
@@ -92,6 +108,12 @@ export default function Practice({
   question,
   selectedAnswer,
   showFeedback,
+  feedbackPending = false,
+  interleaveCorrectCategory = null,
+  interleaveCategoryOptions = null,
+  interleaveCategoryAttempt = null,
+  interleaveCategoryPicked = false,
+  onPickInterleaveCategory,
   stats,
   currentScaleRoot,
   isPlayingScale,
@@ -169,6 +191,8 @@ export default function Practice({
         if (showFeedback) {
           e.preventDefault();
           onNext();
+        } else if (feedbackPending) {
+          // Awaiting delayed reveal — ignore submit/next attempts.
         } else if (inSing) {
           // voice-driven; no keyboard submit/replay
         } else if (selectedAnswer) {
@@ -181,7 +205,7 @@ export default function Practice({
         return;
       }
 
-      if (!inSing && !showFeedback && !isPlayingScale && /^[1-9]$/.test(e.key)) {
+      if (!inSing && !showFeedback && !feedbackPending && !isPlayingScale && /^[1-9]$/.test(e.key)) {
         const idx = parseInt(e.key, 10) - 1;
         if (idx < options.length) {
           e.preventDefault();
@@ -191,7 +215,7 @@ export default function Practice({
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [question, showFeedback, selectedAnswer, inSing, isPlayingScale, options, onPick, onSubmit, onNext, onReplay, showSettings]);
+  }, [question, showFeedback, feedbackPending, selectedAnswer, inSing, isPlayingScale, options, onPick, onSubmit, onNext, onReplay, showSettings]);
 
   // Play-button sizing collapses on mobile for vertical budget.
   const playSz = mobile ? (tablet ? 88 : 68) : 148;
@@ -296,7 +320,7 @@ export default function Practice({
               }}
               title={`Best this session: ${stats.bestStreak}`}
             >
-              <span style={{ fontSize: mobile ? 14 : 16 }}>🔥</span>
+              <Flame size={mobile ? 14 : 16} strokeWidth={2.4} fill="var(--coral)" />
               {stats.currentStreak} in a row
             </div>
           )}
@@ -563,6 +587,89 @@ export default function Practice({
           )}
         </div>
 
+        {/* Mixed Practice (#5) — category gate: user must classify the question's category
+            before the answer chips become available. Wrong picks count toward analytics but
+            don't fail the question; correctness is decided by the answer chip alone. */}
+        {interleaveCorrectCategory != null && interleaveCategoryOptions && !interleaveCategoryPicked && question && !showFeedback && !feedbackPending ? (
+          <div style={{ marginTop: mobile ? 14 : 28, width: '100%', maxWidth: 720, zIndex: 2, position: 'relative' }}>
+            <div
+              style={{
+                fontFamily: 'var(--ui)',
+                fontSize: mobile ? 12 : 13,
+                color: 'var(--ink-3)',
+                textTransform: 'uppercase',
+                letterSpacing: 1.6,
+                fontWeight: 700,
+                textAlign: 'center',
+                marginBottom: mobile ? 10 : 14,
+              }}
+            >
+              first — what kind of question is this?
+            </div>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: mobile
+                  ? `repeat(${Math.min(interleaveCategoryOptions.length, 3)}, 1fr)`
+                  : `repeat(${Math.min(interleaveCategoryOptions.length, 4)}, 1fr)`,
+                gap: mobile ? 8 : 14,
+              }}
+            >
+              {interleaveCategoryOptions.map((cat, i) => {
+                const toneCycle = ['mint', 'lav', 'butter', 'sky', 'coral'] as const;
+                const tone = toneCycle[i % toneCycle.length];
+                return (
+                  <button
+                    key={cat}
+                    onClick={() => onPickInterleaveCategory?.(cat)}
+                    style={{
+                      padding: mobile ? '12px 10px' : '20px 14px',
+                      borderRadius: mobile ? 14 : 18,
+                      background: `var(--${tone})`,
+                      color: `var(--${tone}-ink)`,
+                      fontFamily: 'var(--ui)',
+                      fontWeight: 600,
+                      fontSize: mobile ? 14 : 18,
+                      border: '1.5px solid rgba(42,29,58,0.08)',
+                      cursor: 'pointer',
+                      boxShadow: 'var(--sh-sm)',
+                      minHeight: mobile ? 44 : 64,
+                    }}
+                  >
+                    {INTERLEAVE_CATEGORY_LABELS[cat]}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ) : (
+          <>
+        {interleaveCorrectCategory != null && interleaveCategoryPicked && interleaveCategoryAttempt && !showFeedback && !feedbackPending && (
+          /* Category was picked — surface a small banner so the user sees their classification feedback. */
+          <div
+            style={{
+              marginTop: mobile ? 8 : 16,
+              padding: '6px 12px',
+              borderRadius: 999,
+              background: interleaveCategoryAttempt === interleaveCorrectCategory ? 'var(--mint-soft)' : 'var(--coral-soft)',
+              color: interleaveCategoryAttempt === interleaveCorrectCategory ? 'var(--mint-ink)' : 'var(--coral-ink)',
+              fontFamily: 'var(--ui)',
+              fontSize: mobile ? 12 : 13,
+              fontWeight: 600,
+              alignSelf: 'center',
+              border: `1px solid ${interleaveCategoryAttempt === interleaveCorrectCategory ? 'var(--mint-ink)' : 'var(--coral-ink)'}`,
+            }}
+          >
+            {interleaveCategoryAttempt === interleaveCorrectCategory ? (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                category: {INTERLEAVE_CATEGORY_LABELS[interleaveCorrectCategory]}
+                <Check size={13} strokeWidth={3} />
+              </span>
+            ) : (
+              `actually a ${INTERLEAVE_CATEGORY_LABELS[interleaveCorrectCategory]}`
+            )}
+          </div>
+        )}
         {/* Sing mode — replaces the answer grid */}
         {question?.responseMode === 'sing' ? (
           !showFeedback ? (
@@ -658,7 +765,11 @@ export default function Practice({
             const isThisCorrect = question?.correctAnswer === opt;
             const showCorrect = showFeedback && isThisCorrect;
             const showWrong = showFeedback && isSelected && !isThisCorrect;
-            const isDegree = level.type === 'scale_degree';
+            // Bucket-key lessons (itemGroups: { stable: ['1','3','5'], ... }) render
+            // their bucket names like "Stable" — not Roman numerals — so they take the
+            // standard answer-chip path, not the degree-chip path. (Previously this was
+            // routed through DegreeChipLabel, which crashed on parseInt('stable') = NaN.)
+            const isDegree = level.type === 'scale_degree' && !level.itemGroups;
             const isTonic = isDegree && opt === '1';
 
             // Brand: scale degrees render as `degchip` — tonic is dark/inverted, others
@@ -693,7 +804,7 @@ export default function Practice({
               <button
                 key={opt}
                 onClick={() => onPick(opt)}
-                disabled={showFeedback || !question || isPlayingScale}
+                disabled={showFeedback || feedbackPending || !question || isPlayingScale}
                 style={{
                   padding: isDegree
                     ? mobile
@@ -710,7 +821,7 @@ export default function Practice({
                   letterSpacing: -0.005,
                   fontSize: mobile ? 14.5 : 22,
                   border,
-                  cursor: showFeedback || !question || isPlayingScale ? 'not-allowed' : 'pointer',
+                  cursor: showFeedback || feedbackPending || !question || isPlayingScale ? 'not-allowed' : 'pointer',
                   boxShadow: 'var(--sh-sm)',
                   transition: 'all 160ms',
                   minHeight: mobile ? 44 : 76,
@@ -756,10 +867,40 @@ export default function Practice({
           })}
         </div>
         )}
+          </>
+        )}
       </div>
 
       {/* Feedback or drone strip — fixed bottom, compact */}
-      {showFeedback && question ? (
+      {feedbackPending && question ? (
+        // Delayed-feedback "thinking..." state — desirable-difficulty per Metcalfe / Kornell-Finn.
+        // The user has committed an answer; we sit with it for ~2.5s before revealing correctness.
+        <div
+          style={{
+            padding: mobile ? '14px 16px' : '24px 36px',
+            borderTop: '1px solid var(--hairline)',
+            background: 'var(--page-2)',
+            flexShrink: 0,
+            textAlign: 'center',
+          }}
+        >
+          <div
+            style={{
+              fontFamily: 'var(--disp)',
+              fontStyle: 'italic',
+              fontWeight: 600,
+              fontSize: mobile ? 15 : 22,
+              color: 'var(--ink-3)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              opacity: 0.7 + 0.3 * Math.sin(t * 4),
+            }}
+          >
+            thinking…
+          </div>
+        </div>
+      ) : showFeedback && question ? (
         <div
           style={{
             padding: mobile ? '10px 16px 12px' : '24px 36px 28px',
@@ -829,7 +970,7 @@ export default function Practice({
             ) : !isCorrect ? (
               <div style={{ fontSize: 12, color: 'var(--ink-2)', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                 actually —{' '}
-                {level.type === 'scale_degree' ? (
+                {level.type === 'scale_degree' && !level.itemGroups ? (
                   <b style={{ color: 'var(--ink-1)' }}>
                     <DegreeChipLabel
                       item={question.correctAnswer}
