@@ -5,6 +5,10 @@ dist/
 # Source of truth lives in public/brand/. See `npm run sync:site-brand`.
 site/brand/
 
+# Generated blog HTML — built from content/blog/*.md by `npm run build:blog`.
+# Source of truth lives in content/blog/. Re-built by `predeploy:site`.
+site/blog/
+
 # Editor
 .DS_Store
 .idea/

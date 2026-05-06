@@ -6,6 +6,7 @@ import {
   replaceAllSessions,
   subscribeSessions,
 } from './sessionStore';
+import { subscribeMastery } from './itemMastery';
 import { identifyUser, isPro, logOutBilling } from './billing';
 import { trackAccountSignup } from './attribution';
 
@@ -21,6 +22,8 @@ export type ProfileSnapshot = {
   singDifficulty: string | null;
   completedLevels: string[];
   hasEverPracticed: boolean;
+  /** Per-item mastery map keyed `${levelId}::${item}` → ItemMastery. See src/lib/itemMastery.ts. */
+  mastery: Record<string, unknown>;
 };
 
 type GetProfile = () => ProfileSnapshot;
@@ -31,6 +34,7 @@ let applyProfile: ApplyProfile | null = null;
 let currentUser: User | null = null;
 let pendingFlushId: ReturnType<typeof setTimeout> | null = null;
 let unsubscribeSessions: (() => void) | null = null;
+let unsubscribeMastery: (() => void) | null = null;
 let unsubscribeAuth: (() => void) | null = null;
 let started = false;
 
@@ -72,14 +76,17 @@ export function startSyncEngine(opts: { getProfile: GetProfile; applyProfile: Ap
   // Initial session check (page reload after magic link, etc.).
   void supabase.auth.getSession().then(({ data }) => handleSession(data.session));
 
-  // Push on local writes (debounced).
+  // Push on local writes (debounced). Both session writes AND mastery updates trigger.
   unsubscribeSessions = subscribeSessions(() => flushSoon());
+  unsubscribeMastery = subscribeMastery(() => flushSoon());
 }
 
 export function stopSyncEngine() {
   unsubscribeSessions?.();
+  unsubscribeMastery?.();
   unsubscribeAuth?.();
   unsubscribeSessions = null;
+  unsubscribeMastery = null;
   unsubscribeAuth = null;
   if (pendingFlushId) { clearTimeout(pendingFlushId); pendingFlushId = null; }
   started = false;
@@ -137,6 +144,7 @@ async function pullProfile() {
     singDifficulty: data.sing_difficulty,
     completedLevels: data.completed_levels ?? [],
     hasEverPracticed: data.has_ever_practiced,
+    mastery: data.mastery ?? {},
   });
 }
 
@@ -190,6 +198,7 @@ async function pushProfile() {
     sing_difficulty: p.singDifficulty,
     completed_levels: p.completedLevels,
     has_ever_practiced: p.hasEverPracticed,
+    mastery: p.mastery,
     updated_at: new Date().toISOString(),
   }, { onConflict: 'user_id' });
   if (error) throw error;

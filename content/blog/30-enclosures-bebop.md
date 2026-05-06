@@ -75,17 +75,7 @@ For a listener (or ear-training student) trying to develop the *recognition* ski
 3. **Sing along.** Even if you cannot reproduce the surrounding line, try to sing the four-note enclosure pattern when you hear it. The vocal commitment converts passive recognition into active understanding.
 4. **Transcribe a chorus.** A single transcribed chorus of any major bebop player will reveal the enclosure pattern repeatedly. The transcription work is itself the most direct ear-training drill for the device.
 
-## What this implies for ear-training apps
-
-Bebop vocabulary is currently absent from most ear-training apps' jazz coverage. Adding it would be a significant content addition; a few specific lessons would already make a difference:
-
-**An enclosure-recognition lesson.** Given an excerpt with a clear enclosure resolving to a chord tone, identify the target. Binary or 3-way classification (target was the 3rd, the 5th, or the 7th of the next chord). Trainable, distinctive, and gateway to bebop ear-training.
-
-**An enclosure-singing lesson.** Sing a four-note enclosure resolving to a target tone, with pitch detection. Same engine as the existing Voice section's `voice_pivot_tonic` (which is structurally a double-neighbor — the close cousin of the enclosure) but with chromatic approach intervals.
-
-**An enclosure-pattern dictation lesson.** Listen to a 1-bar phrase containing one or more enclosures, then notate which target tones were enclosed. This is the bebop equivalent of the rhythmic dictation arc covered in [Rhythmic dictation: the working-memory arc](./28-rhythmic-dictation-working-memory.md).
-
-These are not exotic additions for advanced students. The enclosure is to bebop what the perfect cadence is to classical harmony — the foundational gesture that defines the style. An ear-training curriculum that omits it is omitting most of what makes a jazz solo sound like jazz.
+The enclosure is to bebop what the perfect cadence is to classical harmony — the foundational gesture that defines the style. An ear-training curriculum that omits it is omitting most of what makes a jazz solo sound like jazz.
 
 ---
 

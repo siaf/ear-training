@@ -2,8 +2,9 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useBreakpoint } from '../lib/useBreakpoint';
 import { CURRICULUM, CURRICULUM_SEGMENTS, isLevelUnlocked } from '../curriculum';
 import { CurriculumLevel, CurriculumSegment } from '../types';
-import { Bean, Brand, ColorPill } from '../components/primitives';
+import { Bean, Brand } from '../components/primitives';
 import DesktopSidebar from '../components/DesktopSidebar';
+import DailyReviewTile from '../components/DailyReviewTile';
 import { mascotForColor, segmentColor } from '../lib/segmentColors';
 
 type NodeState = 'done' | 'current' | 'locked';
@@ -21,6 +22,10 @@ interface Props {
   bottomPadding?: number;
   isPro?: boolean;
   isSignedIn?: boolean;
+  /** Count of items past their Leitner-schedule due date. 0 hides the tile. */
+  dueCount?: number;
+  /** Called when the user taps the Daily Review tile. */
+  onStartReview?: () => void;
 }
 
 /* ---------- Right rail (desktop only) ---------- */
@@ -37,7 +42,7 @@ function PathRightRail({
   onUpsellClick?: () => void;
 }) {
   return (
-    <aside style={{ width: 260, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 14, paddingTop: 32 }}>
+    <aside style={{ width: 260, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 14 }}>
       {/* Today — Pulse = streaks / daily practice per brand kit */}
       <div
         style={{
@@ -184,8 +189,9 @@ interface RiverNodeProps {
   palette: ReturnType<typeof segmentColor>;
   mobile: boolean;
   isStartNode: boolean;
+  isSectionNext: boolean;
+  hasAnyDone: boolean;
   isLastInSegment: boolean;
-  isFirstInSegment: boolean;
   segmentTailwindColor: string;
   onClick: () => void;
   proLocked?: boolean;
@@ -214,8 +220,9 @@ function RiverNode({
   palette,
   mobile,
   isStartNode,
+  isSectionNext,
+  hasAnyDone,
   isLastInSegment,
-  isFirstInSegment,
   segmentTailwindColor,
   onClick,
   proLocked = false,
@@ -223,8 +230,8 @@ function RiverNode({
   // Smooth sine curve — period ≈ 7.4 nodes, gives a continuous S-wave.
   const amplitude = mobile ? 70 : 130;
   const offset = Math.sin(idx * 0.85) * amplitude;
-  const t = useBreathe(state === 'current');
-  const pulse = state === 'current' ? 0.5 + 0.5 * Math.sin(t * 2.6) : 0;
+  const t = useBreathe(isStartNode);
+  const pulse = isStartNode ? 0.5 + 0.5 * Math.sin(t * 2.6) : 0;
   const bubbleBob = isStartNode ? Math.sin(t * 2.2) * 2 : 0;
 
   const isDone = state === 'done';
@@ -236,13 +243,12 @@ function RiverNode({
   const iconSize = mobile ? 28 : 36;
 
   const shadow = isDone
-    ? `0 6px 0 ${palette.ink}, 0 10px 20px rgba(42,29,58,0.18)`
-    : isCur
-    ? `0 6px 0 ${palette.ink}, 0 10px 24px rgba(42,29,58,0.22)`
+    ? `0 6px 0 var(--ink-1), 0 10px 20px rgba(42,29,58,0.18)`
+    : isSectionNext
+    ? `0 6px 0 var(--ink-1), 0 10px 24px rgba(42,29,58,0.22)`
     : `0 5px 0 rgba(42,29,58,0.10)`;
 
-  const mascotSize = mobile ? 90 : 150;
-  const emptySideOffset = -offset * 1.5; // opposite side of the curve
+  const mascotSize = 80;
   return (
     <div
       style={{
@@ -250,9 +256,18 @@ function RiverNode({
         marginBottom: mobile ? 22 : 18,
       }}
     >
-      {isFirstInSegment && (
-        // Segment-owned mascot — positioned on the empty side of the curve, behind the node.
-        // Mapping: coral→Fable, mint→Noir, butter→Major, sky→Pulse, lav→Fable fallback.
+    <div
+      style={{
+        position: 'relative',
+        display: 'flex',
+        justifyContent: 'center',
+        transform: `translateX(${offset}px)`,
+        zIndex: 2,
+      }}
+    >
+      {isSectionNext && (
+        // Section-owned mascot — stands to the left of the section's next-up node, like a guide.
+        // Anchored to the button's center via translate so label width can't shift it around.
         <img
           src={`${import.meta.env.BASE_URL}brand/mascots/${mascotForColor(segmentTailwindColor)}/portrait.png`}
           alt=""
@@ -263,24 +278,18 @@ function RiverNode({
             left: '50%',
             width: mascotSize,
             height: 'auto',
-            transform: `translate(calc(-50% + ${emptySideOffset}px), -50%)`,
+            transform: `translate(calc(-100% - ${sz / 2 + 12}px), -50%)`,
             pointerEvents: 'none',
             filter: 'drop-shadow(0 8px 16px rgba(42,29,58,0.18))',
             zIndex: 1,
           }}
         />
       )}
-    <div
-      style={{
-        position: 'relative',
-        display: 'flex',
-        justifyContent: 'center',
-        transform: `translateX(${offset}px)`,
-        zIndex: 2,
-      }}
-    >
-      {isStartNode && (
-        <div
+      {isSectionNext && (
+        <button
+          type="button"
+          onClick={onClick}
+          aria-label={isStartNode ? (hasAnyDone ? 'Continue' : 'Start') : 'Jump here'}
           style={{
             position: 'absolute',
             bottom: `calc(100% - ${mobile ? 2 : 4}px)`,
@@ -296,16 +305,16 @@ function RiverNode({
             fontWeight: 700,
             fontSize: mobile ? 12 : 13,
             letterSpacing: 0.5,
-            color: 'var(--coral-ink)',
+            color: isStartNode ? 'var(--coral-ink)' : palette.ink,
             whiteSpace: 'nowrap',
-            pointerEvents: 'none',
+            cursor: 'pointer',
             zIndex: 3,
           }}
         >
-          START
-        </div>
+          {isStartNode ? (hasAnyDone ? 'CONTINUE' : 'START') : 'JUMP HERE'}
+        </button>
       )}
-      {isCur && (
+      {isStartNode && (
         <div
           style={{
             position: 'absolute',
@@ -330,13 +339,13 @@ function RiverNode({
             width: sz,
             height: sz,
             borderRadius: '50%',
-            background: proLocked ? 'var(--butter-soft)' : isDone ? palette.bg : isCur ? palette.bg : 'var(--card)',
-            border: `3px solid ${proLocked ? 'var(--butter-ink)' : isDone || isCur ? 'var(--ink-1)' : 'var(--ink-5)'}`,
+            background: proLocked ? 'var(--butter-soft)' : isDone ? palette.bg : isSectionNext ? palette.bg : 'var(--card)',
+            border: `3px solid ${proLocked ? 'var(--butter-ink)' : isDone || isSectionNext ? 'var(--ink-1)' : 'var(--ink-5)'}`,
             boxShadow: shadow,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: proLocked ? 'var(--butter-ink)' : isDone || isCur ? '#fff' : 'var(--ink-4)',
+            color: proLocked ? 'var(--butter-ink)' : isDone || isSectionNext ? '#fff' : 'var(--ink-4)',
             fontFamily: 'var(--disp)',
             fontWeight: 600,
             fontSize: mobile ? 24 : 28,
@@ -370,12 +379,37 @@ function RiverNode({
             PRO
           </span>
         )}
+        {isDone && !proLocked && (
+          <span
+            aria-label="Completed"
+            style={{
+              position: 'absolute',
+              top: -4,
+              right: -4,
+              width: mobile ? 22 : 26,
+              height: mobile ? 22 : 26,
+              borderRadius: '50%',
+              background: 'var(--mint)',
+              color: 'var(--mint-ink)',
+              border: '2px solid var(--ink-1)',
+              boxShadow: '0 2px 0 var(--ink-1)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 4,
+            }}
+          >
+            <svg width={mobile ? 12 : 14} height={mobile ? 12 : 14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={4} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          </span>
+        )}
         <div
           style={{
             padding: '4px 12px',
             borderRadius: 999,
-            background: isCur ? 'var(--ink-1)' : 'rgba(255,255,255,0.85)',
-            color: isCur ? 'var(--page)' : isDone ? 'var(--ink-1)' : 'var(--ink-3)',
+            background: isSectionNext ? 'var(--ink-1)' : 'rgba(255,255,255,0.85)',
+            color: isSectionNext ? 'var(--page)' : isDone ? 'var(--ink-1)' : 'var(--ink-3)',
             fontSize: mobile ? 11 : 12,
             fontWeight: 600,
             letterSpacing: 0.1,
@@ -383,7 +417,7 @@ function RiverNode({
             maxWidth: mobile ? 180 : 260,
             overflow: 'hidden',
             textOverflow: 'ellipsis',
-            boxShadow: isCur ? '0 4px 12px rgba(42,29,58,0.2)' : 'none',
+            boxShadow: isSectionNext ? '0 4px 12px rgba(42,29,58,0.2)' : 'none',
           }}
         >
           {level.name}
@@ -527,6 +561,9 @@ function RiverInner({
     <div style={{ paddingBottom: mobile ? 30 : 40 }}>
       {segments.map((segment, si) => {
         const palette = segmentColor(segment.color, si);
+        const sectionNextId = segment.levels.find(
+          (l) => !completed.has(l.id) && isLevelUnlocked(l, completedArr, { unlockAll: debug }),
+        )?.id;
         return (
           <section key={segment.id} style={{ position: 'relative' }}>
             <StickyBanner segment={segment} unitIdx={si} mobile={mobile} />
@@ -542,6 +579,7 @@ function RiverInner({
                 const proLocked = level.tier === 'pro' && !isPro;
                 const state = resolveState(level, completed, completedArr, level.id === currentLevelId, debug);
                 const isStart = level.id === currentLevelId;
+                const isSectionNext = level.id === sectionNextId;
                 const isLast = li === segment.levels.length - 1;
                 return (
                   <div key={level.id} ref={isStart ? currentNodeRef : undefined}>
@@ -552,8 +590,9 @@ function RiverInner({
                       palette={palette}
                       mobile={mobile}
                       isStartNode={isStart}
+                      isSectionNext={isSectionNext}
+                      hasAnyDone={completedArr.length > 0}
                       isLastInSegment={isLast}
-                      isFirstInSegment={li === 1}
                       segmentTailwindColor={segment.color}
                       proLocked={proLocked}
                       onClick={() => {
@@ -586,6 +625,8 @@ export default function Path({
   bottomPadding = 0,
   isPro = false,
   isSignedIn = false,
+  dueCount = 0,
+  onStartReview,
 }: Props) {
   const upsellMode: UpsellMode = isPro
     ? 'none'
@@ -676,14 +717,7 @@ export default function Path({
                     textOverflow: 'ellipsis',
                   }}
                 >
-                  {currentSegment ? (
-                    <>
-                      {currentSegment.name}{' '}
-                      <span style={{ fontStyle: 'italic', color: segPalette.ink }}>· path</span>
-                    </>
-                  ) : (
-                    'Your path'
-                  )}
+                  Your <span style={{ fontStyle: 'italic', color: segPalette.ink }}>path</span>
                 </h1>
                 <p style={{ fontSize: 11, color: 'var(--ink-2)', margin: '2px 0 0' }}>
                   {completedLevels.length} of {totalLevels} cleared
@@ -709,24 +743,17 @@ export default function Path({
                 margin: '0 auto',
                 width: '100%',
                 padding: '32px 44px 8px',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'flex-end',
-                gap: 18,
                 boxSizing: 'border-box',
               }}
             >
-              <div style={{ minWidth: 0 }}>
-                {currentSegment && (
-                  <ColorPill
-                    tone={
-                      (['coral', 'lav', 'mint', 'butter', 'sky'] as const).find((c) => `var(--${c})` === segPalette.bg) ?? 'lav'
-                    }
-                    style={{ marginBottom: 8 }}
-                  >
-                    your path
-                  </ColorPill>
-                )}
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  gap: 18,
+                }}
+              >
                 <h1
                   style={{
                     fontFamily: 'var(--disp)',
@@ -736,22 +763,15 @@ export default function Path({
                     margin: 0,
                   }}
                 >
-                  {currentSegment ? (
-                    <>
-                      {currentSegment.name}{' '}
-                      <span style={{ fontStyle: 'italic', color: segPalette.ink }}>· your path</span>
-                    </>
-                  ) : (
-                    'Your path'
-                  )}
+                  Your <span style={{ fontStyle: 'italic', color: segPalette.ink }}>path</span>
                 </h1>
-                <p style={{ fontSize: 13, color: 'var(--ink-2)', margin: '6px 0 0' }}>
-                  {completedLevels.length} of {totalLevels} cleared
-                </p>
+                <Bean tone="coral" size="md" onClick={() => onStart(currentLevelId)}>
+                  ▶ Continue
+                </Bean>
               </div>
-              <Bean tone="coral" size="md" onClick={() => onStart(currentLevelId)}>
-                ▶ Continue
-              </Bean>
+              <p style={{ fontSize: 13, color: 'var(--ink-2)', margin: '6px 0 0' }}>
+                {completedLevels.length} of {totalLevels} cleared
+              </p>
             </div>
           )}
           <div
@@ -768,6 +788,14 @@ export default function Path({
           >
             <div style={{ flex: mobile ? 'none' : 1, minWidth: 0 }}>
               <div style={{ maxWidth: mobile ? undefined : 720, margin: '0 auto' }}>
+                {dueCount > 0 && onStartReview && (
+                  <DailyReviewTile
+                    dueCount={dueCount}
+                    hasCompletedAny={completedLevels.length > 0}
+                    mobile={mobile}
+                    onStart={onStartReview}
+                  />
+                )}
                 <RiverInner
                   segments={segments}
                   mobile={mobile}

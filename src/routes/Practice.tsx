@@ -7,6 +7,10 @@ import { audioEngine } from '../audioEngine';
 import { useBreakpoint } from '../lib/useBreakpoint';
 import SingPrompt from '../components/SingPrompt';
 import SingSequence from '../components/SingSequence';
+import RhythmTapPad from '../components/RhythmTapPad';
+import RhythmGrid from '../components/RhythmGrid';
+import { gradeGrid } from '../lib/rhythmGrader';
+import { encodeGrid } from '../lib/rhythmPatterns';
 import { SingDifficulty, effectiveSingTolerance } from './Settings';
 import { DegreeNotation, DEFAULT_DEGREE_NOTATION, formatDegree, formatDegreeText } from '../lib/degreeNotation';
 
@@ -542,19 +546,21 @@ export default function Practice({
               </>
             )}
           </div>
-          <div
-            style={{
-              fontSize: mobile ? 20 : 30,
-              color: 'var(--ink-1)',
-              fontFamily: 'var(--disp)',
-              fontWeight: 600,
-              letterSpacing: -0.005,
-              lineHeight: 1.15,
-              textAlign: 'center',
-            }}
-          >
-            {isPlayingScale ? 'New key — listen' : 'What did you hear?'}
-          </div>
+          {!(question?.responseMode === 'sing' && !isPlayingScale) && (
+            <div
+              style={{
+                fontSize: mobile ? 20 : 30,
+                color: 'var(--ink-1)',
+                fontFamily: 'var(--disp)',
+                fontWeight: 600,
+                letterSpacing: -0.005,
+                lineHeight: 1.15,
+                textAlign: 'center',
+              }}
+            >
+              {isPlayingScale ? 'New key — listen' : 'What did you hear?'}
+            </div>
+          )}
         </div>
 
         {/* Sing mode — replaces the answer grid */}
@@ -586,6 +592,39 @@ export default function Practice({
                   onCancel={() => onAnswer('__skip__')}
                 />
               )}
+            </div>
+          ) : null
+        ) : question?.responseMode === 'tap' ? (
+          /* Rhythm tap-back — pad plays its own audio and captures user taps. */
+          !showFeedback ? (
+            <div style={{ marginTop: mobile ? 14 : 28, width: '100%', maxWidth: 520, zIndex: 2, position: 'relative' }}>
+              <RhythmTapPad
+                key={question.id}
+                targetOnsetsBeats={question.targetOnsets ?? []}
+                bpm={question.rhythmBpm ?? 100}
+                toleranceMs={level.rhythmTapToleranceMs ?? 130}
+                passScore={level.rhythmPassScore ?? 0.7}
+                mobile={mobile}
+                onComplete={(r) => onAnswer(r.passed ? question.correctAnswer : '__wrong__')}
+                onCancel={() => onAnswer('__skip__')}
+              />
+            </div>
+          ) : null
+        ) : question?.responseMode === 'grid' ? (
+          /* Rhythm dictation — 16-cell grid input. Strict equality grade. */
+          !showFeedback ? (
+            <div style={{ marginTop: mobile ? 14 : 28, width: '100%', maxWidth: 760, zIndex: 2, position: 'relative' }}>
+              <RhythmGrid
+                key={question.id}
+                mobile={mobile}
+                onReplay={onReplay}
+                onSubmit={(cells) => {
+                  const target = question.targetGrid ?? [];
+                  const r = gradeGrid(cells, target);
+                  onAnswer(r.passed ? question.correctAnswer : encodeGrid(cells));
+                }}
+                onCancel={() => onAnswer('__skip__')}
+              />
             </div>
           ) : null
         ) : (

@@ -30,7 +30,16 @@ export type ScaleDegreeContext =
 export type QuestionType =
   | 'interval' | 'triad' | 'seventh_chord' | 'mode' | 'scale_degree' | 'acoustic'
   | 'cadence' | 'inversion' | 'progression'
-  | 'chord_extension' | 'borrowed_chord' | 'voicing';
+  | 'chord_extension' | 'borrowed_chord' | 'voicing'
+  | 'rhythm';
+
+// Rhythm sub-kinds. Each maps to a different audio playback shape + answer space + UI input mode.
+export type RhythmKind = 'same_diff' | 'tap_back' | 'subdivision' | 'meter' | 'dictation';
+
+// Time signatures the meter level distinguishes between.
+export type MeterLabel = '2/4' | '3/4' | '4/4' | '6/8' | '5/4';
+// Subdivision labels.
+export type SubdivisionLabel = 'eighths' | 'sixteenths' | 'triplets' | 'dotted';
 
 // Cadence labels — what the four-chord progression resolves to.
 export type CadenceType = 'authentic' | 'plagal' | 'half' | 'deceptive';
@@ -55,7 +64,7 @@ export type DiatonicScale = 'major' | 'natural_minor';
 export type IntervalDirection = 'ascending' | 'descending';
 export type IntervalPresentation = 'harmonic' | 'melodic';
 
-export type ResponseMode = 'select' | 'sing';
+export type ResponseMode = 'select' | 'sing' | 'tap' | 'grid';
 
 export interface Question {
   id: string;
@@ -72,6 +81,11 @@ export interface Question {
   acousticSemis?: number; // Frozen semitone interval for higher_lower / consonance so replay matches the original.
   responseMode?: ResponseMode; // Defaults to 'select'.
   targetNotes?: string[]; // Notes the user must sing (for responseMode='sing'). Defaults to playedNotes.
+  // --- Rhythm questions ---
+  rhythmKind?: RhythmKind; // Sub-kind of a 'rhythm' question.
+  rhythmBpm?: number; // BPM the pattern was played at (also used for tap-back grading).
+  targetOnsets?: number[]; // For tap_back: expected beat-position onsets in fractional beats (0..N). User taps timed against these.
+  targetGrid?: boolean[]; // For dictation: 16-cell on/off pattern (1 bar of 16th notes).
 }
 
 export interface Answer {
@@ -172,6 +186,11 @@ export interface CurriculumLevel {
   inversionQualities?: string[]; // Triad / 7th qualities to randomize over for inversion drills. Defaults to ['major'] for triads, ['dominant_7'] for sevenths.
   voicingChord?: 'maj7' | 'm7' | '7'; // For type='voicing' — chord whose voicing varies. Defaults to 'maj7'.
   extensionTarget?: 'I' | 'IV' | 'V' | 'ii'; // For type='chord_extension' — which diatonic chord receives the extension. Defaults to 'V'.
+  // --- Rhythm levels ---
+  rhythmKind?: RhythmKind; // Sub-kind for type='rhythm'.
+  rhythmBpm?: number; // Default BPM. Defaults to 100.
+  rhythmTapToleranceMs?: number; // ± ms a tap can fall around a target onset. Defaults to 130 ms (forgiving for first lessons).
+  rhythmPassScore?: number; // 0..1 grader threshold to count as correct. Defaults to 0.7 (tap), 1.0 (grid).
 }
 
 export type Mascot = 'fable' | 'noir' | 'major' | 'pulse';

@@ -139,7 +139,7 @@ export default function SingPrompt({
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: mobile ? 12 : 18, width: '100%' }}>
       <div style={{ fontSize: 10, color: 'var(--ink-3)', textTransform: 'uppercase', letterSpacing: 1.5, fontWeight: 600 }}>
         {status === 'permission' && 'waiting for mic…'}
-        {status === 'listening' && (zone === 'far' ? 'way off — try again' : zone === 'close' ? 'close — fine-tune' : zone === 'onTarget' ? 'nice — hold it' : 'sing the note you heard')}
+        {status === 'listening' && ' '}
         {status === 'denied' && 'microphone blocked'}
         {status === 'error' && 'mic error'}
       </div>
@@ -205,6 +205,31 @@ export default function SingPrompt({
           >
             ✓
           </div>
+        )}
+      </div>
+
+      {/* Live zone hint — color-coded, sized to read at a glance */}
+      <div
+        aria-live="polite"
+        style={{
+          fontSize: mobile ? 14 : 16,
+          fontWeight: 700,
+          letterSpacing: 0.4,
+          textTransform: 'uppercase',
+          color:
+            zone === 'onTarget' ? 'var(--mint-ink)'
+            : zone === 'close' ? 'var(--coral-ink)'
+            : zone === 'far' ? 'var(--coral-ink)'
+            : 'var(--ink-3)',
+          minHeight: mobile ? 18 : 20,
+          textAlign: 'center',
+        }}
+      >
+        {status === 'listening' && (
+          zone === 'far' ? 'way off — try again'
+          : zone === 'close' ? 'close — fine-tune'
+          : zone === 'onTarget' ? 'nice — hold it'
+          : ' '
         )}
       </div>
 

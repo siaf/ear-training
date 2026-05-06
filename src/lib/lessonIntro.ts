@@ -9,7 +9,8 @@ import type { CurriculumLevel, LessonIntroCopy, Mascot } from '../types';
 // First-in-concept lesson IDs get Fable — they're the user's introduction.
 const FIRST_IN_CONCEPT = new Set<string>([
   'found_higher_lower',          // very first lesson
-  'ton_is_tonic',                // first tonality concept
+  'ton_stable_unstable',         // first tonality concept (reordered before ton_is_tonic)
+  'ton_is_tonic',                // tonality refinement
   'ton_cadence_basic',           // first cadence teaching
   'scale_degree_major_1',        // first scale-degree teaching
   'int_harmonic_4ths_5ths',      // first intervals teaching
@@ -22,6 +23,11 @@ const FIRST_IN_CONCEPT = new Set<string>([
   'jazz_dom_extensions',         // first jazz extension drill
   'jazz_modal_interchange',      // first modal-interchange drill
   'jazz_voicings',               // first voicing drill
+  'rhy_same_diff',               // first rhythm drill
+  'rhy_tap_back',                // first tap-back drill
+  'rhy_subdivisions',            // first subdivision drill
+  'rhy_meter',                   // first meter drill
+  'rhy_dictation',               // first dictation drill
 ]);
 
 // Comprehensive / mastery lessons get Major — end-of-unit warmth.
@@ -41,6 +47,8 @@ const CAPSTONE = new Set<string>([
 ]);
 
 function pickMascot(level: CurriculumLevel): Mascot {
+  // Rhythm is Pulse's territory across the board — even first-in-concept and capstone.
+  if (level.type === 'rhythm') return 'pulse';
   if (FIRST_IN_CONCEPT.has(level.id)) return 'fable';
   if (CAPSTONE.has(level.id)) return 'major';
   if (level.type === 'acoustic' && level.acousticKind === 'sing_sequence') return 'pulse';
@@ -171,6 +179,12 @@ function getDefaultIntroBody(level: CurriculumLevel): IntroBody {
         idea: 'A voicing is how a chord is laid out vertically.',
         purpose: 'Same chord, different sound. Pianists and arrangers cycle voicings constantly — recognizing them tightens your harmonic ear.',
         expectation: "You'll hear one chord. Tap which voicing.",
+      };
+    case 'rhythm':
+      return {
+        idea: 'Rhythm has a vocabulary just like pitch does.',
+        purpose: 'Same/different, subdivision, meter, dictation — these are the same drills every drummer and producer runs through. Build them once and groove starts being legible.',
+        expectation: "Listen to the pattern. Answer with the right input — tap, click a button, or fill the grid.",
       };
   }
 

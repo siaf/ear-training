@@ -5,6 +5,15 @@ import { AnalyticsEngine } from './analytics';
 import { Answer, Question } from './types';
 import { filterDiatonicItems } from './scaleContext';
 import { realizeDiatonicSequence, sequenceStartDegreeForQuestion } from './lib/diatonic';
+import { pickTapPattern, pickDictationPattern, gridToOnsets, encodeGrid } from './lib/rhythmPatterns';
+import {
+  loadMastery,
+  saveMastery,
+  recordAnswer as recordMasteryAnswer,
+  pickItemWithDedupe,
+  type MasteryMap,
+} from './lib/itemMastery';
+import { getDueItems, countDueItems, type DueItem } from './lib/spacedReview';
 import Path from './routes/Path';
 import PracticeRoute from './routes/Practice';
 import Results from './routes/Results';
@@ -56,6 +65,9 @@ const NON_TONAL_ACOUSTIC_KINDS: AcousticKind[] = [
 // These don't need a separate scale-reference preamble.
 const SELF_KEYED_TYPES = new Set(['cadence', 'progression', 'chord_extension', 'borrowed_chord', 'voicing', 'inversion']);
 
+// Rhythm levels are non-tonal — no scale reference, no key label.
+const NON_TONAL_TYPES = new Set(['rhythm']);
+
 interface LessonConfig {
   establishTonality: boolean;
   maxQuestions: number;
@@ -63,16 +75,26 @@ interface LessonConfig {
 }
 
 function getLessonConfig(level: CurriculumLevel): LessonConfig {
-  const nonTonal = level.type === 'acoustic' && level.acousticKind
+  const nonTonalAcoustic = level.type === 'acoustic' && level.acousticKind
     ? NON_TONAL_ACOUSTIC_KINDS.includes(level.acousticKind)
     : false;
+  const nonTonal = nonTonalAcoustic || NON_TONAL_TYPES.has(level.type);
   const establishTonality = level.establishTonality ?? !nonTonal;
+  // Default question count scales with item-set size (4 questions per item, clamped 6..14).
+  // A 2-item lesson defaults to 8 not 15 — fixes the "feels long and repetitive" feedback.
+  // Lessons with itemGroups (e.g. tonic vs not_tonic) use the bucket count, not raw items.
+  const effectiveItemCount =
+    level.itemGroups ? Object.keys(level.itemGroups).length : Math.max(1, level.items.length);
+  const sizedDefault = Math.min(14, Math.max(6, effectiveItemCount * 4));
   if (!establishTonality) {
-    const maxQuestions = level.maxQuestions ?? 8;
+    const maxQuestions = level.maxQuestions ?? sizedDefault;
     return { establishTonality: false, maxQuestions, questionsPerKey: maxQuestions };
   }
-  const maxQuestions = level.maxQuestions ?? 15;
-  const questionsPerKey = level.questionsPerKey ?? 5;
+  const maxQuestions = level.maxQuestions ?? sizedDefault;
+  // For tonal lessons with very small item sets, drop questionsPerKey from 5 → 3
+  // so a single key block doesn't compound the repetition feel.
+  const sizedQpK = effectiveItemCount <= 2 ? 3 : 5;
+  const questionsPerKey = level.questionsPerKey ?? sizedQpK;
   return { establishTonality: true, maxQuestions, questionsPerKey };
 }
 
@@ -187,6 +209,21 @@ export default function App() {
   const completedLevelsRef = useRef<string[]>(initial.completedLevels);
   const settingsRef = useRef<SettingsState>(initial.settings);
   const hasEverPracticedRef = useRef<boolean>(initial.hasEverPracticed);
+  // Per-item mastery map (Leitner box state + recent results buffer per (levelId, item)).
+  // Used by the weighted picker in generateQuestion AND the Daily Review tile on Path.
+  // Loaded from localStorage on init; saved on every answer.
+  const masteryRef = useRef<MasteryMap>(loadMastery());
+  // Adjacent-question dedupe ring buffer (most-recent-last). Reset on startSession.
+  const recentItemTypesRef = useRef<string[]>([]);
+  // Set of `${levelId}::${item}` keys already seen in the current session — feeds the
+  // recency bonus in getItemWeight so untouched items don't vanish under up-weighting.
+  const seenThisSessionRef = useRef<Set<string>>(new Set());
+  // Daily Review session state. When non-null + cursor < queue.length, the practice
+  // orchestrator overrides currentLevel + the random item pick with the queued due item.
+  // null = no review session active.
+  const [reviewSession, setReviewSession] = useState<{ queue: DueItem[]; cursor: number } | null>(null);
+  const reviewSessionRef = useRef(reviewSession);
+  useEffect(() => { reviewSessionRef.current = reviewSession; }, [reviewSession]);
   useEffect(() => { completedLevelsRef.current = completedLevels; }, [completedLevels]);
   useEffect(() => { settingsRef.current = settings; }, [settings]);
   useEffect(() => { hasEverPracticedRef.current = hasEverPracticed; }, [hasEverPracticed]);
@@ -207,7 +244,15 @@ export default function App() {
   const ANON_LESSON_LIMIT = 7;
   const pendingPurchaseRef = useRef<string | null>(null);
   const pendingStartRef = useRef<string | null>(null);
-  const currentLevel = selectedLevelId
+  // In review mode, currentLevel flips per-question to the queue's current item's source level.
+  // Each question is sampled from a different lesson (mixed-level review).
+  const reviewActiveItem =
+    reviewSession && reviewSession.cursor < reviewSession.queue.length
+      ? reviewSession.queue[reviewSession.cursor]
+      : null;
+  const currentLevel = reviewActiveItem
+    ? CURRICULUM.find((l) => l.id === reviewActiveItem.levelId) ?? getCurrentLevel(completedLevels, proActive)
+    : selectedLevelId
     ? CURRICULUM.find((l) => l.id === selectedLevelId) ?? getCurrentLevel(completedLevels, proActive)
     : getCurrentLevel(completedLevels, proActive);
   const lessonCfg = getLessonConfig(currentLevel);
@@ -265,6 +310,7 @@ export default function App() {
       singDifficulty: settingsRef.current.singDifficulty ?? null,
       completedLevels: completedLevelsRef.current,
       hasEverPracticed: hasEverPracticedRef.current,
+      mastery: masteryRef.current as unknown as Record<string, unknown>,
     });
     const applyProfile = (p: ProfileSnapshot) => {
       setSettings((curr) => ({
@@ -278,6 +324,12 @@ export default function App() {
       }));
       setCompletedLevels((curr) => Array.from(new Set([...curr, ...p.completedLevels])));
       if (p.hasEverPracticed) setHasEverPracticed(true);
+      // Merge cloud mastery on top of local (cloud wins per key) so cross-device review queues
+      // stay consistent. Last-write-wins is fine here — recordAnswer rebuilds on each answer.
+      if (p.mastery && typeof p.mastery === 'object') {
+        masteryRef.current = { ...masteryRef.current, ...(p.mastery as MasteryMap) };
+        saveMastery(masteryRef.current);
+      }
     };
     startSyncEngine({ getProfile, applyProfile });
     const unsub = subscribeSyncState((s) => {
@@ -317,6 +369,9 @@ export default function App() {
       setLastKeyChangeQuestion(-1);
       setIntroDismissed(false);
       setSessionStartedAt(Date.now());
+      // Reset per-session sampling state (dedupe buffer + seen-this-session set).
+      recentItemTypesRef.current = [];
+      seenThisSessionRef.current = new Set();
       setRoute('practice');
       cancelStreakReminder().catch(() => {});
       const level = CURRICULUM.find((l) => l.id === levelId);
@@ -346,6 +401,20 @@ export default function App() {
     [isSignedIn, completedLevels.length, startSession],
   );
 
+  /**
+   * Start a Daily Review session. Pulls due items from the Leitner schedule, picks the source
+   * level of the first item as a starting point, and flips into review mode where each question
+   * is forced to the next due-item value (cursor advances on handleNext).
+   */
+  const startReviewSession = useCallback(async () => {
+    const due = getDueItems(masteryRef.current, completedLevels, Date.now(), 10);
+    if (due.length === 0) return;
+    setReviewSession({ queue: due, cursor: 0 });
+    // Reuse startSession to set up the practice route + audio + analytics; the levelId is just
+    // the queue's first item's source level (currentLevel will flip per-question via reviewSession).
+    void startSession(due[0].levelId);
+  }, [completedLevels, startSession]);
+
   const generateQuestion = useCallback(async () => {
     const level = currentLevel;
     let playedNotes: string[] = [];
@@ -353,6 +422,21 @@ export default function App() {
     let correctAnswer: string;
     let rootNote: string;
     let acousticSemis: number | undefined;
+    let pendingRhythmOnsets: number[] | undefined;
+    let pendingRhythmGrid: boolean[] | undefined;
+
+    // Review-mode override: when the Daily Review tile started a session, the queue carries
+    // (levelId, item) tuples picked by the Leitner scheduler. We force the item to that value
+    // and skip the weighted/dedupe picker. The orchestrator already swapped `currentLevel` to
+    // the queue item's source level so playback paths "just work".
+    const rs = reviewSessionRef.current;
+    const forcedItem = rs && rs.cursor < rs.queue.length && rs.queue[rs.cursor].levelId === level.id
+      ? rs.queue[rs.cursor].item
+      : null;
+    const pickItem = (items: string[]): string => {
+      if (forcedItem !== null) return forcedItem;
+      return pickItemWithDedupe(level.id, items, recentItemTypesRef.current, masteryRef.current, seenThisSessionRef.current);
+    };
 
     // Wait until any previous playback (scale reference, previous note) is fully done
     // before triggering the quiz sound. Prevents scale + question-note overlap.
@@ -361,7 +445,7 @@ export default function App() {
     }
 
     if (level.type === 'scale_degree') {
-      const randomDegree = level.items[Math.floor(Math.random() * level.items.length)];
+      const randomDegree = pickItem(level.items);
       itemType = randomDegree;
       correctAnswer = resolveGroupedAnswer(randomDegree, level.itemGroups);
       rootNote = currentScaleRoot;
@@ -392,7 +476,7 @@ export default function App() {
           correctAnswer = sequence.join(',');
           playedNotes = await audioEngine.playSequence(sequence);
         } else {
-          const answer = level.items[Math.floor(Math.random() * level.items.length)];
+          const answer = pickItem(level.items);
           itemType = answer;
           correctAnswer = answer;
           const acoustic = await audioEngine.playAcoustic(level.acousticKind, answer, rootNote);
@@ -405,7 +489,7 @@ export default function App() {
         correctAnswer = 'A4';
       }
     } else if (level.type === 'cadence') {
-      const pick = level.items[Math.floor(Math.random() * level.items.length)];
+      const pick = pickItem(level.items);
       itemType = pick;
       correctAnswer = pick;
       rootNote = currentScaleRoot;
@@ -417,7 +501,7 @@ export default function App() {
         );
       } catch (err) { console.error('playCadence error:', err); }
     } else if (level.type === 'inversion') {
-      const position = level.items[Math.floor(Math.random() * level.items.length)];
+      const position = pickItem(level.items);
       const qualities = level.inversionQualities ?? (level.inversionKind === 'seventh' ? ['dominant_7'] : ['major']);
       const quality = qualities[Math.floor(Math.random() * qualities.length)];
       itemType = position;
@@ -432,7 +516,7 @@ export default function App() {
         );
       } catch (err) { console.error('playInversion error:', err); }
     } else if (level.type === 'progression') {
-      const pick = level.items[Math.floor(Math.random() * level.items.length)];
+      const pick = pickItem(level.items);
       itemType = pick;
       correctAnswer = pick;
       rootNote = currentScaleRoot;
@@ -440,7 +524,7 @@ export default function App() {
         playedNotes = await audioEngine.playProgression(rootNote, pick);
       } catch (err) { console.error('playProgression error:', err); }
     } else if (level.type === 'chord_extension') {
-      const pick = level.items[Math.floor(Math.random() * level.items.length)];
+      const pick = pickItem(level.items);
       itemType = pick;
       correctAnswer = pick;
       rootNote = currentScaleRoot;
@@ -452,7 +536,7 @@ export default function App() {
         );
       } catch (err) { console.error('playChordExtension error:', err); }
     } else if (level.type === 'borrowed_chord') {
-      const pick = level.items[Math.floor(Math.random() * level.items.length)];
+      const pick = pickItem(level.items);
       itemType = pick;
       correctAnswer = pick;
       rootNote = currentScaleRoot;
@@ -463,7 +547,7 @@ export default function App() {
         );
       } catch (err) { console.error('playBorrowedChord error:', err); }
     } else if (level.type === 'voicing') {
-      const pick = level.items[Math.floor(Math.random() * level.items.length)];
+      const pick = pickItem(level.items);
       itemType = pick;
       correctAnswer = pick;
       rootNote = currentScaleRoot;
@@ -474,9 +558,77 @@ export default function App() {
           pick as 'closed' | 'drop2' | 'quartal' | 'upper_structure',
         );
       } catch (err) { console.error('playVoicing error:', err); }
+    } else if (level.type === 'rhythm') {
+      const bpm = level.rhythmBpm ?? 100;
+      rootNote = currentScaleRoot;
+      const kind = level.rhythmKind ?? 'same_diff';
+      try {
+        if (kind === 'same_diff') {
+          // Two patterns played in sequence — same or different. Use the same pattern bank.
+          const pattern = pickTapPattern();
+          const willDiffer = Math.random() < 0.5;
+          // For "different" mode, swap one onset. Cheap mutation.
+          const second = willDiffer
+            ? pattern.onsets.map((o, i) => (i === 0 ? o : o + (Math.random() < 0.5 ? 0.25 : -0.25))).map((o) => Math.max(0, o))
+            : pattern.onsets.slice();
+          itemType = willDiffer ? 'different' : 'same';
+          correctAnswer = itemType;
+          // Play first pattern, then second after a 1-bar gap.
+          const beatSec = 60 / bpm;
+          const offsetBeats = 4.5; // one bar of rest then next pattern
+          const allOnsets = [...pattern.onsets, ...second.map((o) => o + offsetBeats)];
+          const r = await audioEngine.playRhythmOnsets(allOnsets, bpm, [0, offsetBeats]);
+          playedNotes = [];
+          void r;
+          void beatSec;
+        } else if (kind === 'tap_back') {
+          // No audio here — RhythmTapPad plays the pattern itself (listen → ready → replay+tap).
+          // We just persist the pattern data on the Question so the pad can use it.
+          const pattern = pickTapPattern();
+          itemType = pattern.id;
+          correctAnswer = 'matched';
+          playedNotes = [];
+          // Stash for the Question construction below.
+          pendingRhythmOnsets = pattern.onsets;
+        } else if (kind === 'subdivision') {
+          const pick = pickItem(level.items);
+          itemType = pick;
+          correctAnswer = pick;
+          await audioEngine.playSubdivisionPattern(pick as 'eighths' | 'sixteenths' | 'triplets' | 'dotted', bpm);
+          playedNotes = [];
+        } else if (kind === 'meter') {
+          const pick = pickItem(level.items);
+          itemType = pick;
+          correctAnswer = pick;
+          await audioEngine.playMeterPattern(pick as '2/4' | '3/4' | '4/4' | '6/8' | '5/4', bpm);
+          playedNotes = [];
+        } else if (kind === 'dictation') {
+          const pattern = pickDictationPattern();
+          itemType = pattern.id;
+          correctAnswer = encodeGrid(pattern.cells);
+          const onsets = gridToOnsets(pattern.cells);
+          await audioEngine.playRhythmOnsets(onsets, bpm, [0]);
+          playedNotes = [];
+          pendingRhythmGrid = pattern.cells;
+        } else {
+          itemType = 'unknown';
+          correctAnswer = 'unknown';
+        }
+      } catch (err) {
+        console.error('rhythm error:', err);
+        itemType = 'unknown';
+        correctAnswer = 'unknown';
+      }
     } else {
+      // Two-stage pick: first choose the answer TYPE with weighted-mastery + dedupe (so the
+      // user's weak items appear more often AND we don't repeat the same item back-to-back),
+      // then choose a root for that type from the diatonic list.
+      const chosenType = pickItem(level.items);
       const diatonicItems = filterDiatonicItems(level.items, level.type, currentScaleRoot, level.scaleDegrees);
-      const pick = diatonicItems[Math.floor(Math.random() * diatonicItems.length)];
+      const matching = diatonicItems.filter((d) => d.type === chosenType);
+      const pick = matching.length > 0
+        ? matching[Math.floor(Math.random() * matching.length)]
+        : diatonicItems[Math.floor(Math.random() * diatonicItems.length)];
       rootNote = pick.root;
       itemType = pick.type;
       correctAnswer = itemType;
@@ -506,12 +658,17 @@ export default function App() {
     }
 
     const modes = level.responseModes ?? ['select'];
-    const responseMode =
+    let responseMode: typeof modes[number] =
       modes.length === 1
         ? modes[0]
         : Math.random() < (level.singProbability ?? 0.5)
         ? 'sing'
         : 'select';
+    // Rhythm levels override responseMode based on their kind. tap_back → 'tap', dictation → 'grid', everything else → 'select'.
+    if (level.type === 'rhythm') {
+      const k = level.rhythmKind ?? 'same_diff';
+      responseMode = k === 'tap_back' ? 'tap' : k === 'dictation' ? 'grid' : 'select';
+    }
 
     const singTargets =
       responseMode === 'sing'
@@ -519,6 +676,21 @@ export default function App() {
           ? playedNotes
           : [correctAnswer]
         : undefined;
+
+    // Rhythm-specific question fields.
+    type RhythmExtras = { rhythmKind?: typeof level.rhythmKind; rhythmBpm?: number; targetOnsets?: number[]; targetGrid?: boolean[] };
+    const rhythmExtras: RhythmExtras = level.type === 'rhythm'
+      ? {
+          rhythmKind: level.rhythmKind,
+          rhythmBpm: level.rhythmBpm ?? 100,
+          targetOnsets: typeof pendingRhythmOnsets !== 'undefined' ? pendingRhythmOnsets : undefined,
+          targetGrid: typeof pendingRhythmGrid !== 'undefined' ? pendingRhythmGrid : undefined,
+        }
+      : {};
+
+    // Update the dedupe ring buffer (most-recent-last, max 3) and the seen-this-session set.
+    recentItemTypesRef.current = [...recentItemTypesRef.current, itemType].slice(-3);
+    seenThisSessionRef.current.add(`${level.id}::${itemType}`);
 
     setCurrentQuestion({
       id: `q_${Date.now()}`,
@@ -535,6 +707,7 @@ export default function App() {
       acousticSemis,
       responseMode,
       targetNotes: singTargets,
+      ...rhythmExtras,
     });
     setSelectedAnswer(null);
     setShowFeedback(false);
@@ -543,7 +716,10 @@ export default function App() {
 
   const endSession = useCallback(() => {
     const finalStats = analytics.getSessionStats();
-    const unlocked = canUnlockNextLevel(currentLevel.id, finalStats.accuracy);
+    // Review sessions don't unlock anything (they pull from already-completed lessons).
+    const inReview = reviewSessionRef.current !== null;
+    if (inReview) setReviewSession(null);
+    const unlocked = !inReview && canUnlockNextLevel(currentLevel.id, finalStats.accuracy);
     const firstUnlock = unlocked && !completedLevels.includes(currentLevel.id);
     if (unlocked) {
       setCompletedLevels((prev) => (prev.includes(currentLevel.id) ? prev : [...prev, currentLevel.id]));
@@ -639,7 +815,9 @@ export default function App() {
         return;
       }
 
-      if (stats.totalQuestions >= maxQuestions) {
+      // Review sessions end when the queue is exhausted, not at maxQuestions.
+      const reviewExhausted = reviewSession !== null && reviewSession.cursor >= reviewSession.queue.length;
+      if (reviewExhausted || (reviewSession === null && stats.totalQuestions >= maxQuestions)) {
         endSession();
         return;
       }
@@ -777,6 +955,26 @@ export default function App() {
             currentQuestion.itemType as 'closed' | 'drop2' | 'quartal' | 'upper_structure',
           );
           break;
+        case 'rhythm': {
+          const bpm = currentQuestion.rhythmBpm ?? 100;
+          const k = currentQuestion.rhythmKind;
+          if (k === 'tap_back' && currentQuestion.targetOnsets) {
+            await audioEngine.playRhythmOnsets(currentQuestion.targetOnsets, bpm, [0]);
+          } else if (k === 'dictation' && currentQuestion.targetGrid) {
+            const ons = [];
+            for (let i = 0; i < currentQuestion.targetGrid.length; i++) {
+              if (currentQuestion.targetGrid[i]) ons.push(i * 0.25);
+            }
+            await audioEngine.playRhythmOnsets(ons, bpm, [0]);
+          } else if (k === 'subdivision') {
+            await audioEngine.playSubdivisionPattern(currentQuestion.itemType as 'eighths' | 'sixteenths' | 'triplets' | 'dotted', bpm);
+          } else if (k === 'meter') {
+            await audioEngine.playMeterPattern(currentQuestion.itemType as '2/4' | '3/4' | '4/4' | '6/8' | '5/4', bpm);
+          } else if (k === 'same_diff') {
+            // Replay full A vs B sequence — not stored on Question; skip for now (not user-critical).
+          }
+          break;
+        }
       }
     } catch (err) {
       console.error('replay error:', err);
@@ -804,7 +1002,7 @@ export default function App() {
     // varies across the scale. For type=scale_degree (degree IS the answer), mode (no per-question root),
     // and the new self-keyed types (cadence/progression/etc., where rootNote == currentScaleRoot by construction),
     // computing it would always yield 0 — meaningless.
-    const NO_DEGREE_TYPES = new Set(['scale_degree', 'mode', 'cadence', 'progression', 'chord_extension', 'borrowed_chord', 'voicing', 'inversion']);
+    const NO_DEGREE_TYPES = new Set(['scale_degree', 'mode', 'cadence', 'progression', 'chord_extension', 'borrowed_chord', 'voicing', 'inversion', 'rhythm']);
     if (!NO_DEGREE_TYPES.has(currentQuestion.type)) {
       const chromatic = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
       const rootIdx = chromatic.indexOf(currentQuestion.rootNote);
@@ -831,6 +1029,11 @@ export default function App() {
       intervalPresentation: currentQuestion.intervalPresentation,
     };
     analytics.addAnswer(record);
+
+    // Update per-item mastery (rolling buffer + Leitner box) and persist immediately so a
+    // mid-session crash doesn't lose progress. The Daily Review tile reads the same map.
+    recordMasteryAnswer(masteryRef.current, currentLevel.id, currentQuestion.itemType, isCorrect);
+    saveMastery(masteryRef.current);
 
     // On correct, flash the green feedback briefly then advance automatically.
     if (isCorrect) {
@@ -862,6 +1065,8 @@ export default function App() {
     setCurrentQuestion(null);
     setSelectedAnswer(null);
     setShowFeedback(false);
+    // In review mode, advance the cursor so the next question pulls a different due item.
+    setReviewSession((rs) => (rs ? { ...rs, cursor: rs.cursor + 1 } : null));
   };
 
   const handlePracticeAgain = () => {
@@ -880,6 +1085,8 @@ export default function App() {
     setSelectedLevelId(null);
     analytics.clearAnswers();
     clearAllSessions();
+    masteryRef.current = {};
+    saveMastery(masteryRef.current);
     setStatsTick((n) => n + 1);
   };
 
@@ -1088,6 +1295,8 @@ export default function App() {
         bottomPadding={isMobile ? 88 : 0}
         isPro={proActive}
         isSignedIn={isSignedIn}
+        dueCount={countDueItems(masteryRef.current, completedLevels)}
+        onStartReview={() => { void startReviewSession(); }}
       />
       {isMobile && tabsActive && <BottomTabs active={tabsActive} onChange={(r) => setRoute(r)} />}
       {showAuth && <AuthSheet onClose={() => setShowAuth(false)} />}

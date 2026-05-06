@@ -19,7 +19,6 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
         unlockRequirement: 85,
         description: 'Hear two notes and tell which is higher',
         segmentId: 'foundations',
-        maxQuestions: 10,
         intro: [
           {
             idea: "Welcome. We're going to start at the ground floor.",
@@ -42,7 +41,6 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
         unlockRequirement: 85,
         description: 'Detect when two notes are the same pitch',
         segmentId: 'foundations',
-        maxQuestions: 10,
       },
       {
         id: 'found_beating',
@@ -54,7 +52,6 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
         description: 'Hear the pulsing between two slightly detuned notes',
         segmentId: 'foundations',
         prerequisites: ['found_same_diff'],
-        maxQuestions: 10,
       },
       {
         id: 'found_consonance',
@@ -66,7 +63,6 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
         description: 'Distinguish consonant and dissonant intervals by feel',
         segmentId: 'foundations',
         prerequisites: ['found_same_diff'],
-        maxQuestions: 10,
       },
     ],
   },
@@ -396,35 +392,8 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
     color: 'sky',
     levels: [
       {
-        id: 'ton_is_tonic',
-        name: 'Is It the Tonic?',
-        type: 'scale_degree',
-        context: 'major',
-        items: ['1', '2', '3', '4', '5', '6', '7'],
-        itemGroups: {
-          tonic: ['1'],
-          not_tonic: ['2', '3', '4', '5', '6', '7'],
-        },
-        unlockRequirement: 80,
-        description: 'After the scale, decide if the note is the tonic',
-        segmentId: 'tonality',
-        prerequisites: ['found_higher_lower'],
-        maxQuestions: 12,
-        questionsPerKey: 4,
-        intro: [
-          {
-            idea: 'Every key has a home note — the tonic.',
-            purpose: "When a tune finally feels like it's 'landed', that's the tonic. Finding it by ear is what turns a string of notes into a song in a key.",
-            expectation: "You'll hear the scale first, then a single note from it.",
-          },
-          {
-            idea: 'Your job: is that note home, or somewhere else?',
-            purpose: "Honing this one decision — tonic or not — trains the most important anchor your inner ear will ever have.",
-            expectation: 'Tap tonic or not tonic.',
-          },
-        ],
-      },
-      {
+        // Krumhansl's tonal hierarchy: "is this resolved?" is the more primitive judgment;
+        // "is this *the* tonic specifically?" comes after. We teach in that order.
         id: 'ton_stable_unstable',
         name: 'Stable or Unstable',
         type: 'scale_degree',
@@ -437,9 +406,50 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
         unlockRequirement: 75,
         description: 'Does the note feel resolved or does it want to move?',
         segmentId: 'tonality',
-        prerequisites: ['ton_is_tonic'],
+        prerequisites: ['found_higher_lower'],
         maxQuestions: 12,
         questionsPerKey: 4,
+        intro: [
+          {
+            idea: 'Some notes feel like they want to move. Others feel done.',
+            purpose: "This is the deepest ear-training intuition there is. Before you can name a key's tonic, you can feel which notes pull and which rest. We start there.",
+            expectation: "You'll hear the scale first, then a single note from it.",
+          },
+          {
+            idea: 'Your job: does the note rest, or does it want to keep going?',
+            purpose: "Stable vs unstable is what makes a melody feel like a melody — a sequence of pulls and resolutions. Hearing that pull is the foundation of everything else.",
+            expectation: 'Tap stable or unstable.',
+          },
+        ],
+      },
+      {
+        id: 'ton_is_tonic',
+        name: 'Is It the Tonic?',
+        type: 'scale_degree',
+        context: 'major',
+        items: ['1', '2', '3', '4', '5', '6', '7'],
+        itemGroups: {
+          tonic: ['1'],
+          not_tonic: ['2', '3', '4', '5', '6', '7'],
+        },
+        unlockRequirement: 80,
+        description: 'After the scale, decide if the note is the tonic',
+        segmentId: 'tonality',
+        prerequisites: ['ton_stable_unstable'],
+        maxQuestions: 12,
+        questionsPerKey: 4,
+        intro: [
+          {
+            idea: 'One note in every key feels like home — the tonic.',
+            purpose: "Stable notes (1, 3, 5) all rest, but only one is *the* home. Picking it out is the next-step refinement of stable/unstable hearing.",
+            expectation: "You'll hear the scale first, then a single note from it.",
+          },
+          {
+            idea: 'Your job: is that note home, or somewhere else?',
+            purpose: "Honing this one decision — tonic or not — trains the most important anchor your inner ear will ever have.",
+            expectation: 'Tap tonic or not tonic.',
+          },
+        ],
       },
       {
         id: 'ton_major_minor_key',
@@ -451,7 +461,6 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
         segmentId: 'tonality',
         prerequisites: ['ton_is_tonic'],
         establishTonality: false,
-        maxQuestions: 10,
       },
       {
         id: 'ton_cadence_basic',
@@ -463,7 +472,6 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
         description: 'Hear a four-chord progression — V→I (authentic) or IV→I (plagal)?',
         segmentId: 'tonality',
         prerequisites: ['ton_major_minor_key'],
-        maxQuestions: 10,
         intro: [
           {
             idea: 'A cadence is the way a phrase ends — the harmonic punctuation.',
@@ -1121,7 +1129,6 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
         description: 'The jazz workhorse — ii-V-I in major vs minor',
         segmentId: 'progressions',
         prerequisites: ['prog_pop_diatonic', 'level_8'],
-        maxQuestions: 10,
       },
       {
         id: 'prog_secondary_dominants',
@@ -1152,7 +1159,6 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
         description: 'Detect modulation from a four-chord phrase',
         segmentId: 'progressions',
         prerequisites: ['prog_secondary_dominants'],
-        maxQuestions: 10,
       },
     ],
   },
@@ -1240,14 +1246,123 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
     ],
   },
 
-  // 9. RHYTHM — empty stub. Batch 4 will populate (tap-back, subdivisions, meter).
+  // 9. RHYTHM — same/diff, tap-back, subdivisions, meter, dictation.
   {
     id: 'rhythm',
     name: 'Rhythm',
-    description: 'Tap-back, subdivisions, meter recognition, dictation',
+    description: 'Same or different, tap-back, subdivisions, meter, dictation',
     icon: '🥁',
     color: 'orange',
-    levels: [],
+    levels: [
+      {
+        id: 'rhy_same_diff',
+        name: 'Same or Different Rhythm',
+        type: 'rhythm',
+        rhythmKind: 'same_diff',
+        rhythmBpm: 100,
+        items: ['same', 'different'],
+        unlockRequirement: 80,
+        description: 'Two short patterns play in a row. Are they identical?',
+        segmentId: 'rhythm',
+        prerequisites: ['found_higher_lower'],
+        maxQuestions: 10,
+        intro: [
+          {
+            idea: 'Two short rhythmic patterns, one after the other.',
+            purpose: "Hearing whether two rhythms match is the rhythmic equivalent of same-or-different pitch matching — the ground floor of every rhythm skill that follows.",
+            expectation: "Listen to both patterns. Tap same or different.",
+          },
+        ],
+      },
+      {
+        id: 'rhy_tap_back',
+        name: 'Tap Back the Rhythm',
+        type: 'rhythm',
+        rhythmKind: 'tap_back',
+        rhythmBpm: 100,
+        rhythmTapToleranceMs: 140,
+        rhythmPassScore: 0.7,
+        items: ['matched'],
+        responseModes: ['tap'],
+        unlockRequirement: 70,
+        description: 'Listen to a pattern, then tap it back along with the replay',
+        segmentId: 'rhythm',
+        prerequisites: ['rhy_same_diff'],
+        maxQuestions: 8,
+        intro: [
+          {
+            idea: 'Hear a short rhythm, then tap along with it.',
+            purpose: "Producing rhythm with your body — even just a finger tap — wires it in differently than passive listening. This is the move that makes rhythmic patterns muscle memory, not abstractions.",
+            expectation: "The pattern plays once. When you click start, it plays again — tap the pad once for each onset.",
+          },
+        ],
+      },
+      {
+        id: 'rhy_subdivisions',
+        tier: 'pro',
+        name: 'Subdivisions',
+        type: 'rhythm',
+        rhythmKind: 'subdivision',
+        rhythmBpm: 100,
+        items: ['eighths', 'sixteenths', 'triplets', 'dotted'],
+        unlockRequirement: 70,
+        description: '8ths, 16ths, triplets, or dotted-eighth + sixteenth?',
+        segmentId: 'rhythm',
+        prerequisites: ['rhy_same_diff'],
+        maxQuestions: 12,
+        intro: [
+          {
+            idea: 'A bar can be divided in different ways — 2 per beat, 4 per beat, 3 per beat, or uneven.',
+            purpose: "Telling 8ths from 16ths from triplets from dotted is the basic rhythmic vocabulary of every chart you'll ever read. Hearing the difference is what lets you catch a producer's groove from a single bar.",
+            expectation: "One bar plays. Pick which subdivision you heard.",
+          },
+        ],
+      },
+      {
+        id: 'rhy_meter',
+        tier: 'pro',
+        name: 'Meter',
+        type: 'rhythm',
+        rhythmKind: 'meter',
+        rhythmBpm: 100,
+        items: ['2/4', '3/4', '4/4', '6/8', '5/4'],
+        unlockRequirement: 70,
+        description: 'Hear the bar grouping — 2/4 vs 3/4 vs 4/4 vs 6/8 vs 5/4',
+        segmentId: 'rhythm',
+        prerequisites: ['rhy_subdivisions'],
+        maxQuestions: 12,
+        intro: [
+          {
+            idea: 'A meter is how many beats group into one bar.',
+            purpose: "The same notes feel completely different in 3/4 (waltz), 4/4 (rock), or 6/8 (lilting). Counting bar lengths by ear unlocks song-form analysis and helps you transcribe time signatures from recordings.",
+            expectation: "A metronome with accents plays for two bars. Pick the meter.",
+          },
+        ],
+      },
+      {
+        id: 'rhy_dictation',
+        tier: 'pro',
+        name: 'Rhythmic Dictation',
+        type: 'rhythm',
+        rhythmKind: 'dictation',
+        rhythmBpm: 100,
+        rhythmPassScore: 1.0,
+        items: ['matched'],
+        responseModes: ['grid'],
+        unlockRequirement: 70,
+        description: 'Hear a 1-bar pattern, then mark the cells where each hit landed',
+        segmentId: 'rhythm',
+        prerequisites: ['rhy_tap_back', 'rhy_meter'],
+        maxQuestions: 8,
+        intro: [
+          {
+            idea: 'Listen to a one-bar rhythm, then write it down on a beat grid.',
+            purpose: "Dictation is the most demanding rhythm skill — it requires hearing AND placing each onset on a 16th-note grid. Get this and you can transcribe drum parts by ear.",
+            expectation: "Tap the cells where each hit landed. Use the replay button as many times as you need.",
+          },
+        ],
+      },
+    ],
   },
 
   // 10. MELODIC DICTATION — empty stub. Batch 5 will populate (sequence input → free dictation).
@@ -1386,6 +1501,20 @@ export function getDisplayName(item: string): string {
     drop2: 'Drop-2',
     quartal: 'Quartal',
     upper_structure: 'Upper structure',
+    // Rhythm — subdivisions
+    eighths: '8ths',
+    sixteenths: '16ths',
+    triplets: 'Triplets',
+    dotted: 'Dotted',
+    // Rhythm — meters
+    '2/4': '2/4',
+    '3/4': '3/4',
+    '4/4': '4/4',
+    '6/8': '6/8',
+    '5/4': '5/4',
+    // Rhythm — same/different
+    same: 'Same',
+    different: 'Different',
   };
   if (SPECIAL[item]) return SPECIAL[item];
   // Convert snake_case to Title Case

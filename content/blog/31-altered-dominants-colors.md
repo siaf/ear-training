@@ -18,7 +18,7 @@ The dominant 7 chord in jazz is rarely played as a plain V7. In practice, the V 
 
 These four alterations are sometimes lumped together under the umbrella label *altered dominant* (the V7♭9♯9♭13 "fully altered" chord puts three of them on top of the same V7 simultaneously). But to a trained jazz ear, each of the four has its own emotional signature, its own pull, its own characteristic resolution context — and treating them as a single category sacrifices most of the information.
 
-This post lays out what each alteration sounds like, why they feel distinct, and how to develop the ear that distinguishes them. It connects directly to your existing `jazz_altered_dominants` lesson at [`src/curriculum.ts`](../../src/curriculum.ts) (which currently bundles all four into a single 4-way classification).
+This post lays out what each alteration sounds like, why they feel distinct, and how to develop the ear that distinguishes them.
 
 ## The ♭9: tension toward resolution
 
@@ -70,20 +70,7 @@ The standard pedagogical approach across the jazz literature:
 4. **Identify multiple alterations.** A V7♭9♭13 (very common) has *two* alterations stacked. A V7alt has potentially three or four. Train identifying the "primary" coloration of these compound altered chords.
 5. **Transcribe altered dominants from recordings.** Coltrane's *Giant Steps*, anything by Bill Evans, modern jazz comping by Mehldau or Glasper. Identify which alterations appear and how they resolve.
 
-## What this implies for your curriculum
-
-Your existing `jazz_altered_dominants` lesson at [`src/curriculum.ts`](../../src/curriculum.ts) treats the four alterations as a single 4-way classification. This is a reasonable starting point but would benefit from being **decomposed into a sequence of more focused lessons**:
-
-- **Lesson 1: V7♭9 vs V7 (binary).** The single most cadentially important alteration; the entry-point distinction.
-- **Lesson 2: V7♯9 vs V7 (binary).** The blues-color alteration; perceptually distinct.
-- **Lesson 3: V7♯11 vs V7 (binary).** The Lydian-dominant alteration; the "floating" sound.
-- **Lesson 4: V7♭13 vs V7 (binary).** The dark/minor-mode alteration.
-- **Lesson 5: 4-way among the four alterations** (the current lesson).
-- **Lesson 6: Compound alterations** (V7♭9♭13, V7alt) — identify the dominant coloration.
-
-This decomposition mirrors the part-task-then-whole-task principle from motor learning: train each binary distinction in isolation until it is reliable, then combine. Students who go straight to the 4-way classification often plateau because they cannot reliably tell *which* alteration they heard, even when they can tell *that* an alteration was present.
-
-The four alterations are four genuinely different sounds. Treating them as four different lessons matches what the trained ear actually does, and it gives the student a structured path through one of the most distinctive features of the jazz harmonic language.
+The four alterations are four genuinely different sounds. The pedagogical mistake to avoid is collapsing them into a generic "altered" category — that erases most of what makes them informative to a trained listener. The ear that hears the four alterations as four distinct colors has access to information about resolution behavior, source mode, and substitution structure that the ear hearing them as one composite sound does not.
 
 ---
 

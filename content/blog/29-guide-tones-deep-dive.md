@@ -77,20 +77,6 @@ The standard pedagogical sequence:
 
 The skill compounds. A student who has put in 20 hours on guide-tone identification can typically follow the changes of a moderately complex jazz standard by ear without ever having heard it before — a skill that would otherwise take years to develop by passive listening alone.
 
-## What this implies for ear-training apps
-
-A jazz-harmony curriculum should treat guide-tone hearing as the foundational skill and build outward from it.
-
-**A `jazz_third_quality` lesson.** Given a played four-note chord with the root in the bass, identify whether the 3rd is natural or flat. Binary classification, easy to drill, foundational.
-
-**A `jazz_seventh_quality` lesson.** Same for the 7th. Pairs naturally with the third lesson.
-
-**A `jazz_guide_tones` lesson.** Given two pitches sustained over a held bass note, identify the implied chord quality (maj7, m7, or 7). This is the synthesis lesson and the closest approximation to what the Berklee functional tradition drills.
-
-**A `jazz_guide_tone_line` lesson.** Given a 4-chord progression, sing only the guide tones (3rd or 7th) of each chord, in time. Pitch-detection-graded with appropriate tolerance.
-
-These four lessons together would close one of the most visible gaps in current ear-training-app coverage of jazz harmony. They are also among the most directly trainable skills in the entire jazz curriculum, because each one is a binary or low-arity classification with a clear pass/fail criterion.
-
 The deeper claim: **jazz harmony is not as complicated as it sounds**. It is two voices, moving by step and half-step, doing predictable things. The complexity is at the surface — the bass, the rhythm, the extensions, the voicings — but the structural skeleton is just the guide tones. A student who learns to hear the skeleton has learned the hardest part of the harmony.
 
 ---

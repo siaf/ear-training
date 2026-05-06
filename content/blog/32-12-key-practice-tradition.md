@@ -4,7 +4,7 @@ slug: 12-key-practice-tradition
 date: 2026-05-04
 author: Fifths
 tags: [jazz, practice, transposition, key-rotation, banacos, baker]
-description: Jazz education has an unusual rule: any vocabulary you learn must be practiced in all 12 keys before it counts as learned. This post explains why the rule exists, what the cognitive-science evidence supports, and the three different key-rotation systems used in practice — with the pros and cons of each.
+description: "Jazz education has an unusual rule: any vocabulary you learn must be practiced in all 12 keys before it counts as learned. This post explains why the rule exists, what the cognitive-science evidence supports, and the three different key-rotation systems used in practice — with the pros and cons of each."
 ---
 
 # The 12-key practice tradition: why jazz transposes everything (and how to do it without going crazy)

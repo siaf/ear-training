@@ -162,6 +162,8 @@ class AudioEngine {
   private isPlaying: boolean = false;
   private acousticSynth: Tone.PolySynth | null = null;
   private feedbackSynth: Tone.PolySynth | null = null;
+  private percSynth: Tone.MembraneSynth | null = null;
+  private percAccentSynth: Tone.MembraneSynth | null = null;
   // Timestamp (ms, performance.now time base) after which the speakers are quiet again.
   // Used to gate mic detection so sing mode doesn't pick up our own playback.
   private playbackEndsAt: number = 0;
@@ -1092,6 +1094,134 @@ class AudioEngine {
     this.synth.triggerAttackRelease(notes, '2n');
     this.markPlayback(2.0);
     return notes;
+  }
+
+  // ---------------------------------------------------------------
+  // Rhythm playback (Batch 4)
+  // ---------------------------------------------------------------
+
+  private getPercSynth(accent = false): Tone.MembraneSynth {
+    if (accent) {
+      if (!this.percAccentSynth) {
+        this.percAccentSynth = new Tone.MembraneSynth({
+          pitchDecay: 0.04,
+          octaves: 5,
+          envelope: { attack: 0.001, decay: 0.18, sustain: 0, release: 0.08 },
+          volume: -2,
+        }).toDestination();
+      }
+      return this.percAccentSynth;
+    }
+    if (!this.percSynth) {
+      this.percSynth = new Tone.MembraneSynth({
+        pitchDecay: 0.05,
+        octaves: 4,
+        envelope: { attack: 0.001, decay: 0.12, sustain: 0, release: 0.08 },
+        volume: -8,
+      }).toDestination();
+    }
+    return this.percSynth;
+  }
+
+  /**
+   * Play a list of rhythmic onsets (fractional beat positions, e.g. [0, 0.5, 1, 1.5]).
+   * Returns the absolute end-of-pattern duration plus performance.now() onset times so
+   * a grader can compare user taps against them in the same time base.
+   */
+  async playRhythmOnsets(
+    beats: number[],
+    bpm = 100,
+    accentBeats: number[] = [],
+  ): Promise<{ duration: number; onsetTimesMs: number[]; bpm: number }> {
+    await this.initialize();
+    const beatSec = 60 / bpm;
+    const synth = this.getPercSynth(false);
+    const accentSynth = this.getPercSynth(true);
+    const now = Tone.now();
+    // performance.now() at the moment Tone "now" is captured. They share a clock origin
+    // but we need the offset to convert audio-time → DOM-time for the grader.
+    const startMs = performance.now();
+    const accentSet = new Set(accentBeats);
+
+    const onsetTimesMs: number[] = [];
+    beats.forEach((b) => {
+      const t = now + b * beatSec;
+      const isAccent = accentSet.has(b);
+      const which = isAccent ? accentSynth : synth;
+      which.triggerAttackRelease(isAccent ? 'C3' : 'C2', '32n', t);
+      onsetTimesMs.push(startMs + b * beatSec * 1000);
+    });
+
+    const lastBeat = Math.max(0, ...beats);
+    const duration = (lastBeat + 0.5) * beatSec; // tail
+    this.markPlayback(duration);
+    return { duration, onsetTimesMs, bpm };
+  }
+
+  /**
+   * Play a steady metronome in the given meter for two bars. Beat 1 of each bar is accented.
+   * 6/8 is grouped as two dotted-quarter beats (accent on 1 and 4) at the same beat unit.
+   */
+  async playMeterPattern(meter: '2/4' | '3/4' | '4/4' | '6/8' | '5/4', bpm = 100, bars = 2): Promise<{ duration: number }> {
+    await this.initialize();
+    const beatsPerBar: Record<typeof meter, number> = { '2/4': 2, '3/4': 3, '4/4': 4, '6/8': 6, '5/4': 5 };
+    const accentEvery: Record<typeof meter, number[]> = {
+      '2/4': [0],
+      '3/4': [0],
+      '4/4': [0, 2], // strong on 1, secondary on 3
+      '6/8': [0, 3], // grouped 3+3
+      '5/4': [0, 2], // grouped 3+2 — accent on 1 and 4 of 5? Use [0, 2] (3+2)
+    };
+    const total = beatsPerBar[meter] * bars;
+    const beats: number[] = [];
+    const accents: number[] = [];
+    for (let bar = 0; bar < bars; bar++) {
+      for (let b = 0; b < beatsPerBar[meter]; b++) {
+        const pos = bar * beatsPerBar[meter] + b;
+        beats.push(pos);
+        if (accentEvery[meter].includes(b)) accents.push(pos);
+      }
+    }
+    void total;
+    const { duration } = await this.playRhythmOnsets(beats, bpm, accents);
+    return { duration };
+  }
+
+  /**
+   * Play a 1-bar pattern that exemplifies the named subdivision. 4/4, 100 bpm by default.
+   *  - eighths: 8 evenly spaced ticks per bar (every 0.5 beat)
+   *  - sixteenths: 16 evenly spaced (every 0.25 beat)
+   *  - triplets: 12 evenly spaced (every 1/3 beat)
+   *  - dotted: dotted-eighth + sixteenth pattern repeated 4 times (0, 0.75, 1, 1.75, 2, 2.75, 3, 3.75)
+   * Beat 0 is accented to make the meter clear.
+   */
+  async playSubdivisionPattern(
+    kind: 'eighths' | 'sixteenths' | 'triplets' | 'dotted',
+    bpm = 100,
+  ): Promise<{ duration: number }> {
+    await this.initialize();
+    let beats: number[];
+    switch (kind) {
+      case 'eighths':
+        beats = Array.from({ length: 8 }, (_, i) => i * 0.5);
+        break;
+      case 'sixteenths':
+        beats = Array.from({ length: 16 }, (_, i) => i * 0.25);
+        break;
+      case 'triplets':
+        beats = Array.from({ length: 12 }, (_, i) => i / 3);
+        break;
+      case 'dotted':
+        beats = [];
+        for (let beat = 0; beat < 4; beat++) {
+          beats.push(beat);
+          beats.push(beat + 0.75);
+        }
+        break;
+    }
+    // Accent the downbeat so the listener locks the bar.
+    const { duration } = await this.playRhythmOnsets(beats, bpm, [0]);
+    return { duration };
   }
 
   async playCorrectChime() {

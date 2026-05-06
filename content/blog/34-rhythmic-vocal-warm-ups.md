@@ -84,19 +84,7 @@ Three reasons this matters.
 
 **Third, the underlying neural systems are coupled.** Vocal-motor coupling for pitch and motor-overlap for rhythm both engage the same auditory-motor planning machinery in the brain. Exercising them in coupled fashion is closer to how the brain actually uses the systems than exercising them in isolation [^4].
 
-## What this implies for ear-training apps
-
-A few practical recommendations.
-
-**Voice lessons should optionally support metronome-locked timing.** A `voice_pivot_tonic` lesson at a fixed tempo (with the user expected to sing each note on the beat) is meaningfully different from the same lesson at the user's own tempo. The metronome-locked version trains rhythmic articulation simultaneously with pitch production.
-
-**Voice lessons should optionally support takadimi syllable display.** A user practicing `voice_pentachord_major` could see the takadimi syllables for the rhythm underneath the pitch labels, and could sing on those syllables instead of pure vowels. The pitch-detection grading is unaffected; the rhythmic-articulation training is added for free.
-
-**A "warm-up" pre-session affordance is well-supported.** Before any Voice or Rhythm session, the app could prompt a 60-second optional warm-up — lip trills on the metronome, then a siren up-and-down, then a scat-syllable arpeggio. This costs the user a minute and substantially improves the quality of the practice that follows. The clinical literature on vocal warm-ups supports the cost-benefit clearly.
-
-**Konnakol or takadimi speak-through exercises could be a Voice lesson.** A pure rhythmic-articulation lesson, with no pitch involved, where the user speaks a gati pattern at increasing tempos against a metronome. This would be unusual for an ear-training app but would directly address the rhythmic-vocal-articulation training that classical vocalise sessions miss.
-
-Most musicians spend their warm-up time training one skill at a time. The interesting opportunity in app design is to give them tools that train two skills at once, with no extra effort, by making the integration visible and easy.
+Most musicians spend their warm-up time training one skill at a time. The interesting opportunity is the practice routine that trains two skills at once, with no extra effort, by making the integration visible and easy.
 
 ---
 

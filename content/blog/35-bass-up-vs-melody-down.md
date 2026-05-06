@@ -83,16 +83,6 @@ For a bass-up listener developing melody-down skills:
 - **Identify modulations from melodic cues.** When does the melody move outside the home key? Where does it suggest a new tonic?
 - **Practice melodic dictation.** Karpinski's sight-singing curriculum, the broader classical aural-skills tradition, and the existing Fifths Voice section all train this directly.
 
-## What this implies for ear-training apps
-
-A few practical implications.
-
-**Both routes deserve first-class lesson tracks.** A jazz curriculum with deep harmony lessons but shallow melodic-dictation coverage will produce bass-up players. A jazz curriculum with deep melodic work but shallow harmony lessons will produce melody-down players. A balanced curriculum trains both.
-
-**Bassline-recognition is currently underrepresented in most ear-training apps.** The dominant convention in modern ear-training tools is to drill chord *quality* identification with the bass implied. A dedicated `jazz_bassline` lesson — given a 4-chord progression, identify the bass note of each chord — would close one of the most visible gaps in current jazz ear-training coverage.
-
-**Cross-segment lesson recommendations could be inferred from per-skill accuracy.** A user who is 95% on chord-quality identification and 60% on melodic dictation would benefit from melody-down work; a user who is 95% on intervals and 60% on chord-quality identification would benefit from bass-up work. The data needed for this inference is already collected; surfacing the recommendation is a UX layer on top.
-
 The bass-up vs melody-down trade-off is one of the more important pedagogical decisions in jazz ear-training, and one of the few that pedagogues genuinely disagree about. The pragmatic answer — start with your default, cross-train into the other — is supported by both lineages and by the broader cognitive-science evidence that shared underlying competences cross over with practice. The deeper answer is that there is no answer, just two equally valid roads up the same mountain.
 
 ---

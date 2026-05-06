@@ -2,9 +2,9 @@
 
 import { useEffect } from 'react';
 
-export type Route = 'landing' | 'onboarding' | 'path' | 'practice' | 'results' | 'settings' | 'stats' | 'paywall';
+export type Route = 'landing' | 'onboarding' | 'path' | 'practice' | 'results' | 'settings' | 'stats' | 'paywall' | 'review';
 
-const KNOWN: Route[] = ['landing', 'onboarding', 'path', 'practice', 'results', 'settings', 'stats', 'paywall'];
+const KNOWN: Route[] = ['landing', 'onboarding', 'path', 'practice', 'results', 'settings', 'stats', 'paywall', 'review'];
 
 function basePath(): string {
   const base = (import.meta as unknown as { env?: { BASE_URL?: string } }).env?.BASE_URL ?? '/';

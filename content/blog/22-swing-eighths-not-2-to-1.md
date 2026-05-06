@@ -4,7 +4,7 @@ slug: swing-eighths-not-2-to-1
 date: 2026-05-03
 author: Fifths
 tags: [rhythm, jazz, swing, microtiming, perception, research]
-description: Method books say swing eighths are a 2:1 (triplet) ratio. The actual data from professional jazz drummers shows the ratio varies from 3.5:1 at slow tempos to 1:1 at fast ones — and that downbeat delays matter as much as the long-short ratio. Here is what the empirical literature has established.
+description: "Method books say swing eighths are a 2:1 (triplet) ratio. The actual data from professional jazz drummers shows the ratio varies from 3.5:1 at slow tempos to 1:1 at fast ones — and that downbeat delays matter as much as the long-short ratio. Here is what the empirical literature has established."
 ---
 
 # Swing eighths are not 2:1 — what the research actually shows

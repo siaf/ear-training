@@ -345,6 +345,62 @@ Currently every deploy is manual `wrangler pages deploy`. No PR previews, no tes
 
 ---
 
+## SEO & content marketing (active — blog + sitemap deployed 2026-05-04)
+
+> **Status:** marketing site, blog (39 posts), sitemap, robots.txt, RSS, Organization JSON-LD, and wedge-page cross-links all live on `fifths.io` as of 2026-05-04. Google Search Console domain property verified, sitemap submitted, manual indexing requested on the 4 priority new posts. GA4 ↔ GSC linked. See [docs/seo-plan.md](docs/seo-plan.md) for the full 18-month roadmap; [docs/curriculum-roadmap.md](docs/curriculum-roadmap.md) for product specs extracted from blog drafts.
+
+### This week — finishing setup + Reddit launch
+
+- [ ] **Finish Bing Webmaster manual-add** (in progress). Cloudflare DNS verify or `<meta name="msvalidate.01">` on `site/index.html`. Then submit `https://fifths.io/sitemap.xml` + the same priority URLs we hit in GSC. (Bing daily quota = 10k URLs vs Google's 10.)
+- [ ] **Mark GA4 Key Events.** Admin → Events → toggle `fifths_engaged`, `fifths_signup`, `fifths_purchase` as Key Events so they appear in Conversion reports + Explore funnels. Without this they fire but stay invisible. See [google_ads_setup.md memory](../../.claude/projects/-Users-siavash-code-products-music-education-ear-training/memory/google_ads_setup.md) for context.
+- [ ] **Post the listicle to Reddit r/musictheory.** Title: honest-comparison framing ("Comparison of every ear training app I've tried, including ours"). The new [/blog/best-ear-training-apps/](https://fifths.io/blog/best-ear-training-apps/) is built specifically for this. Mods are friendly to comparison content; obvious sales pitches get removed.
+- [ ] **Pitch the listicle to 3-5 music-tech editors:** musicradar.com, jazzadvice.com, pianote.com, learnjazzstandards.com, hellomusictheory.com. Goal: get cited in their next "best ear training apps" roundup. One strong listicle backlink is a 6-month head start on ChatGPT inclusion.
+
+### This week / next — first interactive tools
+
+These are the highest-traffic Q1 priorities from `docs/seo-plan.md`. The blog (39 posts) gives us the long-tail base; the tools are what generate the bulk of the traffic — that's how tonegym got to 129k ETV.
+
+- [ ] **Build [`/tools/circle-of-fifths`](https://fifths.io/tools/circle-of-fifths/)** — interactive SVG wheel + audio playback + printable PDF download. Targets "circle of fifths" (135k vol, KD 25). Brand-name leverage means this should rank well even at KD 25. ~1-2 day build. Pre-req: nothing — audio engine already exists in `src/audioEngine.ts`.
+- [ ] **Build [`/tools/vocal-range-test`](https://fifths.io/tools/vocal-range-test/)** — mic input + `pitchy` (already in deps) → maps to voice type. Tonegym's #1 traffic page (~50k ETV from one tool). Targets "vocal range test" (22k vol, KD 18). Match tonegym UX: no email gate, instant result, shareable image. ~1-2 day build.
+- [ ] **Build [`/tools/interval-ear-trainer`](https://fifths.io/tools/interval-ear-trainer/)** — public no-signup version of the existing `Practice.tsx` flow. Targets "ear training intervals" (1k vol, KD 8) and the broader interval-trainer cluster (~12k cluster vol).
+- [ ] **Build [`/tools/note-identification`](https://fifths.io/tools/note-identification/)** — treble/bass clef quizzer; mirrors musictheory.net's top-traffic exercise.
+
+### Analytics & funnel measurement
+
+- [ ] **Set up PostHog funnel: blog visitor → app.fifths.io click → first session.** PostHog already fires on both domains with the same key (see [posthog_setup.md memory](../../.claude/projects/-Users-siavash-code-products-music-education-ear-training/memory/posthog_setup.md) for cross-domain identity stitching). The funnel will tell us which posts convert to app trials and which are pure traffic — informs which content to double down on.
+
+### Programmatic SEO (next 2-4 weeks)
+
+- [ ] **`/intervals/<name>` programmatic page set** — 13 pages (m2 through P8 + chromatic). Each: audio demo + scale-degree context + cross-links to relevant blog posts. Template-driven; ~1 day for template + content. Targets `<interval-name> interval` long-tail (200-1k vol each).
+- [ ] **`/key/<key>-<mode>` programmatic page set** — 24 pages (12 major + 12 minor). Each: key signature, scale tones, I/IV/V/vi diatonic chords, common progressions, link to relevant blog posts. Highly templatable. Targets `key of <X>` long-tail (500-3k vol each).
+- [ ] **Glossary cluster expansion** — 8-10 more KD-1-12 terms: consonance, dissonance, octave, cadence, modulation, transposition, timbre, tonic, scale degree, chord function. ~30 min each from the existing science-blog content. Already shipped: [solfege](https://fifths.io/blog/what-is-solfege/), [intervals](https://fifths.io/blog/musical-intervals-explained/), [circle of fifths](https://fifths.io/blog/circle-of-fifths-explained/).
+
+### Content & link-building infrastructure
+
+- [ ] **OG image generation per post.** Currently all posts share the brand logo. Per-post OG images (auto-generated from title + brand colors via `@vercel/og` or similar build-time generator) lift social/LLM-summary CTR by ~15-20%. Tiny build script in `scripts/`.
+- [ ] **Tag/cluster pages.** `/blog/tag/jazz/`, `/blog/tag/rhythm/`, `/blog/tag/voice/`, etc. Free programmatic SEO; captures cluster searches; uses the existing `tags:` field in markdown frontmatter. ~1-hour build to extend `scripts/build-blog.mjs`.
+- [ ] **Backlink outreach (Tier 1 contacts):**
+    - Hooktheory — complementary product partnership pitch
+    - Musical-U.com — feature request / guest post
+    - HelloMusicTheory.com — mutual-link opportunity (they currently rank for our targets)
+    - Smartmusic, NAfME, MusicEdConnect — teacher resource sites; pitch hand-signs solfege visuals + glossary as classroom resources
+    - University music dept resource pages: Berklee Online, USC Thornton, NEC
+    - Wikipedia external-links section on solfege, circle of fifths, vocal range, ear training pages (carefully, with sources)
+
+### Curriculum decomposition (extracted from blog drafts → spec, see docs/curriculum-roadmap.md)
+
+These were originally inline product specs in the science-blog drafts; moved to [docs/curriculum-roadmap.md](docs/curriculum-roadmap.md) so the public posts focus on pedagogy. Listing here as the working backlog for `src/curriculum.ts` decomposition.
+
+- [ ] **Decompose `jazz_altered_dominants`** into 6 lessons (4 binary + 4-way + compound). Highest-leverage single change for jazz wedge users. See `docs/curriculum-roadmap.md § Jazz harmony — altered dominants`.
+- [ ] **Add jazz guide-tone lesson set** — `jazz_third_quality`, `jazz_seventh_quality`, `jazz_guide_tones`, `jazz_guide_tone_line`. Each is binary or low-arity; clear pass/fail criterion.
+- [ ] **Add bebop enclosure lessons** — recognition, singing, dictation. Engine reuses `voice_pivot_tonic` (close cousin of the enclosure).
+- [ ] **Add `jazz_bassline` lesson** — 4-chord progression, identify bass note of each chord. Closes a visible gap in jazz coverage.
+- [ ] **Voice section: jazz-syllables mode** — optional consonant-articulation display on `voice_pivot_tonic`, `voice_arpeggio_triad`, `voice_pentachord_*`, `voice_scale_*`. Pure UI + content; no engine work.
+- [ ] **Voice section: rhythm-coupled warm-ups** — metronome-locked timing, takadimi syllable display, pre-session warm-up affordance, konnakol speak-through Voice lesson.
+- [ ] **Cross-segment lesson recommendations from per-skill accuracy** — UX layer on top of existing Stats data. E.g. 95% chord-quality + 60% melodic dictation → recommend melody-down work.
+
+---
+
 ## Tier 2 / 3 parked
 
 > **Gate:** revisit these once we have at least one paid sale. Until then they're polish; below that bar, they don't move the needle on revenue.
@@ -412,6 +468,14 @@ The chat-style onboarding now persists `{ ratings, voiceRange, experience, goal,
   - `rhy_meter` (Pro) — 2/4 vs 3/4 vs 4/4 vs 6/8 vs 5/4 ID
   - `rhy_dictation` (Pro) — 16-cell beat-grid dictation, strict equality
   - **Open scope notes:** Tap-back is implemented as "tap along to replay" not "tap from memory" — simpler to grade and still real ear-training. Same-or-different replay is intentionally not stored on the Question (skipped in `replaySound`); reasonable since users get one shot at hearing the pair. Both choices are documented in code comments and can be revisited if user feedback wants a stricter version.
+- ✅ **Batch 4.5** — Engine intelligence layer. Five cross-cutting changes that make every existing lesson adapt to the learner; covers items #1, #2, #3, #4, #10 from [docs/curriculum-improvements.md](docs/curriculum-improvements.md).
+  - **Adjacent-question dedupe** ([src/lib/itemMastery.ts](src/lib/itemMastery.ts) `pickItemWithDedupe`) — rejects 1-back identical for any lesson, also rejects 2-back identical for 2-item lessons. Stops `A B A B A` runs in cadence/same-different/etc. lessons.
+  - **Session length tuned to item-set size** ([App.tsx](src/App.tsx) `getLessonConfig`) — default `maxQuestions = clamp(itemCount * 4, 6, 14)`. 2-item lessons drop from 12 → 8. `questionsPerKey` drops from 5 → 3 for 2-item tonal lessons. Removed 8 explicit overrides on small-item lessons in [curriculum.ts](src/curriculum.ts) so they fall through to the new default.
+  - **Stable-or-unstable reordered before is-tonic** in the `tonality` segment — Krumhansl tonal hierarchy: "is this resolved?" is more primitive than "is this *the* tonic?". Prereq chain rewired (`ton_stable_unstable.prerequisites: ['found_higher_lower']` → `ton_is_tonic.prerequisites: ['ton_stable_unstable']`); lessonIntro first-in-concept set updated.
+  - **Per-item mastery tracking + weighted re-asking** ([src/lib/itemMastery.ts](src/lib/itemMastery.ts), 13 unit tests). Every answer updates a per-`(levelId, item)` rolling buffer of the last 10 results + Leitner box (1→5) + nextDueAt. Weight = 1 + 2 × errorRate so frequently-missed items appear ~3× as often. Items not yet seen this session get a +0.3 recency bonus to ensure full coverage. Persists to `localStorage` (`fifths.mastery.v1`) and syncs to Supabase via a new `profiles.mastery jsonb` column (migration `add_mastery_to_profiles` applied).
+  - **Daily Review tile** ([src/components/DailyReviewTile.tsx](src/components/DailyReviewTile.tsx) on Path) + **mixed-level review session** ([src/lib/spacedReview.ts](src/lib/spacedReview.ts), 6 unit tests). Pulls due items past their Leitner-schedule due date (1/3/7/14/30 day intervals), capped at 10 per session. Tapping the tile starts a synthetic review session: each question forces the queued (level, item) tuple, `currentLevel` flips per-question to the source level, all existing playback paths and graders work unchanged. `endSession` recognizes review mode (no unlock side-effects). [src/lib/syncEngine.ts](src/lib/syncEngine.ts) now subscribes to mastery mutations so review state pushes to cloud alongside session writes.
+  - **Verification:** 95/95 tests passing (was 76; +13 mastery + +6 review). Typecheck clean. Vite build clean. Supabase migration applied (zero rows affected — column added with default `'{}'::jsonb`).
+  - **Deferred to a later "engine v2" batch (Batch 9):** items #5 (Mixed Practice / interleaving), #6+#7 (cadence-as-primer + primer fading), #8 (delayed-feedback), #9 (timbre rotation) from [docs/curriculum-improvements.md](docs/curriculum-improvements.md). Bigger architectural changes; not blocking content batches 5/6/8.
 
 ### Outstanding curriculum batches
 

@@ -61,16 +61,6 @@ A jazz singer warming up with a Vaccai pentachord on pure vowels (*ahhh*) is mis
 
 These two adjustments produce the cross-tradition vocalise tradition that Stoloff codified — and the resulting warm-ups train both classical pitch-production *and* jazz rhythmic-articulation in the same exercise. There is no real cost to adopting them other than the unfamiliarity.
 
-## What this implies for ear-training apps
-
-The implications are subtle because most ear-training apps don't currently include vocal warm-ups at all. But for an app that does include sing-back lessons (like the Voice section in your curriculum), the syllable convention matters:
-
-**For pure-pitch lessons** (`voice_match_pitch`, `voice_resting_tone`), pure-vowel singing is fine and probably easier for new learners. The pedagogical goal is pitch accuracy, and the simpler the production task, the better.
-
-**For rhythmic-melodic lessons** (`voice_pivot_tonic`, `voice_arpeggio_triad`, `voice_pentachord_*`, `voice_scale_*`), there is a case for an *optional* "jazz syllables" mode that displays the takadimi or scat syllables alongside the notes. The user can sing on pure vowels (classical default) or with consonants (jazz default), and the app's pitch-detection grading is unaffected by the choice.
-
-**For any future jazz-specific Voice sub-section** (scat patterns, guide-tone-line singing, ii-V vocalises), the syllables should be present and considered part of the exercise. The whole point of jazz vocal training is the consonant articulation; an exercise that omits it is teaching half the skill.
-
 The classical and jazz traditions both have valid theories of what vocal production is for. The classical theory — voice as pitched instrument — produces beautiful sustained tone. The jazz theory — voice as rhythmic instrument — produces swinging articulated lines. Neither is wrong. But for a singer or improviser working in the jazz tradition, the syllables are not decoration. They are the technique.
 
 ---
