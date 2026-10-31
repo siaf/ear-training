@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Check } from 'lucide-react';
 import { audioEngine } from '../audioEngine';
+import MicTrouble from './MicTrouble';
+import { classifyMicError, reportMicProblem, type MicProblem } from '../lib/micDiagnostics';
 import { Blob } from './primitives';
 import {
   centsFromTarget,
@@ -20,7 +22,7 @@ interface Props {
   onCancel: () => void;         // user bailed
 }
 
-type Status = 'idle' | 'permission' | 'listening' | 'denied' | 'error';
+type Status = 'idle' | 'permission' | 'listening' | 'trouble';
 type Zone = 'idle' | 'far' | 'close' | 'onTarget';
 
 function zoneFor(centsOff: number | null, tol: number): Zone {
@@ -52,7 +54,8 @@ export default function SingPrompt({
   const [status, setStatus] = useState<Status>('idle');
   const [sample, setSample] = useState<PitchSample>({ hz: null, rms: 0, clarity: 0, rawHz: null });
   const [holdPct, setHoldPct] = useState(0);
-  const [errMsg, setErrMsg] = useState<string>('');
+  const [problem, setProblem] = useState<MicProblem>('unknown');
+  const [attempt, setAttempt] = useState(0);
   const holdStartRef = useRef<number | null>(null);
   const matchedRef = useRef(false);
   const handleRef = useRef<ListenHandle | null>(null);
@@ -84,6 +87,11 @@ export default function SingPrompt({
           holdStartRef.current = null;
           setHoldPct(0);
         }
+      }, () => {
+        if (cancelled) return;
+        setProblem('silent');
+        setStatus('trouble');
+        reportMicProblem('silent', undefined, 'sing_prompt');
       })
       .then((handle) => {
         if (cancelled) {
@@ -94,13 +102,11 @@ export default function SingPrompt({
         setStatus('listening');
       })
       .catch((err: unknown) => {
-        const e = err as { name?: string; message?: string };
-        if (e?.name === 'NotAllowedError' || e?.name === 'SecurityError') {
-          setStatus('denied');
-        } else {
-          setStatus('error');
-          setErrMsg(e?.message ?? 'Could not access the microphone.');
-        }
+        if (cancelled) return;
+        const kind = classifyMicError(err);
+        setProblem(kind);
+        setStatus('trouble');
+        reportMicProblem(kind, err, 'sing_prompt');
       });
 
     return () => {
@@ -109,7 +115,7 @@ export default function SingPrompt({
       handleRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [targetNote]);
+  }, [targetNote, attempt]);
 
   // Derived readouts
   const heardMidi = sample.hz ? hzToMidi(sample.hz) : null;
@@ -141,8 +147,7 @@ export default function SingPrompt({
       <div style={{ fontSize: 10, color: 'var(--ink-3)', textTransform: 'uppercase', letterSpacing: 1.5, fontWeight: 600 }}>
         {status === 'permission' && 'waiting for mic…'}
         {status === 'listening' && ' '}
-        {status === 'denied' && 'microphone blocked'}
-        {status === 'error' && 'mic error'}
+        {status === 'trouble' && (problem === 'denied' ? 'microphone blocked' : 'mic problem')}
       </div>
 
       <div
@@ -317,16 +322,7 @@ export default function SingPrompt({
         </div>
       </div>
 
-      {status === 'denied' && (
-        <div style={{ fontSize: 12, color: 'var(--coral-ink)', maxWidth: 320, textAlign: 'center' }}>
-          enable microphone access in your browser or system settings, then try again.
-        </div>
-      )}
-      {status === 'error' && (
-        <div style={{ fontSize: 12, color: 'var(--coral-ink)', maxWidth: 320, textAlign: 'center' }}>
-          {errMsg}
-        </div>
-      )}
+      {status === 'trouble' && <MicTrouble problem={problem} onRetry={() => setAttempt((n) => n + 1)} />}
 
       <button
         onClick={onCancel}

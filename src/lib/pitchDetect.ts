@@ -22,7 +22,13 @@ export interface PitchDetectOptions {
   // When gate returns false, samples are suppressed (null hz emitted).
   // Use this to ignore playback bleed from speakers.
   gate?: () => boolean;
+  // Fired once if the mic opens but delivers only digital silence (all-zero samples)
+  // for SILENT_MIC_MS of ungated listening, or if the track ends under us. That means
+  // the OS is feeding us a dead stream — a real room is never exactly zero.
+  onDeadMic?: () => void;
 }
+
+const SILENT_MIC_MS = 4000;
 
 export async function startPitchDetect(
   audioContext: AudioContext,
@@ -58,9 +64,22 @@ export async function startPitchDetect(
 
   let running = true;
   let rafId = 0;
+  let ungatedMs = 0;
+  let lastTick = performance.now();
+  let heardAnything = false;
+  let deadReported = false;
+  const reportDead = () => {
+    if (deadReported || !running) return;
+    deadReported = true;
+    options.onDeadMic?.();
+  };
+  stream.getAudioTracks().forEach((t) => t.addEventListener('ended', reportDead));
 
   const tick = () => {
     if (!running) return;
+    const nowMs = performance.now();
+    const dt = nowMs - lastTick;
+    lastTick = nowMs;
 
     // Speakers active? skip detection so we don't hear our own playback.
     if (options.gate && !options.gate()) {
@@ -74,6 +93,11 @@ export async function startPitchDetect(
     let sumSq = 0;
     for (let i = 0; i < buffer.length; i++) sumSq += buffer[i] * buffer[i];
     const rms = Math.sqrt(sumSq / buffer.length);
+
+    if (!heardAnything) {
+      if (sumSq > 0) heardAnything = true;
+      else if ((ungatedMs += dt) >= SILENT_MIC_MS) reportDead();
+    }
 
     let hz: number | null = null;
     let rawHz: number | null = null;

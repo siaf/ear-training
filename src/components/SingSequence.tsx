@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Check } from 'lucide-react';
 import { audioEngine } from '../audioEngine';
+import MicTrouble from './MicTrouble';
+import { classifyMicError, reportMicProblem, type MicProblem } from '../lib/micDiagnostics';
 import { Blob } from './primitives';
 import {
   centsFromTarget,
@@ -23,7 +25,7 @@ interface Props {
   onCancel: () => void;            // Called when skipped or any note timed out.
 }
 
-type Status = 'idle' | 'permission' | 'listening' | 'denied' | 'error';
+type Status = 'idle' | 'permission' | 'listening' | 'trouble';
 type Zone = 'idle' | 'far' | 'close' | 'onTarget';
 
 function zoneFor(centsOff: number | null, tol: number): Zone {
@@ -74,7 +76,8 @@ export default function SingSequence({
   const [smoothedHz, setSmoothedHz] = useState<number | null>(null);
   const [idx, setIdx] = useState(0);
   const [targetStartedAt, setTargetStartedAt] = useState<number>(performance.now());
-  const [errMsg, setErrMsg] = useState('');
+  const [problem, setProblem] = useState<MicProblem>('unknown');
+  const [attempt, setAttempt] = useState(0);
   const holdStartRef = useRef<number | null>(null);
   const idxRef = useRef(0);
   const matchedRef = useRef(false);
@@ -166,6 +169,11 @@ export default function SingSequence({
         } else {
           holdStartRef.current = null;
         }
+      }, () => {
+        if (cancelled) return;
+        setProblem('silent');
+        setStatus('trouble');
+        reportMicProblem('silent', undefined, 'sing_sequence');
       })
       .then((handle) => {
         if (cancelled) {
@@ -176,13 +184,11 @@ export default function SingSequence({
         setStatus('listening');
       })
       .catch((err: unknown) => {
-        const e = err as { name?: string; message?: string };
-        if (e?.name === 'NotAllowedError' || e?.name === 'SecurityError') {
-          setStatus('denied');
-        } else {
-          setStatus('error');
-          setErrMsg(e?.message ?? 'Could not access the microphone.');
-        }
+        if (cancelled) return;
+        const kind = classifyMicError(err);
+        setProblem(kind);
+        setStatus('trouble');
+        reportMicProblem(kind, err, 'sing_sequence');
       });
 
     return () => {
@@ -191,7 +197,7 @@ export default function SingSequence({
       handleRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [targetNotes.join('|')]);
+  }, [targetNotes.join('|'), attempt]);
 
   const currentTarget = targetNotes[Math.min(idx, targetNotes.length - 1)];
   const centsFn = anyOctave ? centsFromTargetAnyOctave : centsFromTarget;
@@ -221,8 +227,7 @@ export default function SingSequence({
       <div style={{ fontSize: 10, color: 'var(--ink-3)', textTransform: 'uppercase', letterSpacing: 1.5, fontWeight: 600 }}>
         {status === 'permission' && 'waiting for mic…'}
         {status === 'listening' && `sing the phrase · note ${Math.min(idx + 1, targetNotes.length)}/${targetNotes.length}`}
-        {status === 'denied' && 'microphone blocked'}
-        {status === 'error' && 'mic error'}
+        {status === 'trouble' && (problem === 'denied' ? 'microphone blocked' : 'mic problem')}
       </div>
 
       {/* Sequence dots */}
@@ -356,16 +361,7 @@ export default function SingSequence({
         </div>
       </div>
 
-      {status === 'denied' && (
-        <div style={{ fontSize: 12, color: 'var(--coral-ink)', maxWidth: 320, textAlign: 'center' }}>
-          enable microphone access in your browser or system settings, then try again.
-        </div>
-      )}
-      {status === 'error' && (
-        <div style={{ fontSize: 12, color: 'var(--coral-ink)', maxWidth: 320, textAlign: 'center' }}>
-          {errMsg}
-        </div>
-      )}
+      {status === 'trouble' && <MicTrouble problem={problem} onRetry={() => setAttempt((n) => n + 1)} />}
 
       <div style={{ display: 'flex', gap: 8 }}>
         {onReplay && (

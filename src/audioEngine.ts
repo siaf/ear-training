@@ -392,12 +392,13 @@ class AudioEngine {
     return notes;
   }
 
-  async startListening(onPitch: PitchListener): Promise<ListenHandle> {
+  async startListening(onPitch: PitchListener, onDeadMic?: () => void): Promise<ListenHandle> {
     await this.initialize();
     // Share the AudioContext with Tone so iOS doesn't create a second one that quietly suspends.
     const rawCtx = (Tone.context as unknown as { rawContext: AudioContext }).rawContext;
     return startPitchDetect(rawCtx, onPitch, {
       gate: () => !this.isPlaybackActive(),
+      onDeadMic,
     });
   }
 
