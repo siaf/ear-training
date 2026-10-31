@@ -277,9 +277,16 @@ async function assertAuthReachable(): Promise<void> {
 }
 
 // Supabase sends failed OAuth / magic-link logins back with ?error= or #error=.
+// Read the URL at module load: App rewrites it to a clean route on mount,
+// before initSync runs, which would drop these params.
+const landingUrlParams =
+  typeof window === 'undefined'
+    ? null
+    : new URLSearchParams(window.location.search + '&' + window.location.hash.replace(/^#/, ''));
+
 function reportAuthRedirectError(): void {
-  if (typeof window === 'undefined') return;
-  const params = new URLSearchParams(window.location.search + '&' + window.location.hash.replace(/^#/, ''));
+  const params = landingUrlParams;
+  if (!params) return;
   const error = params.get('error') || params.get('error_code');
   if (!error) return;
   const description = params.get('error_description') ?? '';
