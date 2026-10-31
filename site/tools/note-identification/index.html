@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Note Identification — free treble &amp; bass clef note reading practice · Fifths</title>
-<meta name="description" content="Free note identification trainer. See a note on the treble or bass clef staff, tap its letter name, hear it played. Add ledger lines and sharps/flats when you're ready. Works on phone and desktop. No signup.">
+<title>Note Reading Games — treble, bass, alto & tenor clef, piano and guitar · Fifths</title>
+<meta name="description" content="Free note reading games: treble clef, bass clef, alto clef, tenor clef and grand staff, plus piano keys and the guitar fretboard. Practice mode, 60-second sprints and a mixed-clef note identification game. No signup.">
 <link rel="canonical" href="https://fifths.io/tools/note-identification/">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Note Identification — treble &amp; bass clef reading practice · Fifths">
-<meta property="og:description" content="See a note on the staff, name it, hear it. Rounds of 20 with a list of the notes to review. No signup.">
+<meta property="og:title" content="Note reading games: every clef, piano keys and guitar fretboard">
+<meta property="og:description" content="Free note identification games with practice mode, 60-second sprints and a per-note accuracy map. No signup.">
 <meta property="og:url" content="https://fifths.io/tools/note-identification/">
 <meta property="og:image" content="https://fifths.io/brand/logos/logo-stacked-light.png">
 <meta name="twitter:card" content="summary">
@@ -22,6 +22,7 @@
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=DM+Serif+Display:ital@0;1&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=DM+Serif+Display:ital@0;1&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;600&display=swap"></noscript>
 <link rel="stylesheet" href="/styles.css">
+<link rel="stylesheet" href="/tools/_note-games/note-games.css">
 <!-- Sentry Loader (same public key as site/app.js): pulls the full SDK only when an error happens. -->
 <script src="https://js.sentry-cdn.com/f5f1cd3cbbd39fab5bd1d5a0635b81e6.min.js" crossorigin="anonymous" async></script>
 <!-- Umami analytics -->
@@ -42,143 +43,106 @@
   "@graph": [
     {
       "@type": "WebApplication",
-      "name": "Note Identification Trainer",
+      "name": "Mixed-Clef Note Identification Game",
       "applicationCategory": "EducationalApplication",
       "operatingSystem": "Web",
       "browserRequirements": "Requires JavaScript",
       "url": "https://fifths.io/tools/note-identification/",
-      "description": "Free note reading practice. Identify notes on the treble and bass clef staff, with optional ledger lines and sharps and flats. Each note is played back when you answer.",
-      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
-      "publisher": { "@type": "Organization", "name": "Fifths", "url": "https://fifths.io/" }
+      "description": "Free note identification game mixing treble, bass, alto and tenor clefs, with a practice mode, a 60-second sprint, levels up to ledger lines and accidentals, and a per-note accuracy map.",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "Fifths",
+        "url": "https://fifths.io/"
+      }
     },
     {
       "@type": "FAQPage",
       "mainEntity": [
-        { "@type": "Question", "name": "What's the easiest way to remember the treble clef notes?", "acceptedAnswer": { "@type": "Answer", "text": "The lines from bottom to top are E, G, B, D, F, often remembered as 'Every Good Boy Does Fine'. The spaces from bottom to top spell FACE. It also helps to know that the curl of the treble clef wraps around the second line, which is G." } },
-        { "@type": "Question", "name": "How do I remember the bass clef notes?", "acceptedAnswer": { "@type": "Answer", "text": "The lines from bottom to top are G, B, D, F, A ('Good Boys Do Fine Always'), and the spaces from bottom to top are A, C, E, G ('All Cows Eat Grass'). The two dots of the bass clef sit either side of the fourth line, which is F." } },
-        { "@type": "Question", "name": "Where is middle C on the staff?", "acceptedAnswer": { "@type": "Answer", "text": "Middle C sits on one ledger line below the treble staff, and on one ledger line above the bass staff. On the grand staff it is the same note in both places, shared between the two clefs." } },
-        { "@type": "Question", "name": "What are ledger lines?", "acceptedAnswer": { "@type": "Answer", "text": "Ledger lines are short lines added above or below the five-line staff for notes that fall outside it. They continue the line-space-line pattern of the staff, so you can read them by counting steps out from the nearest staff line." } },
-        { "@type": "Question", "name": "Should I rely on mnemonics or learn landmark notes?", "acceptedAnswer": { "@type": "Answer", "text": "Use both, but aim to move beyond spelling out mnemonics. Learning a few landmark notes, such as treble G, bass F and middle C, and reading by step or skip from them is faster in real music than reciting a sentence for every note." } },
-        { "@type": "Question", "name": "Is this note reading practice free?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. It is free, with no signup and no email gate, and it runs in your browser. Notes are played back when you answer; on iPhone, sound starts after your first tap because iOS requires a user gesture before a page can play audio." } }
+        {
+          "@type": "Question",
+          "name": "What is note identification?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Note identification means naming a written note from its position on the staff. It depends on the clef: the same line or space is a different note in treble, bass, alto and tenor clef. These games train it one clef at a time and then mixed."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Where is middle C on the staff?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "One ledger line below the treble staff, one ledger line above the bass staff, the middle line of the alto clef and the fourth line of the tenor clef. On the grand staff it sits between the two staves."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What are ledger lines?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Short lines added above or below the five-line staff for notes outside it. They continue the line-space-line pattern of the staff, so you can read them by counting steps out from the nearest staff line."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Should I rely on mnemonics or landmark notes?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Use both, but aim to move past spelling out mnemonics. A few landmark notes, such as middle C and each clef's reference line, read by step or skip from there, are faster in real music than reciting a sentence for every note."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Which clef should I learn first?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "The one your instrument reads. Treble clef for most high instruments and voices, bass clef for low instruments, both for piano, alto clef for viola. Add the others when your music needs them."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Are these note reading games free?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. They are free, with no signup and no email gate, and they run in your browser on phone or desktop. Your progress is saved on your device only. On iPhone, sound starts after your first tap because iOS requires a tap before a page can play audio."
+          }
+        }
+      ]
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Tools",
+          "item": "https://fifths.io/tools/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Note reading games",
+          "item": "https://fifths.io/tools/note-identification/"
+        }
       ]
     }
   ]
 }
 </script>
-<style>
-  body { --disp: 'Fraunces', 'DM Serif Display', Georgia, serif; }
-  body.ni-body { background: var(--page); min-height: 100vh; overflow-x: hidden; }
-  #root { min-height: 760px; }
 
-  .ni-page { max-width: 720px; margin: 0 auto; padding: 12px 16px 8px; }
-  .ni-strip { padding: 8px 0 14px; }
-  .ni-strip h1 { font-family: var(--disp); font-weight: 700; font-size: 30px; line-height: 1.12; letter-spacing: -0.01em; margin: 0 0 6px; color: var(--ink-1); }
-  .ni-strip h1 em { font-style: italic; color: var(--coral-ink); }
-  .ni-strip p { margin: 0; color: var(--ink-2); font-size: 15px; }
-  .ni-topcta {
-    display: flex; align-items: center; justify-content: space-between; gap: 10px 14px; flex-wrap: wrap;
-    margin: 12px 0 0; padding: 10px 14px; border-radius: 14px;
-    background: var(--coral-soft); color: var(--ink-1); font-size: 14px;
-  }
-  .ni-topcta a { font-weight: 600; color: var(--coral-ink); white-space: nowrap; }
-
-  .ni-app { display: flex; flex-direction: column; gap: 14px; }
-  .ni-card { background: var(--card); border: 1px solid var(--hairline); border-radius: 20px; padding: 18px 16px; box-shadow: var(--sh-sm); }
-  @media (min-width: 600px) { .ni-card { padding: 24px 26px; } }
-  .ni-eyebrow { font-weight: 600; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-3); margin: 0 0 6px; }
-  .ni-muted { color: var(--ink-3); }
-  .ni-hint { font-size: 13px; color: var(--ink-2); margin: 4px 0 0; }
-  .ni-card--settings .ni-hint { color: var(--ink-3); font-size: 12.5px; }
-
-  .ni-status { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-size: 14px; color: var(--ink-2); }
-  .ni-status strong { color: var(--ink-1); }
-  .ni-progress { height: 6px; border-radius: 3px; background: var(--ink-5); margin: 10px 0 8px; overflow: hidden; }
-  .ni-progress span { display: block; height: 100%; background: var(--mint-ink); transition: width 200ms ease; }
-
-  .ni-staff-wrap { position: relative; max-width: 420px; margin: 0 auto; }
-  .ni-staff { width: 100%; height: auto; display: block; }
-  .ni-clef-tag { position: absolute; top: 0; right: 0; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3); font-weight: 600; }
-
-  .ni-feedback-slot { min-height: 74px; text-align: center; margin: 2px 0 10px; }
-  .ni-prompt { margin: 12px 0 0; font-size: 16px; color: var(--ink-2); font-weight: 500; }
-  .ni-fb { border-radius: 12px; padding: 10px 12px; }
-  .ni-fb p { margin: 0; }
-  .ni-fb--ok { background: var(--mint-soft); color: var(--mint-ink); font-weight: 700; font-size: 18px; margin: 6px 0 0; }
-  .ni-fb--no { background: var(--coral-soft); color: var(--ink-1); font-size: 15px; }
-
-  .ni-acc { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 8px; }
-  .ni-letters { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
-  @media (max-width: 400px) { .ni-letters { grid-template-columns: repeat(4, 1fr); gap: 8px; } }
-  .ni-letter {
-    min-height: 58px; border-radius: 14px; cursor: pointer;
-    background: var(--page); border: 1.5px solid var(--hairline); color: var(--ink-1);
-    font-family: var(--disp); font-weight: 700; font-size: 24px;
-    transition: transform 100ms ease;
-  }
-  .ni-letter:not(:disabled):active { transform: scale(0.96); }
-  @media (hover: hover) { .ni-letter:not(:disabled):hover { border-color: var(--coral); } }
-  .ni-letter:disabled { cursor: default; }
-  .ni-letter.is-correct { background: var(--mint-soft); border-color: var(--mint-ink); }
-  .ni-letter.is-wrong { background: var(--coral-soft); border-color: var(--coral); }
-
-  .ni-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 12px; }
-  .ni-row .btn-sm { min-height: 46px; }
-  .ni-next { flex: 1; min-width: 140px; }
-  .ni-row--center { justify-content: center; margin-top: 18px; }
-  .ni-kbd-hint { margin: 12px 0 0; font-size: 12px; color: var(--ink-3); text-align: center; }
-  @media (hover: none) { .ni-kbd-hint { display: none; } }
-
-  .ni-settings { display: flex; flex-direction: column; gap: 14px; }
-  .ni-field { border: 0; padding: 0; margin: 0; min-width: 0; }
-  .ni-field legend { font-weight: 600; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 8px; padding: 0; }
-  .ni-seg { display: grid; gap: 8px; }
-  .ni-chip {
-    min-height: 46px; padding: 8px 10px; border-radius: 12px; cursor: pointer;
-    border: 1.5px solid var(--hairline); background: var(--page); color: var(--ink-1);
-    font-weight: 600; font-size: 14px; line-height: 1.2;
-  }
-  .ni-chip.is-on { border-color: var(--coral); background: var(--coral-soft); color: var(--coral-ink); }
-  .ni-chip:disabled { opacity: 0.6; cursor: default; }
-
-  .ni-end-score { display: flex; align-items: baseline; gap: 8px; }
-  .ni-end-num { font-family: var(--disp); font-size: 64px; font-weight: 700; line-height: 1; color: var(--ink-1); }
-  .ni-end-of { font-size: 20px; color: var(--ink-3); }
-  .ni-end-head { margin: 6px 0 6px; color: var(--ink-2); }
-  .ni-end-line { margin: 0 0 12px; color: var(--ink-2); font-size: 14.5px; }
-  .ni-missed { margin: 10px 0 16px; }
-  .ni-missed ul { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 6px; }
-  .ni-missed li { font-family: var(--mono); font-size: 13px; padding: 4px 10px; border-radius: 999px; background: var(--page-2); color: var(--ink-1); }
-  .ni-cta { padding: 18px 16px; border-radius: 16px; background: var(--coral-soft); border: 1px solid var(--coral); margin-top: 8px; }
-  .ni-cta h3 { font-family: var(--disp); font-size: 21px; line-height: 1.2; margin: 0 0 8px; color: var(--ink-1); }
-  .ni-cta p { margin: 0 0 14px; font-size: 14.5px; color: var(--ink-2); }
-  .ni-cta-btn { width: 100%; white-space: normal; text-align: center; }
-
-  /* SEO content */
-  .ni-seo { max-width: 720px; margin: 48px auto 24px; padding: 0 16px; color: var(--ink-2); line-height: 1.65; }
-  .ni-seo h2 { font-family: var(--disp); font-weight: 700; font-size: 24px; color: var(--ink-1); letter-spacing: -0.01em; margin: 36px 0 12px; }
-  .ni-seo h3 { font-weight: 700; font-size: 16px; color: var(--ink-1); margin: 20px 0 8px; }
-  .ni-seo p { margin: 0 0 14px; font-size: 15px; }
-  .ni-seo ul, .ni-seo ol { padding-left: 20px; margin: 0 0 16px; }
-  .ni-seo li { margin: 6px 0; font-size: 15px; }
-  .ni-seo a { color: var(--coral-ink); }
-  .ni-ref { width: 100%; border-collapse: collapse; font-size: 14px; margin: 0 0 16px; background: var(--card); border: 1px solid var(--hairline); border-radius: 14px; overflow: hidden; }
-  .ni-ref th, .ni-ref td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--hairline); vertical-align: top; }
-  .ni-ref th { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); font-weight: 600; }
-  .ni-ref tr:last-child td { border-bottom: 0; }
-  .ni-seo .cta { margin: 28px 0 0; padding: 18px 20px; background: var(--coral-soft); border: 1px solid var(--coral); border-radius: 16px; }
-  .ni-seo .cta strong { color: var(--coral-ink); }
-  .ni-seo .cta a { color: #fff; background: var(--coral); padding: 10px 16px; border-radius: 999px; text-decoration: none; font-weight: 600; display: inline-block; margin-top: 8px; }
-
-  @media (prefers-reduced-motion: reduce) { .ni-page * { transition-duration: 0.01ms !important; } }
-</style>
-
-<!-- React (production) + Tone — JSX is pre-compiled at build time, no Babel runtime. -->
+<!-- React (production) + Tone. JSX is pre-compiled at build time, no Babel runtime.
+     One shared bundle for every note game; window.NOTE_GAME picks the game. -->
+<script>window.NOTE_GAME = { game: 'mixed' };</script>
 <script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/tone@14.7.77/build/Tone.js"></script>
-<script src="note-identification.js" defer></script>
+<script src="/tools/_note-games/note-games.js" defer></script>
 </head>
-<body class="ni-body">
+<body class="ng-body">
 
 <header class="nav">
   <a href="/" class="brand" aria-label="Fifths">
@@ -186,112 +150,126 @@
   </a>
   <nav class="nav-links">
     <a href="/tools/">All tools</a>
-    <a href="/tools/interval-ear-trainer/">Interval ear trainer</a>
+    <a href="/tools/note-identification/">Note reading games</a>
     <a href="/blog/">Blog</a>
     <a href="https://app.fifths.io" data-ph-track data-ph-cta="nav-app">Open the app</a>
   </nav>
 </header>
 
-<main class="ni-page">
-  <div class="ni-strip">
-    <h1>Note <em>identification</em></h1>
-    <p>Read the note on the staff, tap its name, hear it played. Treble and bass clef. Free, no signup.</p>
-    <div class="ni-topcta">
-      <span>Reading is half of it. Fifths trains your ear to hear notes, too.</span>
-      <a href="https://app.fifths.io/?start=found_higher_lower&amp;utm_source=fifths.io&amp;utm_medium=tool&amp;utm_campaign=note-identification&amp;utm_content=top" data-ph-track data-ph-cta="tool-top">Try the app →</a>
+<main class="ng-page">
+  <div class="ng-strip">
+    <p class="ng-crumb"><a href="/tools/">Tools</a> / Note reading games</p>
+    <h1>Note reading <em>games</em></h1>
+    <p class="ng-lede">Learn to read notes one clef at a time, then keep them sharp. Every game has an endless practice mode, a 60-second sprint and a map of the notes you miss. Free, no signup.</p>
+
+    <div class="ng-topcta">
+      <span>Reading notes is half of it. Fifths trains your ear to hear them.</span>
+      <a href="https://app.fifths.io/?utm_source=fifths.io&amp;utm_medium=tool&amp;utm_campaign=note-identification&amp;utm_content=top" data-ph-track data-ph-cta="tool-top">Try the app →</a>
     </div>
   </div>
-
-  <div id="root">
-    <noscript><p>This note reading trainer needs JavaScript.</p></noscript>
+  <div class="ng-games">
+      <a class="ng-game-card" href="/tools/treble-clef-notes/">
+        <span class="ng-thumb"><svg class="ng-thumb-svg" viewBox="0 -14 130 70" role="img" aria-label="treble clef" xmlns="http://www.w3.org/2000/svg"><line x1="2" y1="40" x2="128" y2="40" stroke="var(--ink-3)" stroke-width="1"/><line x1="2" y1="30" x2="128" y2="30" stroke="var(--ink-3)" stroke-width="1"/><line x1="2" y1="20" x2="128" y2="20" stroke="var(--ink-3)" stroke-width="1"/><line x1="2" y1="10" x2="128" y2="10" stroke="var(--ink-3)" stroke-width="1"/><line x1="2" y1="0" x2="128" y2="0" stroke="var(--ink-3)" stroke-width="1"/><g transform="translate(3 0)" fill="none" stroke="var(--ink-1)" stroke-linecap="round" stroke-linejoin="round"><path stroke-width="2.3" d="M 17.5 47 L 15.2 -6 C 14.8 -15, 22.5 -19, 22.8 -10 C 23 -2, 7 10, 6.5 27 C 6 39, 22 43, 25 33 C 27.5 25, 21 20.5, 15.5 22.5 C 10.5 24.5, 11 32, 16.5 33"/><path stroke-width="2.1" d="M 17.5 47 C 18 53.5, 11.5 55, 9.5 51.5"/><circle cx="10.5" cy="50.5" r="2.8" fill="var(--ink-1)" stroke="none"/></g><line x1="2" y1="0" x2="2" y2="40" stroke="var(--ink-3)" stroke-width="1"/><g><ellipse cx="92" cy="30" rx="6" ry="4.3" fill="var(--ink-1)" transform="rotate(-20 92 30)"/><line x1="97.5" y1="29" x2="97.5" y2="-5" stroke="var(--ink-1)" stroke-width="1.4"/></g></svg></span>
+        <h2>Treble clef notes</h2>
+        <p>E G B D F and F A C E, up to sharps and flats.</p>
+      </a>
+      <a class="ng-game-card" href="/tools/bass-clef-notes/">
+        <span class="ng-thumb"><svg class="ng-thumb-svg" viewBox="0 -14 130 70" role="img" aria-label="bass clef" xmlns="http://www.w3.org/2000/svg"><line x1="2" y1="40" x2="128" y2="40" stroke="var(--ink-3)" stroke-width="1"/><line x1="2" y1="30" x2="128" y2="30" stroke="var(--ink-3)" stroke-width="1"/><line x1="2" y1="20" x2="128" y2="20" stroke="var(--ink-3)" stroke-width="1"/><line x1="2" y1="10" x2="128" y2="10" stroke="var(--ink-3)" stroke-width="1"/><line x1="2" y1="0" x2="128" y2="0" stroke="var(--ink-3)" stroke-width="1"/><g transform="translate(3 0)" fill="var(--ink-1)" stroke="var(--ink-1)" stroke-linecap="round"><circle cx="9" cy="10" r="3.4" stroke="none"/><path fill="none" stroke-width="2.4" d="M 6.2 9 C 6 1.5, 21 -1.5, 23.5 8 C 26 18, 17 30, 5 37"/><circle cx="29.5" cy="5" r="1.7" stroke="none"/><circle cx="29.5" cy="15" r="1.7" stroke="none"/></g><line x1="2" y1="0" x2="2" y2="40" stroke="var(--ink-3)" stroke-width="1"/><g><ellipse cx="92" cy="10" rx="6" ry="4.3" fill="var(--ink-1)" transform="rotate(-20 92 10)"/><line x1="86.5" y1="11" x2="86.5" y2="45" stroke="var(--ink-1)" stroke-width="1.4"/></g></svg></span>
+        <h2>Bass clef notes</h2>
+        <p>G B D F A and A C E G, with ledger lines to middle C.</p>
+      </a>
+      <a class="ng-game-card" href="/tools/alto-clef-notes/">
+        <span class="ng-thumb"><svg class="ng-thumb-svg" viewBox="0 -14 130 70" role="img" aria-label="alto clef" xmlns="http://www.w3.org/2000/svg"><line x1="2" y1="40" x2="128" y2="40" stroke="var(--ink-3)" stroke-width="1"/><line x1="2" y1="30" x2="128" y2="30" stroke="var(--ink-3)" stroke-width="1"/><line x1="2" y1="20" x2="128" y2="20" stroke="var(--ink-3)" stroke-width="1"/><line x1="2" y1="10" x2="128" y2="10" stroke="var(--ink-3)" stroke-width="1"/><line x1="2" y1="0" x2="128" y2="0" stroke="var(--ink-3)" stroke-width="1"/><g transform="translate(3 20)" fill="var(--ink-1)" stroke="var(--ink-1)" stroke-linecap="round" stroke-linejoin="round"><rect x="1.5" y="-20" width="4.6" height="40" stroke="none"/><rect x="8.1" y="-20" width="1.6" height="40" stroke="none"/><path d="M 9.6 0 L 12.6 -3.6 C 14.6 -1.6, 18 -2.2, 20.6 -4.6 C 24.6 -8.4, 24.2 -16.6, 19.6 -19 C 16.6 -20.6, 13.4 -19.6, 12.6 -17.4" fill="none" stroke-width="2.6"/><circle cx="14.4" cy="-15.6" r="2.7" stroke="none"/><g transform="scale(1 -1)"><path d="M 9.6 0 L 12.6 -3.6 C 14.6 -1.6, 18 -2.2, 20.6 -4.6 C 24.6 -8.4, 24.2 -16.6, 19.6 -19 C 16.6 -20.6, 13.4 -19.6, 12.6 -17.4" fill="none" stroke-width="2.6"/><circle cx="14.4" cy="-15.6" r="2.7" stroke="none"/></g></g><line x1="2" y1="0" x2="2" y2="40" stroke="var(--ink-3)" stroke-width="1"/><g><ellipse cx="92" cy="20" rx="6" ry="4.3" fill="var(--ink-1)" transform="rotate(-20 92 20)"/><line x1="86.5" y1="21" x2="86.5" y2="55" stroke="var(--ink-1)" stroke-width="1.4"/></g></svg></span>
+        <h2>Alto clef notes</h2>
+        <p>The viola clef: middle C on the middle line.</p>
+      </a>
+      <a class="ng-game-card" href="/tools/tenor-clef-notes/">
+        <span class="ng-thumb"><svg class="ng-thumb-svg" viewBox="0 -14 130 70" role="img" aria-label="tenor clef" xmlns="http://www.w3.org/2000/svg"><line x1="2" y1="40" x2="128" y2="40" stroke="var(--ink-3)" stroke-width="1"/><line x1="2" y1="30" x2="128" y2="30" stroke="var(--ink-3)" stroke-width="1"/><line x1="2" y1="20" x2="128" y2="20" stroke="var(--ink-3)" stroke-width="1"/><line x1="2" y1="10" x2="128" y2="10" stroke="var(--ink-3)" stroke-width="1"/><line x1="2" y1="0" x2="128" y2="0" stroke="var(--ink-3)" stroke-width="1"/><g transform="translate(3 10)" fill="var(--ink-1)" stroke="var(--ink-1)" stroke-linecap="round" stroke-linejoin="round"><rect x="1.5" y="-20" width="4.6" height="40" stroke="none"/><rect x="8.1" y="-20" width="1.6" height="40" stroke="none"/><path d="M 9.6 0 L 12.6 -3.6 C 14.6 -1.6, 18 -2.2, 20.6 -4.6 C 24.6 -8.4, 24.2 -16.6, 19.6 -19 C 16.6 -20.6, 13.4 -19.6, 12.6 -17.4" fill="none" stroke-width="2.6"/><circle cx="14.4" cy="-15.6" r="2.7" stroke="none"/><g transform="scale(1 -1)"><path d="M 9.6 0 L 12.6 -3.6 C 14.6 -1.6, 18 -2.2, 20.6 -4.6 C 24.6 -8.4, 24.2 -16.6, 19.6 -19 C 16.6 -20.6, 13.4 -19.6, 12.6 -17.4" fill="none" stroke-width="2.6"/><circle cx="14.4" cy="-15.6" r="2.7" stroke="none"/></g></g><line x1="2" y1="0" x2="2" y2="40" stroke="var(--ink-3)" stroke-width="1"/><g><ellipse cx="92" cy="10" rx="6" ry="4.3" fill="var(--ink-1)" transform="rotate(-20 92 10)"/><line x1="86.5" y1="11" x2="86.5" y2="45" stroke="var(--ink-1)" stroke-width="1.4"/></g></svg></span>
+        <h2>Tenor clef notes</h2>
+        <p>Cello, bassoon and trombone: middle C on the 4th line.</p>
+      </a>
+      <a class="ng-game-card" href="/tools/grand-staff-notes/">
+        <span class="ng-thumb"><svg class="ng-thumb-svg" viewBox="0 -24 130 188" role="img" aria-label="grand staff" xmlns="http://www.w3.org/2000/svg"><line x1="16" y1="40" x2="128" y2="40" stroke="var(--ink-3)" stroke-width="1"/><line x1="16" y1="30" x2="128" y2="30" stroke="var(--ink-3)" stroke-width="1"/><line x1="16" y1="20" x2="128" y2="20" stroke="var(--ink-3)" stroke-width="1"/><line x1="16" y1="10" x2="128" y2="10" stroke="var(--ink-3)" stroke-width="1"/><line x1="16" y1="0" x2="128" y2="0" stroke="var(--ink-3)" stroke-width="1"/><g transform="translate(17 0)" fill="none" stroke="var(--ink-1)" stroke-linecap="round" stroke-linejoin="round"><path stroke-width="2.3" d="M 17.5 47 L 15.2 -6 C 14.8 -15, 22.5 -19, 22.8 -10 C 23 -2, 7 10, 6.5 27 C 6 39, 22 43, 25 33 C 27.5 25, 21 20.5, 15.5 22.5 C 10.5 24.5, 11 32, 16.5 33"/><path stroke-width="2.1" d="M 17.5 47 C 18 53.5, 11.5 55, 9.5 51.5"/><circle cx="10.5" cy="50.5" r="2.8" fill="var(--ink-1)" stroke="none"/></g><line x1="16" y1="140" x2="128" y2="140" stroke="var(--ink-3)" stroke-width="1"/><line x1="16" y1="130" x2="128" y2="130" stroke="var(--ink-3)" stroke-width="1"/><line x1="16" y1="120" x2="128" y2="120" stroke="var(--ink-3)" stroke-width="1"/><line x1="16" y1="110" x2="128" y2="110" stroke="var(--ink-3)" stroke-width="1"/><line x1="16" y1="100" x2="128" y2="100" stroke="var(--ink-3)" stroke-width="1"/><g transform="translate(17 100)" fill="var(--ink-1)" stroke="var(--ink-1)" stroke-linecap="round"><circle cx="9" cy="10" r="3.4" stroke="none"/><path fill="none" stroke-width="2.4" d="M 6.2 9 C 6 1.5, 21 -1.5, 23.5 8 C 26 18, 17 30, 5 37"/><circle cx="29.5" cy="5" r="1.7" stroke="none"/><circle cx="29.5" cy="15" r="1.7" stroke="none"/></g><line x1="16" y1="0" x2="16" y2="140" stroke="var(--ink-3)" stroke-width="1.2"/><path d="M 12.5 -1 C 4.5 8, 10 42, 7.5 58 C 6.8 64, 5 68, 2.5 70 C 5 72, 6.8 76, 7.5 82 C 10 98, 4.5 132, 12.5 141 C 7.5 130, 12.5 100, 10 82 C 9.4 77, 8 73, 5.5 70 C 8 67, 9.4 63, 10 58 C 12.5 40, 7.5 10, 12.5 -1 Z" fill="var(--ink-1)"/><g><line x1="69" y1="50" x2="91" y2="50" stroke="var(--ink-2)" stroke-width="1.2"/><ellipse cx="80" cy="50" rx="6" ry="4.3" fill="var(--ink-1)" transform="rotate(-20 80 50)"/><line x1="85.5" y1="49" x2="85.5" y2="15" stroke="var(--ink-1)" stroke-width="1.4"/></g><g><line x1="93" y1="90" x2="115" y2="90" stroke="var(--ink-2)" stroke-width="1.2"/><ellipse cx="104" cy="90" rx="6" ry="4.3" fill="var(--ink-1)" transform="rotate(-20 104 90)"/><line x1="98.5" y1="91" x2="98.5" y2="125" stroke="var(--ink-1)" stroke-width="1.4"/></g></svg></span>
+        <h2>Grand staff notes</h2>
+        <p>Piano reading across both staves, middle C included.</p>
+      </a>
+      <a class="ng-game-card" href="/tools/piano-notes/">
+        <span class="ng-thumb"><svg viewBox="0 0 140 64" aria-hidden="true"><rect x="0" y="2" width="13" height="60" rx="2" fill="var(--card)" stroke="var(--ink-4)"/><rect x="14" y="2" width="13" height="60" rx="2" fill="var(--card)" stroke="var(--ink-4)"/><rect x="28" y="2" width="13" height="60" rx="2" fill="var(--card)" stroke="var(--ink-4)"/><rect x="42" y="2" width="13" height="60" rx="2" fill="var(--card)" stroke="var(--ink-4)"/><rect x="56" y="2" width="13" height="60" rx="2" fill="var(--card)" stroke="var(--ink-4)"/><rect x="70" y="2" width="13" height="60" rx="2" fill="var(--card)" stroke="var(--ink-4)"/><rect x="84" y="2" width="13" height="60" rx="2" fill="var(--card)" stroke="var(--ink-4)"/><rect x="98" y="2" width="13" height="60" rx="2" fill="var(--card)" stroke="var(--ink-4)"/><rect x="112" y="2" width="13" height="60" rx="2" fill="var(--card)" stroke="var(--ink-4)"/><rect x="126" y="2" width="13" height="60" rx="2" fill="var(--card)" stroke="var(--ink-4)"/><rect x="9" y="2" width="9" height="36" rx="1.5" fill="var(--ink-1)"/><rect x="23" y="2" width="9" height="36" rx="1.5" fill="var(--ink-1)"/><rect x="51" y="2" width="9" height="36" rx="1.5" fill="var(--ink-1)"/><rect x="65" y="2" width="9" height="36" rx="1.5" fill="var(--ink-1)"/><rect x="79" y="2" width="9" height="36" rx="1.5" fill="var(--ink-1)"/><rect x="107" y="2" width="9" height="36" rx="1.5" fill="var(--ink-1)"/><rect x="121" y="2" width="9" height="36" rx="1.5" fill="var(--ink-1)"/><circle cx="34.5" cy="50" r="4.5" fill="var(--coral)"/></svg></span>
+        <h2>Piano keys</h2>
+        <p>Find and name the notes on the piano keyboard.</p>
+      </a>
+      <a class="ng-game-card" href="/tools/guitar-fretboard-notes/">
+        <span class="ng-thumb"><svg viewBox="0 0 140 64" aria-hidden="true"><rect x="2" y="6" width="136" height="52" rx="3" fill="var(--page-3)"/><line x1="8" y1="6" x2="8" y2="58" stroke="var(--ink-3)" stroke-width="3"/><line x1="38" y1="6" x2="38" y2="58" stroke="var(--ink-3)" stroke-width="1.4"/><line x1="68" y1="6" x2="68" y2="58" stroke="var(--ink-3)" stroke-width="1.4"/><line x1="98" y1="6" x2="98" y2="58" stroke="var(--ink-3)" stroke-width="1.4"/><line x1="128" y1="6" x2="128" y2="58" stroke="var(--ink-3)" stroke-width="1.4"/><line x1="2" y1="10" x2="138" y2="10" stroke="var(--ink-2)" stroke-width="0.7"/><line x1="2" y1="18.8" x2="138" y2="18.8" stroke="var(--ink-2)" stroke-width="0.95"/><line x1="2" y1="27.6" x2="138" y2="27.6" stroke="var(--ink-2)" stroke-width="1.2"/><line x1="2" y1="36.400000000000006" x2="138" y2="36.400000000000006" stroke="var(--ink-2)" stroke-width="1.45"/><line x1="2" y1="45.2" x2="138" y2="45.2" stroke="var(--ink-2)" stroke-width="1.7"/><line x1="2" y1="54" x2="138" y2="54" stroke="var(--ink-2)" stroke-width="1.95"/><circle cx="53" cy="27.6" r="5" fill="var(--coral)"/><circle cx="83" cy="45.2" r="5" fill="var(--mint-ink)"/></svg></span>
+        <h2>Guitar fretboard</h2>
+        <p>Learn the notes on every string and fret.</p>
+      </a>
+  </div>
+  <h2 class="ng-section-h">Mixed-clef game</h2>
+  <p class="ng-section-p">Treble and bass shuffled together, then alto and tenor too. The clef changes from note to note, so you have to check it every time.</p>
+  <div id="note-game">
+    <noscript><p>This note reading game needs JavaScript. The note chart and guide below work without it.</p></noscript>
   </div>
 </main>
 
 <!-- ============= SEO content (visible, crawlable) ============= -->
-<section class="ni-seo">
-  <h2>How to use this note reading trainer</h2>
-  <ul>
-    <li><strong>Read the note</strong> on the staff and tap its letter name, A to G (or press the letter on your keyboard). The note plays when you answer, so you start linking what you see to what you hear.</li>
-    <li><strong>Pick a clef</strong>: treble, bass, or both mixed together. The clef name is shown above the staff as well as drawn on it.</li>
-    <li><strong>Pick a range</strong>: <em>On the staff</em> covers the five lines, four spaces and the note just above and below. <em>+ Ledger lines</em> adds up to two ledger lines above and below, including middle C.</li>
-    <li><strong>Turn on accidentals</strong> when the naturals are easy. Choose ♭, ♮ or ♯ first, then tap the letter.</li>
-    <li>Each round is 20 notes. At the end you get your score and a list of the exact notes you missed.</li>
-  </ul>
+<section class="ng-seo">
 
-  <h2>Treble clef notes</h2>
-  <p>The treble clef is also called the G clef: its inner curl wraps around the second line from the bottom, and that line is G (the G above middle C). From there:</p>
-  <table class="ni-ref">
-    <thead><tr><th></th><th>Bottom to top</th><th>Mnemonic</th></tr></thead>
+  <h2>Which note reading game should I start with?</h2>
+  <ul>
+    <li><strong><a href="/tools/treble-clef-notes/">Treble clef notes</a></strong> if you play violin, flute, clarinet, sax, trumpet, guitar, or sing soprano or alto.</li>
+    <li><strong><a href="/tools/bass-clef-notes/">Bass clef notes</a></strong> for cello, double bass, bass guitar, bassoon, trombone, tuba and lower voices.</li>
+    <li><strong><a href="/tools/grand-staff-notes/">Grand staff notes</a></strong> for piano: both clefs at once, with middle C between them. Pair it with the <a href="/tools/piano-notes/">piano keys</a> game.</li>
+    <li><strong><a href="/tools/alto-clef-notes/">Alto clef notes</a></strong> for viola, and <strong><a href="/tools/tenor-clef-notes/">tenor clef notes</a></strong> for the high registers of cello, bassoon and trombone.</li>
+    <li><strong><a href="/tools/guitar-fretboard-notes/">Guitar fretboard</a></strong> to learn where every note lives on the neck.</li>
+  </ul>
+  <p>Each staff game starts small (just the lines, or the notes around middle C) and builds up to the whole staff, ledger lines and accidentals. Get 13 of your last 15 right and the next level unlocks. The mixed-clef game on this page is for once you know two or more clefs.</p>
+
+  <h2>Why practise clefs mixed?</h2>
+  <p>When you drill one clef at a time, your brain can stop looking at the clef. Mixing them forces the check every time, which is exactly what real music asks of a pianist moving between staves or a cellist switching from bass to tenor clef. Mixing is harder in the moment and tends to stick better; see <a href="/blog/interleaved-practice-music/">interleaved practice</a> for why.</p>
+
+  <h2>Landmark notes, clef by clef</h2>
+  <table class="ng-ref">
+    <thead><tr><th>Clef</th><th>Lines</th><th>Spaces</th><th>Middle C</th></tr></thead>
     <tbody>
-      <tr><td>Lines</td><td>E G B D F</td><td>Every Good Boy Does Fine</td></tr>
-      <tr><td>Spaces</td><td>F A C E</td><td>Spells FACE</td></tr>
+      <tr><td>Treble (G clef)</td><td>E G B D F</td><td>F A C E</td><td>1 ledger line below</td></tr>
+      <tr><td>Bass (F clef)</td><td>G B D F A</td><td>A C E G</td><td>1 ledger line above</td></tr>
+      <tr><td>Alto (C clef)</td><td>F A C E G</td><td>G B D F</td><td>Middle line</td></tr>
+      <tr><td>Tenor (C clef)</td><td>D F A C E</td><td>E G B D</td><td>Fourth line</td></tr>
     </tbody>
   </table>
-
-  <h2>Bass clef notes</h2>
-  <p>The bass clef is the F clef: its two dots sit either side of the fourth line from the bottom, and that line is F (the F below middle C).</p>
-  <table class="ni-ref">
-    <thead><tr><th></th><th>Bottom to top</th><th>Mnemonic</th></tr></thead>
-    <tbody>
-      <tr><td>Lines</td><td>G B D F A</td><td>Good Boys Do Fine Always</td></tr>
-      <tr><td>Spaces</td><td>A C E G</td><td>All Cows Eat Grass</td></tr>
-    </tbody>
-  </table>
-  <p>A common stumbling block is reading bass clef as if it were treble. The same position on the staff is a different note in each clef: the bottom line is E in treble but G in bass. If you play from both clefs, practice them mixed (the <em>Both</em> setting) so you're forced to check the clef every time.</p>
-
-  <h2>Landmark notes: faster than mnemonics</h2>
-  <p>Mnemonics get you started, but reciting "Every Good Boy…" for every note is slow. Most fluent readers work from a handful of <strong>landmark notes</strong> they recognize instantly, then read nearby notes by step (line to the next space) or skip (line to the next line):</p>
-  <ul>
-    <li><strong>Middle C</strong>: one ledger line below the treble staff, one ledger line above the bass staff.</li>
-    <li><strong>Treble G</strong>: second line, where the clef curls.</li>
-    <li><strong>Bass F</strong>: fourth line, between the clef's dots.</li>
-    <li><strong>The outer lines</strong>: treble bottom line E and top line F; bass bottom line G and top line A.</li>
-  </ul>
-  <p>Once those are automatic, a note one step above treble G is A, two steps below bass F is D, and so on. It's the same move-by-distance thinking you use to hear intervals, which is why reading and <a href="/tools/interval-ear-trainer/">interval ear training</a> reinforce each other.</p>
+  <p>Mnemonics get you started; landmarks make you fast. Learn where middle C and each clef's own reference line sit (G for treble, F for bass, C for alto and tenor), then read nearby notes by step or skip. The same sense of distance is what you hear in <a href="/blog/musical-intervals-explained/">intervals</a>.</p>
 
   <h2>Ledger lines and accidentals</h2>
-  <p><strong>Ledger lines</strong> are short extra lines for notes above or below the staff. They continue the line-space-line pattern, so count out from the nearest staff line. Middle C is the one to memorize first: the same pitch sits one ledger line below the treble staff and one above the bass staff, which is how the two staves connect in piano music.</p>
-  <p>A <strong>sharp (♯)</strong> raises a note by a semitone and a <strong>flat (♭)</strong> lowers it by a semitone. The letter name comes from the staff position; the accidental just modifies it, so a sharp on the treble G line is G♯. This trainer leaves out E♯, B♯, F♭ and C♭, which are correct spellings but rare in beginner material. Key signatures are a separate topic. The <a href="/tools/circle-of-fifths/">interactive circle of fifths</a> shows which sharps or flats belong to each key.</p>
-
-  <h2>How to practice note reading</h2>
-  <ol>
-    <li><strong>Accuracy first, then speed.</strong> Take the time you need to get each note right; speed comes from repetition, not from guessing.</li>
-    <li><strong>A few minutes every day.</strong> Short daily sessions beat an occasional long one. See <a href="/blog/spaced-repetition-for-musicians/">spaced repetition for musicians</a>.</li>
-    <li><strong>Say it, then hear it.</strong> Name the note out loud before you tap, then listen to the playback. If you have an instrument nearby, find the note on it too.</li>
-    <li><strong>Expand gradually.</strong> On-staff notes in one clef, then ledger lines, then the other clef, then mixed clefs, then accidentals.</li>
-    <li><strong>Read real music.</strong> Drills build recognition; simple sight-reading puts it to work.</li>
-  </ol>
+  <p><strong>Ledger lines</strong> are short lines added above or below the staff. They continue the line-space-line pattern, so count out from the nearest staff line. A <strong>sharp (♯)</strong> raises a note by a semitone and a <strong>flat (♭)</strong> lowers it; the letter still comes from the line or space. The games leave out E♯, B♯, F♭ and C♭, which are correct spellings but rare in beginner material. The <a href="/tools/circle-of-fifths/">circle of fifths</a> shows which sharps and flats belong to each key.</p>
 
   <h2>Reading notes vs hearing them</h2>
-  <p>Note reading tells you what a note is <em>called</em>. It doesn't tell you what it <em>sounds like</em>, which is why many people who read well still can't play by ear or sing a line they've never heard. That second skill is ear training: hearing which note is higher, how far apart two notes are, and how each note relates to the key. For an introduction, see <a href="/blog/musical-intervals-explained/">musical intervals explained</a> and <a href="/blog/what-is-solfege/">what is solfège</a>.</p>
+  <p>Note reading tells you what a note is <em>called</em>. It doesn't tell you what it <em>sounds like</em>, which is why many good readers still can't play by ear or sing a line they haven't heard. That's ear training: hearing which note is higher, how far apart two notes are, and how each note relates to the key. Every game here plays the note when you answer to start linking the two; for the hearing side, try the <a href="/tools/interval-ear-trainer/">interval ear trainer</a> or read <a href="/blog/what-is-solfege/">what is solfège</a>.</p>
 
-  <h2>Frequently asked questions</h2>
-  <h3>What's the easiest way to remember the treble clef notes?</h3>
-  <p>The lines from bottom to top are E, G, B, D, F ("Every Good Boy Does Fine"), and the spaces spell FACE. It also helps to know the treble clef's curl wraps around the second line, which is G.</p>
-
-  <h3>How do I remember the bass clef notes?</h3>
-  <p>Lines from bottom to top: G, B, D, F, A ("Good Boys Do Fine Always"). Spaces: A, C, E, G ("All Cows Eat Grass"). The two dots of the bass clef sit either side of the fourth line, which is F.</p>
-
+<h2>Frequently asked questions</h2>
+  <h3>What is note identification?</h3>
+  <p>Note identification means naming a written note from its position on the staff. It depends on the clef: the same line or space is a different note in treble, bass, alto and tenor clef. These games train it one clef at a time and then mixed.</p>
   <h3>Where is middle C on the staff?</h3>
-  <p>One ledger line below the treble staff, and one ledger line above the bass staff. On the grand staff it's the same note in both places, shared between the two clefs.</p>
-
+  <p>One ledger line below the treble staff, one ledger line above the bass staff, the middle line of the alto clef and the fourth line of the tenor clef. On the grand staff it sits between the two staves.</p>
   <h3>What are ledger lines?</h3>
-  <p>Short lines added above or below the five-line staff for notes that fall outside it. They continue the staff's line-space-line pattern, so you can read them by counting steps out from the nearest staff line.</p>
+  <p>Short lines added above or below the five-line staff for notes outside it. They continue the line-space-line pattern of the staff, so you can read them by counting steps out from the nearest staff line.</p>
+  <h3>Should I rely on mnemonics or landmark notes?</h3>
+  <p>Use both, but aim to move past spelling out mnemonics. A few landmark notes, such as middle C and each clef's reference line, read by step or skip from there, are faster in real music than reciting a sentence for every note.</p>
+  <h3>Which clef should I learn first?</h3>
+  <p>The one your instrument reads. Treble clef for most high instruments and voices, bass clef for low instruments, both for piano, alto clef for viola. Add the others when your music needs them.</p>
+  <h3>Are these note reading games free?</h3>
+  <p>Yes. They are free, with no signup and no email gate, and they run in your browser on phone or desktop. Your progress is saved on your device only. On iPhone, sound starts after your first tap because iOS requires a tap before a page can play audio.</p>
 
-  <h3>Should I rely on mnemonics or learn landmark notes?</h3>
-  <p>Both, but aim to move beyond spelling out mnemonics. A few landmark notes (treble G, bass F, middle C), read by step or skip from there, are faster in real music than reciting a sentence for every note.</p>
-
-  <h3>Is this note reading practice free?</h3>
-  <p>Yes. There's no signup and no email gate, and it runs in your browser. Notes play back when you answer; on iPhone, sound starts after your first tap because iOS requires a user gesture before a page can play audio.</p>
+  <h2>More note reading games</h2>
+  <ul class="ng-more"><li><a href="/tools/treble-clef-notes/">Treble clef notes<span>E G B D F and F A C E, up to sharps and flats.</span></a></li><li><a href="/tools/bass-clef-notes/">Bass clef notes<span>G B D F A and A C E G, with ledger lines to middle C.</span></a></li><li><a href="/tools/alto-clef-notes/">Alto clef notes<span>The viola clef: middle C on the middle line.</span></a></li><li><a href="/tools/tenor-clef-notes/">Tenor clef notes<span>Cello, bassoon and trombone: middle C on the 4th line.</span></a></li><li><a href="/tools/grand-staff-notes/">Grand staff notes<span>Piano reading across both staves, middle C included.</span></a></li><li><a href="/tools/piano-notes/">Piano keys<span>Find and name the notes on the piano keyboard.</span></a></li><li><a href="/tools/guitar-fretboard-notes/">Guitar fretboard<span>Learn the notes on every string and fret.</span></a></li></ul>
 
   <div class="cta">
-    <p><strong>Now train your ear to hear notes, not just read them.</strong> Fifths is an ear-training app that starts with telling higher from lower and builds up to intervals, scale degrees and melodies, focusing on what you miss.</p>
-    <a href="https://app.fifths.io/?start=found_higher_lower&amp;utm_source=fifths.io&amp;utm_medium=tool&amp;utm_campaign=note-identification&amp;utm_content=bottom" data-ph-track data-ph-cta="seo-bottom">Try Fifths free →</a>
+    <p><strong>Reading notes is half of it.</strong> Fifths is an ear-training app that trains the other half: hearing which note is higher, how far apart two notes are, and how each note sits in the key, with practice that adapts to what you miss.</p>
+    <a href="https://app.fifths.io/?utm_source=fifths.io&amp;utm_medium=tool&amp;utm_campaign=note-identification&amp;utm_content=bottom" data-ph-track data-ph-cta="seo-bottom">Try Fifths free →</a>
   </div>
 </section>
 
 <footer class="site-foot">
-  <p><a href="/">Home</a> · <a href="/tools/">All tools</a> · <a href="/blog/">Blog</a> · <a href="/tools/interval-ear-trainer/">Interval ear trainer</a> · <a href="/privacy/">Privacy</a> · <a href="/terms/">Terms</a></p>
+  <p><a href="/">Home</a> · <a href="/tools/">All tools</a> · <a href="/tools/note-identification/">Note reading games</a> · <a href="/blog/">Blog</a> · <a href="/tools/interval-ear-trainer/">Interval ear trainer</a> · <a href="/privacy/">Privacy</a> · <a href="/terms/">Terms</a></p>
   <p class="site-foot-mark">fifths.io · 2026</p>
 </footer>
 

@@ -37,6 +37,36 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://fifths.io/tools/treble-clef-notes/</loc>
+    <lastmod>2026-10-31</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://fifths.io/tools/bass-clef-notes/</loc>
+    <lastmod>2026-10-31</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://fifths.io/tools/alto-clef-notes/</loc>
+    <lastmod>2026-10-31</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://fifths.io/tools/tenor-clef-notes/</loc>
+    <lastmod>2026-10-31</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://fifths.io/tools/grand-staff-notes/</loc>
+    <lastmod>2026-10-31</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://fifths.io/jazz/</loc>
     <lastmod>2026-10-31</lastmod>
     <changefreq>monthly</changefreq>

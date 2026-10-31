@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Grand Staff Notes — chart, middle C and a free piano note-reading game · Fifths</title>
+<meta name="description" content="Every grand staff note on one chart, from bass clef to treble clef with middle C in between, plus landmark notes and ledger lines. Practise reading piano music with a free grand staff note game.">
+<link rel="canonical" href="https://fifths.io/tools/grand-staff-notes/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Grand staff notes: chart, middle C and a free piano note-reading game">
+<meta property="og:description" content="Treble and bass clef joined by middle C. A chart of the grand staff notes plus a practice game and 60-second sprint.">
+<meta property="og:url" content="https://fifths.io/tools/grand-staff-notes/">
+<meta property="og:image" content="https://fifths.io/brand/logos/logo-stacked-light.png">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://fifths.io/brand/logos/logo-stacked-light.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/brand/favicons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/brand/favicons/favicon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/brand/favicons/favicon-180.png">
+<meta name="theme-color" content="#fff8ef">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=DM+Serif+Display:ital@0;1&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=DM+Serif+Display:ital@0;1&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;600&display=swap"></noscript>
+<link rel="stylesheet" href="/styles.css">
+<link rel="stylesheet" href="/tools/_note-games/note-games.css">
+<!-- Sentry Loader (same public key as site/app.js): pulls the full SDK only when an error happens. -->
+<script src="https://js.sentry-cdn.com/f5f1cd3cbbd39fab5bd1d5a0635b81e6.min.js" crossorigin="anonymous" async></script>
+<!-- Umami analytics -->
+<script defer src="https://cloud.umami.is/script.js" data-website-id="8cc10640-f114-49ab-8572-036552f64527"></script>
+<script defer src="/posthog.js"></script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-LJYKXFDR9L"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-LJYKXFDR9L');
+  gtag('config', 'AW-17007845333');
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebApplication",
+      "name": "Grand Staff Notes Game",
+      "applicationCategory": "EducationalApplication",
+      "operatingSystem": "Web",
+      "browserRequirements": "Requires JavaScript",
+      "url": "https://fifths.io/tools/grand-staff-notes/",
+      "description": "Free grand staff note-reading game for piano reading, with notes on both staves and between them, a practice mode, a 60-second sprint, levels and a per-note accuracy map.",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "Fifths",
+        "url": "https://fifths.io/"
+      }
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What is the grand staff?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "The grand staff is a treble clef staff and a bass clef staff joined by a brace and a line on the left. It is used for piano and other instruments with a wide range, and the two staves meet at middle C."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Where is middle C on the grand staff?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Between the two staves, on its own short ledger line. Written just below the treble staff or just above the bass staff, it is the same note: the C closest to the middle of a piano keyboard."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What are the notes on the grand staff?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Treble staff lines E G B D F and spaces F A C E; bass staff lines G B D F A and spaces A C E G. Together with the ledger notes between them they run continuously from the bottom of the bass staff to the top of the treble staff."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Why can the same note be written on both staves?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Notes around middle C (roughly A3 to E4) can be written with ledger lines below the treble staff or above the bass staff. Composers pick whichever is clearer, often based on which hand plays the note."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Does the right hand always play the treble staff?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Usually the right hand reads the top staff and the left hand the bottom staff, but it is not a rule. Either hand can play notes from either staff, and sometimes both staves use the same clef."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is this grand staff notes game free?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. It is free, with no signup and no email gate, and it runs in your browser on phone or desktop. Your note map and sprint bests are saved on your device only. On iPhone, sound starts after your first tap because iOS requires a tap before a page can play audio."
+          }
+        }
+      ]
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Tools",
+          "item": "https://fifths.io/tools/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Note reading games",
+          "item": "https://fifths.io/tools/note-identification/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Grand staff",
+          "item": "https://fifths.io/tools/grand-staff-notes/"
+        }
+      ]
+    }
+  ]
+}
+</script>
+
+<!-- React (production) + Tone. JSX is pre-compiled at build time, no Babel runtime.
+     One shared bundle for every note game; window.NOTE_GAME picks the game. -->
+<script>window.NOTE_GAME = { game: 'grand' };</script>
+<script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/tone@14.7.77/build/Tone.js"></script>
+<script src="/tools/_note-games/note-games.js" defer></script>
+</head>
+<body class="ng-body">
+
+<header class="nav">
+  <a href="/" class="brand" aria-label="Fifths">
+    <img src="/brand/logos/logo-horizontal-light.png" alt="Fifths" width="120" height="28"/>
+  </a>
+  <nav class="nav-links">
+    <a href="/tools/">All tools</a>
+    <a href="/tools/note-identification/">Note reading games</a>
+    <a href="/blog/">Blog</a>
+    <a href="https://app.fifths.io" data-ph-track data-ph-cta="nav-app">Open the app</a>
+  </nav>
+</header>
+
+<main class="ng-page">
+  <div class="ng-strip">
+    <p class="ng-crumb"><a href="/tools/">Tools</a> / <a href="/tools/note-identification/">Note reading games</a> / Grand staff</p>
+    <h1>Grand staff <em>notes</em></h1>
+    <p class="ng-lede">The grand staff is a treble staff and a bass staff joined by a brace, with <strong>middle C</strong> on a ledger line between them. It's how piano music is written. Check the chart, then read notes on both staves in the game. Free, no signup.</p>
+    <details class="ng-mini ng-mini--grand" open>
+      <summary>Grand staff landmark notes</summary>
+      <svg class="ng-chart-svg" viewBox="0 -34 316 206" role="img" aria-label="Grand staff landmark notes: C3, bass F3, middle C written on both staves, treble G4 and C5" xmlns="http://www.w3.org/2000/svg"><line x1="16" y1="40" x2="314" y2="40" stroke="var(--ink-3)" stroke-width="1"/><line x1="16" y1="30" x2="314" y2="30" stroke="var(--ink-3)" stroke-width="1"/><line x1="16" y1="20" x2="314" y2="20" stroke="var(--ink-3)" stroke-width="1"/><line x1="16" y1="10" x2="314" y2="10" stroke="var(--ink-3)" stroke-width="1"/><line x1="16" y1="0" x2="314" y2="0" stroke="var(--ink-3)" stroke-width="1"/><g transform="translate(17 0)" fill="none" stroke="var(--ink-1)" stroke-linecap="round" stroke-linejoin="round"><path stroke-width="2.3" d="M 17.5 47 L 15.2 -6 C 14.8 -15, 22.5 -19, 22.8 -10 C 23 -2, 7 10, 6.5 27 C 6 39, 22 43, 25 33 C 27.5 25, 21 20.5, 15.5 22.5 C 10.5 24.5, 11 32, 16.5 33"/><path stroke-width="2.1" d="M 17.5 47 C 18 53.5, 11.5 55, 9.5 51.5"/><circle cx="10.5" cy="50.5" r="2.8" fill="var(--ink-1)" stroke="none"/></g><line x1="16" y1="140" x2="314" y2="140" stroke="var(--ink-3)" stroke-width="1"/><line x1="16" y1="130" x2="314" y2="130" stroke="var(--ink-3)" stroke-width="1"/><line x1="16" y1="120" x2="314" y2="120" stroke="var(--ink-3)" stroke-width="1"/><line x1="16" y1="110" x2="314" y2="110" stroke="var(--ink-3)" stroke-width="1"/><line x1="16" y1="100" x2="314" y2="100" stroke="var(--ink-3)" stroke-width="1"/><g transform="translate(17 100)" fill="var(--ink-1)" stroke="var(--ink-1)" stroke-linecap="round"><circle cx="9" cy="10" r="3.4" stroke="none"/><path fill="none" stroke-width="2.4" d="M 6.2 9 C 6 1.5, 21 -1.5, 23.5 8 C 26 18, 17 30, 5 37"/><circle cx="29.5" cy="5" r="1.7" stroke="none"/><circle cx="29.5" cy="15" r="1.7" stroke="none"/></g><line x1="16" y1="0" x2="16" y2="140" stroke="var(--ink-3)" stroke-width="1.2"/><path d="M 12.5 -1 C 4.5 8, 10 42, 7.5 58 C 6.8 64, 5 68, 2.5 70 C 5 72, 6.8 76, 7.5 82 C 10 98, 4.5 132, 12.5 141 C 7.5 130, 12.5 100, 10 82 C 9.4 77, 8 73, 5.5 70 C 8 67, 9.4 63, 10 58 C 12.5 40, 7.5 10, 12.5 -1 Z" fill="var(--ink-1)"/><g><ellipse cx="64" cy="125" rx="6.8" ry="4.6" fill="var(--ink-1)"/><ellipse cx="64" cy="125" rx="3.1" ry="2.2" fill="var(--card)" transform="rotate(-55 64 125)"/></g><text x="64" y="166" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--ink-1)" font-family="Outfit, system-ui, sans-serif">C3</text><g><ellipse cx="106" cy="110" rx="6.8" ry="4.6" fill="var(--ink-1)"/><ellipse cx="106" cy="110" rx="3.1" ry="2.2" fill="var(--card)" transform="rotate(-55 106 110)"/></g><text x="106" y="166" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--ink-1)" font-family="Outfit, system-ui, sans-serif">F3</text><g><line x1="137" y1="90" x2="159" y2="90" stroke="var(--ink-2)" stroke-width="1.2"/><ellipse cx="148" cy="90" rx="6.8" ry="4.6" fill="var(--coral-ink)"/><ellipse cx="148" cy="90" rx="3.1" ry="2.2" fill="var(--card)" transform="rotate(-55 148 90)"/></g><text x="148" y="166" text-anchor="middle" font-size="12.5" font-weight="800" fill="var(--coral-ink)" font-family="Outfit, system-ui, sans-serif">C4</text><g><line x1="179" y1="50" x2="201" y2="50" stroke="var(--ink-2)" stroke-width="1.2"/><ellipse cx="190" cy="50" rx="6.8" ry="4.6" fill="var(--coral-ink)"/><ellipse cx="190" cy="50" rx="3.1" ry="2.2" fill="var(--card)" transform="rotate(-55 190 50)"/></g><text x="190" y="-20" text-anchor="middle" font-size="12.5" font-weight="800" fill="var(--coral-ink)" font-family="Outfit, system-ui, sans-serif">C4</text><g><ellipse cx="232" cy="30" rx="6.8" ry="4.6" fill="var(--ink-1)"/><ellipse cx="232" cy="30" rx="3.1" ry="2.2" fill="var(--card)" transform="rotate(-55 232 30)"/></g><text x="232" y="-20" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--ink-1)" font-family="Outfit, system-ui, sans-serif">G4</text><g><ellipse cx="274" cy="15" rx="6.8" ry="4.6" fill="var(--ink-1)"/><ellipse cx="274" cy="15" rx="3.1" ry="2.2" fill="var(--card)" transform="rotate(-55 274 15)"/></g><text x="274" y="-20" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--ink-1)" font-family="Outfit, system-ui, sans-serif">C5</text></svg>
+    </details>
+    <div class="ng-topcta">
+      <span>Reading notes is half of it. Fifths trains your ear to hear them.</span>
+      <a href="https://app.fifths.io/?utm_source=fifths.io&amp;utm_medium=tool&amp;utm_campaign=grand-staff-notes&amp;utm_content=top" data-ph-track data-ph-cta="tool-top">Try the app →</a>
+    </div>
+  </div>
+
+  <div id="note-game">
+    <noscript><p>This note reading game needs JavaScript. The note chart and guide below work without it.</p></noscript>
+  </div>
+</main>
+
+<!-- ============= SEO content (visible, crawlable) ============= -->
+<section class="ng-seo">
+
+  <h2>Grand staff notes chart</h2>
+  <figure class="ng-chart"><div class="ng-chart-scroll"><svg class="ng-chart-svg" viewBox="0 -34 664 206" role="img" aria-label="Chart of the grand staff notes from F2 to G5, with middle C written below the treble staff and above the bass staff" xmlns="http://www.w3.org/2000/svg"><line x1="16" y1="40" x2="662" y2="40" stroke="var(--ink-3)" stroke-width="1"/><line x1="16" y1="30" x2="662" y2="30" stroke="var(--ink-3)" stroke-width="1"/><line x1="16" y1="20" x2="662" y2="20" stroke="var(--ink-3)" stroke-width="1"/><line x1="16" y1="10" x2="662" y2="10" stroke="var(--ink-3)" stroke-width="1"/><line x1="16" y1="0" x2="662" y2="0" stroke="var(--ink-3)" stroke-width="1"/><g transform="translate(17 0)" fill="none" stroke="var(--ink-1)" stroke-linecap="round" stroke-linejoin="round"><path stroke-width="2.3" d="M 17.5 47 L 15.2 -6 C 14.8 -15, 22.5 -19, 22.8 -10 C 23 -2, 7 10, 6.5 27 C 6 39, 22 43, 25 33 C 27.5 25, 21 20.5, 15.5 22.5 C 10.5 24.5, 11 32, 16.5 33"/><path stroke-width="2.1" d="M 17.5 47 C 18 53.5, 11.5 55, 9.5 51.5"/><circle cx="10.5" cy="50.5" r="2.8" fill="var(--ink-1)" stroke="none"/></g><line x1="16" y1="140" x2="662" y2="140" stroke="var(--ink-3)" stroke-width="1"/><line x1="16" y1="130" x2="662" y2="130" stroke="var(--ink-3)" stroke-width="1"/><line x1="16" y1="120" x2="662" y2="120" stroke="var(--ink-3)" stroke-width="1"/><line x1="16" y1="110" x2="662" y2="110" stroke="var(--ink-3)" stroke-width="1"/><line x1="16" y1="100" x2="662" y2="100" stroke="var(--ink-3)" stroke-width="1"/><g transform="translate(17 100)" fill="var(--ink-1)" stroke="var(--ink-1)" stroke-linecap="round"><circle cx="9" cy="10" r="3.4" stroke="none"/><path fill="none" stroke-width="2.4" d="M 6.2 9 C 6 1.5, 21 -1.5, 23.5 8 C 26 18, 17 30, 5 37"/><circle cx="29.5" cy="5" r="1.7" stroke="none"/><circle cx="29.5" cy="15" r="1.7" stroke="none"/></g><line x1="16" y1="0" x2="16" y2="140" stroke="var(--ink-3)" stroke-width="1.2"/><path d="M 12.5 -1 C 4.5 8, 10 42, 7.5 58 C 6.8 64, 5 68, 2.5 70 C 5 72, 6.8 76, 7.5 82 C 10 98, 4.5 132, 12.5 141 C 7.5 130, 12.5 100, 10 82 C 9.4 77, 8 73, 5.5 70 C 8 67, 9.4 63, 10 58 C 12.5 40, 7.5 10, 12.5 -1 Z" fill="var(--ink-1)"/><g><ellipse cx="64" cy="145" rx="6.8" ry="4.6" fill="var(--ink-1)"/><ellipse cx="64" cy="145" rx="3.1" ry="2.2" fill="var(--card)" transform="rotate(-55 64 145)"/></g><text x="64" y="166" text-anchor="middle" font-size="11.5" font-weight="600" fill="var(--ink-1)" font-family="Outfit, system-ui, sans-serif">F2</text><g><ellipse cx="89" cy="140" rx="6.8" ry="4.6" fill="var(--ink-1)"/><ellipse cx="89" cy="140" rx="3.1" ry="2.2" fill="var(--card)" transform="rotate(-55 89 140)"/></g><text x="89" y="166" text-anchor="middle" font-size="11.5" font-weight="600" fill="var(--ink-1)" font-family="Outfit, system-ui, sans-serif">G2</text><g><ellipse cx="114" cy="135" rx="6.8" ry="4.6" fill="var(--ink-1)"/><ellipse cx="114" cy="135" rx="3.1" ry="2.2" fill="var(--card)" transform="rotate(-55 114 135)"/></g><text x="114" y="166" text-anchor="middle" font-size="11.5" font-weight="600" fill="var(--ink-1)" font-family="Outfit, system-ui, sans-serif">A2</text><g><ellipse cx="139" cy="130" rx="6.8" ry="4.6" fill="var(--ink-1)"/><ellipse cx="139" cy="130" rx="3.1" ry="2.2" fill="var(--card)" transform="rotate(-55 139 130)"/></g><text x="139" y="166" text-anchor="middle" font-size="11.5" font-weight="600" fill="var(--ink-1)" font-family="Outfit, system-ui, sans-serif">B2</text><g><ellipse cx="164" cy="125" rx="6.8" ry="4.6" fill="var(--ink-1)"/><ellipse cx="164" cy="125" rx="3.1" ry="2.2" fill="var(--card)" transform="rotate(-55 164 125)"/></g><text x="164" y="166" text-anchor="middle" font-size="11.5" font-weight="600" fill="var(--ink-1)" font-family="Outfit, system-ui, sans-serif">C3</text><g><ellipse cx="189" cy="120" rx="6.8" ry="4.6" fill="var(--ink-1)"/><ellipse cx="189" cy="120" rx="3.1" ry="2.2" fill="var(--card)" transform="rotate(-55 189 120)"/></g><text x="189" y="166" text-anchor="middle" font-size="11.5" font-weight="600" fill="var(--ink-1)" font-family="Outfit, system-ui, sans-serif">D3</text><g><ellipse cx="214" cy="115" rx="6.8" ry="4.6" fill="var(--ink-1)"/><ellipse cx="214" cy="115" rx="3.1" ry="2.2" fill="var(--card)" transform="rotate(-55 214 115)"/></g><text x="214" y="166" text-anchor="middle" font-size="11.5" font-weight="600" fill="var(--ink-1)" font-family="Outfit, system-ui, sans-serif">E3</text><g><ellipse cx="239" cy="110" rx="6.8" ry="4.6" fill="var(--ink-1)"/><ellipse cx="239" cy="110" rx="3.1" ry="2.2" fill="var(--card)" transform="rotate(-55 239 110)"/></g><text x="239" y="166" text-anchor="middle" font-size="11.5" font-weight="600" fill="var(--ink-1)" font-family="Outfit, system-ui, sans-serif">F3</text><g><ellipse cx="264" cy="105" rx="6.8" ry="4.6" fill="var(--ink-1)"/><ellipse cx="264" cy="105" rx="3.1" ry="2.2" fill="var(--card)" transform="rotate(-55 264 105)"/></g><text x="264" y="166" text-anchor="middle" font-size="11.5" font-weight="600" fill="var(--ink-1)" font-family="Outfit, system-ui, sans-serif">G3</text><g><ellipse cx="289" cy="100" rx="6.8" ry="4.6" fill="var(--ink-1)"/><ellipse cx="289" cy="100" rx="3.1" ry="2.2" fill="var(--card)" transform="rotate(-55 289 100)"/></g><text x="289" y="166" text-anchor="middle" font-size="11.5" font-weight="600" fill="var(--ink-1)" font-family="Outfit, system-ui, sans-serif">A3</text><g><ellipse cx="314" cy="95" rx="6.8" ry="4.6" fill="var(--ink-1)"/><ellipse cx="314" cy="95" rx="3.1" ry="2.2" fill="var(--card)" transform="rotate(-55 314 95)"/></g><text x="314" y="166" text-anchor="middle" font-size="11.5" font-weight="600" fill="var(--ink-1)" font-family="Outfit, system-ui, sans-serif">B3</text><g><line x1="328" y1="90" x2="350" y2="90" stroke="var(--ink-2)" stroke-width="1.2"/><ellipse cx="339" cy="90" rx="6.8" ry="4.6" fill="var(--coral-ink)"/><ellipse cx="339" cy="90" rx="3.1" ry="2.2" fill="var(--card)" transform="rotate(-55 339 90)"/></g><text x="339" y="166" text-anchor="middle" font-size="11.5" font-weight="800" fill="var(--coral-ink)" font-family="Outfit, system-ui, sans-serif">C4</text><g><line x1="353" y1="50" x2="375" y2="50" stroke="var(--ink-2)" stroke-width="1.2"/><ellipse cx="364" cy="50" rx="6.8" ry="4.6" fill="var(--coral-ink)"/><ellipse cx="364" cy="50" rx="3.1" ry="2.2" fill="var(--card)" transform="rotate(-55 364 50)"/></g><text x="364" y="-20" text-anchor="middle" font-size="11.5" font-weight="800" fill="var(--coral-ink)" font-family="Outfit, system-ui, sans-serif">C4</text><g><ellipse cx="389" cy="45" rx="6.8" ry="4.6" fill="var(--ink-1)"/><ellipse cx="389" cy="45" rx="3.1" ry="2.2" fill="var(--card)" transform="rotate(-55 389 45)"/></g><text x="389" y="-20" text-anchor="middle" font-size="11.5" font-weight="600" fill="var(--ink-1)" font-family="Outfit, system-ui, sans-serif">D4</text><g><ellipse cx="414" cy="40" rx="6.8" ry="4.6" fill="var(--ink-1)"/><ellipse cx="414" cy="40" rx="3.1" ry="2.2" fill="var(--card)" transform="rotate(-55 414 40)"/></g><text x="414" y="-20" text-anchor="middle" font-size="11.5" font-weight="600" fill="var(--ink-1)" font-family="Outfit, system-ui, sans-serif">E4</text><g><ellipse cx="439" cy="35" rx="6.8" ry="4.6" fill="var(--ink-1)"/><ellipse cx="439" cy="35" rx="3.1" ry="2.2" fill="var(--card)" transform="rotate(-55 439 35)"/></g><text x="439" y="-20" text-anchor="middle" font-size="11.5" font-weight="600" fill="var(--ink-1)" font-family="Outfit, system-ui, sans-serif">F4</text><g><ellipse cx="464" cy="30" rx="6.8" ry="4.6" fill="var(--ink-1)"/><ellipse cx="464" cy="30" rx="3.1" ry="2.2" fill="var(--card)" transform="rotate(-55 464 30)"/></g><text x="464" y="-20" text-anchor="middle" font-size="11.5" font-weight="600" fill="var(--ink-1)" font-family="Outfit, system-ui, sans-serif">G4</text><g><ellipse cx="489" cy="25" rx="6.8" ry="4.6" fill="var(--ink-1)"/><ellipse cx="489" cy="25" rx="3.1" ry="2.2" fill="var(--card)" transform="rotate(-55 489 25)"/></g><text x="489" y="-20" text-anchor="middle" font-size="11.5" font-weight="600" fill="var(--ink-1)" font-family="Outfit, system-ui, sans-serif">A4</text><g><ellipse cx="514" cy="20" rx="6.8" ry="4.6" fill="var(--ink-1)"/><ellipse cx="514" cy="20" rx="3.1" ry="2.2" fill="var(--card)" transform="rotate(-55 514 20)"/></g><text x="514" y="-20" text-anchor="middle" font-size="11.5" font-weight="600" fill="var(--ink-1)" font-family="Outfit, system-ui, sans-serif">B4</text><g><ellipse cx="539" cy="15" rx="6.8" ry="4.6" fill="var(--ink-1)"/><ellipse cx="539" cy="15" rx="3.1" ry="2.2" fill="var(--card)" transform="rotate(-55 539 15)"/></g><text x="539" y="-20" text-anchor="middle" font-size="11.5" font-weight="600" fill="var(--ink-1)" font-family="Outfit, system-ui, sans-serif">C5</text><g><ellipse cx="564" cy="10" rx="6.8" ry="4.6" fill="var(--ink-1)"/><ellipse cx="564" cy="10" rx="3.1" ry="2.2" fill="var(--card)" transform="rotate(-55 564 10)"/></g><text x="564" y="-20" text-anchor="middle" font-size="11.5" font-weight="600" fill="var(--ink-1)" font-family="Outfit, system-ui, sans-serif">D5</text><g><ellipse cx="589" cy="5" rx="6.8" ry="4.6" fill="var(--ink-1)"/><ellipse cx="589" cy="5" rx="3.1" ry="2.2" fill="var(--card)" transform="rotate(-55 589 5)"/></g><text x="589" y="-20" text-anchor="middle" font-size="11.5" font-weight="600" fill="var(--ink-1)" font-family="Outfit, system-ui, sans-serif">E5</text><g><ellipse cx="614" cy="0" rx="6.8" ry="4.6" fill="var(--ink-1)"/><ellipse cx="614" cy="0" rx="3.1" ry="2.2" fill="var(--card)" transform="rotate(-55 614 0)"/></g><text x="614" y="-20" text-anchor="middle" font-size="11.5" font-weight="600" fill="var(--ink-1)" font-family="Outfit, system-ui, sans-serif">F5</text><g><ellipse cx="639" cy="-5" rx="6.8" ry="4.6" fill="var(--ink-1)"/><ellipse cx="639" cy="-5" rx="3.1" ry="2.2" fill="var(--card)" transform="rotate(-55 639 -5)"/></g><text x="639" y="-20" text-anchor="middle" font-size="11.5" font-weight="600" fill="var(--ink-1)" font-family="Outfit, system-ui, sans-serif">G5</text></svg></div><figcaption>Grand staff notes from F2 (below the bass staff) up to G5 (above the treble staff). Middle C appears twice: on a ledger line above the bass staff and on a ledger line below the treble staff. Same key, same pitch.</figcaption></figure>
+  <p>The grand staff (also called the great staff) stacks a <strong>treble clef staff</strong> on top of a <strong>bass clef staff</strong>, joined on the left by a brace and a line. Together they cover the middle of the piano with only a few ledger lines. The two staves meet at <strong>middle C</strong>: one ledger line below the treble staff and one ledger line above the bass staff are the same note.</p>
+
+  <h2>Treble staff and bass staff at a glance</h2>
+  <table class="ng-ref">
+    <thead><tr><th></th><th>Lines (bottom to top)</th><th>Spaces (bottom to top)</th></tr></thead>
+    <tbody>
+      <tr><td>Treble staff (top)</td><td>E G B D F · Every Good Boy Does Fine</td><td>F A C E · spells FACE</td></tr>
+      <tr><td>Bass staff (bottom)</td><td>G B D F A · Good Boys Do Fine Always</td><td>A C E G · All Cows Eat Grass</td></tr>
+    </tbody>
+  </table>
+  <p>The same line or space is a different note on each staff: the bottom line is E on the top staff and G on the bottom staff. The usual mistake on the grand staff isn't forgetting a note, it's reading the bass staff with treble clef names. Glance at the clef, then read. There are full guides for each clef on the <a href="/tools/treble-clef-notes/">treble clef notes</a> and <a href="/tools/bass-clef-notes/">bass clef notes</a> pages.</p>
+
+  <h2>Landmark notes across the grand staff</h2>
+  <p>Pianists often learn the grand staff from a ladder of landmark notes, most of them Cs an octave apart, and read everything else by step or skip from the nearest one:</p>
+  <ul>
+    <li><strong>Low C (C2)</strong>: two ledger lines below the bass staff.</li>
+    <li><strong>Bass C (C3)</strong>: the second space of the bass staff.</li>
+    <li><strong>Bass F (F3)</strong>: the fourth line of the bass staff, between the clef's dots.</li>
+    <li><strong>Middle C (C4)</strong>: the ledger line between the staves.</li>
+    <li><strong>Treble G (G4)</strong>: the second line of the treble staff, where the clef curls.</li>
+    <li><strong>Treble C (C5)</strong>: the third space of the treble staff.</li>
+    <li><strong>High C (C6)</strong>: two ledger lines above the treble staff.</li>
+  </ul>
+  <p>Level 1 of the game drills six of these (C3, F3, middle C on both staves, G4 and C5). Once they're instant, levels 2 to 4 add every note on both staves, the ledger notes between them and accidentals.</p>
+
+  <h2>Notes between the staves</h2>
+  <p>The notes around middle C can be written on either staff. A3, B3 and C4 can sit on ledger lines below the treble staff; C4, D4 and E4 can sit on ledger lines above the bass staff. Which one the composer uses usually depends on which hand plays the note, and on keeping the lines easy to read. In the chart above, middle C is shown in both places. Level 3 of the game includes these in-between notes on both staves, which is often where piano reading slows down.</p>
+  <p>The right hand usually reads the treble staff and the left hand the bass staff, but that isn't a rule: either hand can take notes from either staff, and some passages put both hands in the same clef.</p>
+
+  <h2>Who reads the grand staff?</h2>
+  <p>Piano, keyboards, harp, celesta, marimba and other keyboard-like instruments. Organ music adds a third staff for the pedals. If you're learning piano, it also helps to know where each note is on the keyboard: try the <a href="/tools/piano-notes/">piano keys game</a>. And since reading tells you a note's name but not its sound, pair it with some <a href="/tools/interval-ear-trainer/">interval ear training</a>.</p>
+
+  <h2>How to practise grand staff notes with the game</h2>
+  <ul>
+    <li><strong>Practice mode</strong> is untimed and endless. Tap the letter (or press A–G on a keyboard), hear the note, and get the right answer plus a mnemonic or landmark hint when you miss. Tap <em>Hint</em> before answering if you are stuck.</li>
+    <li><strong>Levels build up</strong>: landmark notes, then every note on both staves, then the ledger notes between the staves, and finally sharps and flats. Get 13 of your last 15 notes right and the next level unlocks, but you can pick any level at any time.</li>
+    <li><strong>Sprint mode</strong> gives you 60 seconds. Every 5 correct answers in a row raises your combo multiplier, up to x4, and a miss resets it. Your best score for each level is saved, and you can copy your result to share it.</li>
+    <li><strong>Notes you miss come back more often.</strong> The game weights its picks towards the notes you get wrong, and the note map under the game colours every line and space by your accuracy, so you can see your weakest note at a glance.</li>
+  </ul>
+  <p>A few minutes a day works better than one long session (see <a href="/blog/spaced-repetition-for-musicians/">spaced repetition for musicians</a>). Go for accuracy first; speed follows. Say the note name out loud before you tap, and when a level feels easy, mix it up: <a href="/blog/interleaved-practice-music/">interleaved practice</a> is harder in the moment but sticks better.</p>
+
+<h2>Frequently asked questions</h2>
+  <h3>What is the grand staff?</h3>
+  <p>The grand staff is a treble clef staff and a bass clef staff joined by a brace and a line on the left. It is used for piano and other instruments with a wide range, and the two staves meet at middle C.</p>
+  <h3>Where is middle C on the grand staff?</h3>
+  <p>Between the two staves, on its own short ledger line. Written just below the treble staff or just above the bass staff, it is the same note: the C closest to the middle of a piano keyboard.</p>
+  <h3>What are the notes on the grand staff?</h3>
+  <p>Treble staff lines E G B D F and spaces F A C E; bass staff lines G B D F A and spaces A C E G. Together with the ledger notes between them they run continuously from the bottom of the bass staff to the top of the treble staff.</p>
+  <h3>Why can the same note be written on both staves?</h3>
+  <p>Notes around middle C (roughly A3 to E4) can be written with ledger lines below the treble staff or above the bass staff. Composers pick whichever is clearer, often based on which hand plays the note.</p>
+  <h3>Does the right hand always play the treble staff?</h3>
+  <p>Usually the right hand reads the top staff and the left hand the bottom staff, but it is not a rule. Either hand can play notes from either staff, and sometimes both staves use the same clef.</p>
+  <h3>Is this grand staff notes game free?</h3>
+  <p>Yes. It is free, with no signup and no email gate, and it runs in your browser on phone or desktop. Your note map and sprint bests are saved on your device only. On iPhone, sound starts after your first tap because iOS requires a tap before a page can play audio.</p>
+
+  <h2>More note reading games</h2>
+  <ul class="ng-more"><li><a href="/tools/treble-clef-notes/">Treble clef notes<span>E G B D F and F A C E, up to sharps and flats.</span></a></li><li><a href="/tools/bass-clef-notes/">Bass clef notes<span>G B D F A and A C E G, with ledger lines to middle C.</span></a></li><li><a href="/tools/alto-clef-notes/">Alto clef notes<span>The viola clef: middle C on the middle line.</span></a></li><li><a href="/tools/tenor-clef-notes/">Tenor clef notes<span>Cello, bassoon and trombone: middle C on the 4th line.</span></a></li><li><a href="/tools/piano-notes/">Piano keys<span>Find and name the notes on the piano keyboard.</span></a></li><li><a href="/tools/guitar-fretboard-notes/">Guitar fretboard<span>Learn the notes on every string and fret.</span></a></li><li><a href="/tools/note-identification/">All note reading games<span>Plus a mixed-clef game.</span></a></li></ul>
+
+  <div class="cta">
+    <p><strong>Reading notes is half of it.</strong> Fifths is an ear-training app that trains the other half: hearing which note is higher, how far apart two notes are, and how each note sits in the key, with practice that adapts to what you miss.</p>
+    <a href="https://app.fifths.io/?utm_source=fifths.io&amp;utm_medium=tool&amp;utm_campaign=grand-staff-notes&amp;utm_content=bottom" data-ph-track data-ph-cta="seo-bottom">Try Fifths free →</a>
+  </div>
+</section>
+
+<footer class="site-foot">
+  <p><a href="/">Home</a> · <a href="/tools/">All tools</a> · <a href="/tools/note-identification/">Note reading games</a> · <a href="/blog/">Blog</a> · <a href="/tools/interval-ear-trainer/">Interval ear trainer</a> · <a href="/privacy/">Privacy</a> · <a href="/terms/">Terms</a></p>
+  <p class="site-foot-mark">fifths.io · 2026</p>
+</footer>
+
+</body>
+</html>
