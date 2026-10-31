@@ -161,7 +161,7 @@ The biggest problem is that learners don't come back (1 of 16). The second is th
 
 ### Keeping bots out of the numbers
 
-- **Project-wide filter:** add `$virt_is_bot is not true` to PostHog's "filter out internal and test users" setting, so every insight excludes flagged bots by default. Not done yet; it changes project settings.
+- **Project-wide filter (done Oct 31):** `$virt_is_bot is not true` was added to PostHog's "filter out internal and test users" setting (on by default for new insights). Check: 60-day unique visitors went from 978 to 945. It removes only bots PostHog itself flags. The ~126 "likely bots" found by fingerprint (800×600 screens, data centers) still count, because a fingerprint rule would also drop some real people.
 - **Count engaged visitors:** for decisions, count visitors who interacted or stayed 15 seconds or more (a saved cohort or action), not raw page views.
 - **Watch session replays** of "unclear" visitors now and then to recalibrate the rules.
 - **Protect the forms:** if fake waitlist signups appear, add Cloudflare Turnstile to the waitlist form.
