@@ -19,7 +19,8 @@ export function initPostHog(): void {
     person_profiles: 'always',
     property_blacklist: ['$ip'],
     ip: false,
-    capture_pageview: true,
+    // The app is a single-page app: count each screen change as a pageview.
+    capture_pageview: 'history_change',
     capture_pageleave: 'if_capture_pageview',
     cross_subdomain_cookie: true,
     persistence: 'localStorage+cookie',

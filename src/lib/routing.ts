@@ -2,9 +2,9 @@
 
 import { useEffect } from 'react';
 
-export type Route = 'landing' | 'onboarding' | 'path' | 'practice' | 'results' | 'settings' | 'stats' | 'paywall' | 'review';
+export type Route = 'onboarding' | 'path' | 'practice' | 'results' | 'settings' | 'stats' | 'paywall' | 'review';
 
-const KNOWN: Route[] = ['landing', 'onboarding', 'path', 'practice', 'results', 'settings', 'stats', 'paywall', 'review'];
+const KNOWN: Route[] = ['onboarding', 'path', 'practice', 'results', 'settings', 'stats', 'paywall', 'review'];
 
 function basePath(): string {
   const base = (import.meta as unknown as { env?: { BASE_URL?: string } }).env?.BASE_URL ?? '/';
@@ -25,11 +25,21 @@ export function parseRouteFromUrl(fallback: Route): Route {
   }
 }
 
-/** Sync URL with route. Only called for routes that make sense to share. */
-export function syncUrl(route: Route, replace = false) {
+/**
+ * Sync URL with route. Only called for routes that make sense to share.
+ * `keepQuery` holds on to UTM tags on the first sync so analytics still sees
+ * them; `start` is dropped so a reload doesn't restart the deep-linked lesson.
+ */
+export function syncUrl(route: Route, replace = false, keepQuery = false) {
   try {
     const base = basePath();
-    const target = route === 'landing' ? base : `${base}${route}`;
+    let query = '';
+    if (keepQuery) {
+      const params = new URLSearchParams(window.location.search);
+      params.delete('start');
+      query = params.toString() ? `?${params}` : '';
+    }
+    const target = `${base}${route}${query}`;
     const current = window.location.pathname + window.location.search;
     if (current === target) return;
     if (replace) window.history.replaceState({}, '', target);

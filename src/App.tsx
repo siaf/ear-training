@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { audioEngine, INTERVALS, TRIADS, SEVENTH_CHORDS, MODES, SynthType } from './audioEngine';
-import { CURRICULUM, getCurrentLevel, canUnlockNextLevel, getDisplayName } from './curriculum';
+import { CURRICULUM, getCurrentLevel, canUnlockNextLevel, getDisplayName, isProLesson } from './curriculum';
 import { AnalyticsEngine } from './analytics';
 import { Answer, Question } from './types';
 import { filterDiatonicItems } from './scaleContext';
@@ -37,7 +37,6 @@ import Settings, {
   VOICE_RANGE_NOTES,
 } from './routes/Settings';
 import Stats from './routes/Stats';
-import Landing from './routes/Landing';
 import Onboarding from './routes/Onboarding';
 import Paywall, { PlanId } from './routes/Paywall';
 import { clearAllSessions, getStreakDays, getTodayMinutes, hasHistory, recordSession, timeSinceLastSession } from './lib/sessionStore';
@@ -241,14 +240,25 @@ function savePersisted(p: Persisted) {
   }
 }
 
+// `?start=<lessonId>` deep link from the marketing site's tools and blog posts.
+// Only free lessons qualify, so a link can't be used to skip the paywall.
+function readStartParam(): string | null {
+  try {
+    const id = new URLSearchParams(window.location.search).get('start');
+    const level = id ? CURRICULUM.find((l) => l.id === id) : undefined;
+    return level && !isProLesson(level) ? level.id : null;
+  } catch {
+    return null;
+  }
+}
+
 export default function App() {
   const initial = loadPersisted();
+  const [deepLinkStart] = useState(readStartParam);
 
-  const defaultRoute: Route = !initial.hasSeenLanding
-    ? 'landing'
-    : !initial.hasOnboarded
-    ? 'onboarding'
-    : 'path';
+  // New visitors skip the in-app landing page: they already chose to try the
+  // app on fifths.io, and a second sales page lost most of them in seconds.
+  const defaultRoute: Route = !initial.hasOnboarded && !deepLinkStart ? 'onboarding' : 'path';
   const [route, setRouteState] = useState<Route>(parseRouteFromUrl(defaultRoute));
   const setRoute = (r: Route) => {
     setRouteState(r);
@@ -258,7 +268,7 @@ export default function App() {
 
   // On first render, make sure URL reflects the route we picked (for Landing/onboarding flows).
   useEffect(() => {
-    syncUrl(route, true);
+    syncUrl(route, true, true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const [completedLevels, setCompletedLevels] = useState<string[]>(initial.completedLevels);
@@ -378,12 +388,12 @@ export default function App() {
     savePersisted({
       completedLevels,
       settings,
-      hasSeenLanding: route !== 'landing' || initial.hasSeenLanding,
+      hasSeenLanding: true,
       hasOnboarded,
       hasEverPracticed,
       debugMode,
     });
-  }, [completedLevels, settings, route, initial.hasSeenLanding, hasOnboarded, hasEverPracticed, debugMode]);
+  }, [completedLevels, settings, hasOnboarded, hasEverPracticed, debugMode]);
 
   // Wire audio settings
   useEffect(() => {
@@ -472,8 +482,10 @@ export default function App() {
   /* ---------- Session control ---------- */
 
   const startSession = useCallback(
-    async (levelId: string) => {
-      await audioEngine.initialize();
+    async (levelId: string, opts: { deferAudio?: boolean } = {}) => {
+      // Without a user gesture (deep link on page load) the audio context can't
+      // start yet; the lesson intro's continue tap starts it instead.
+      if (!opts.deferAudio) await audioEngine.initialize();
       analytics.clearAnswers();
       setSelectedLevelId(levelId);
       setCurrentQuestion(null);
@@ -518,6 +530,15 @@ export default function App() {
     },
     [isSignedIn, completedLevels.length, startSession],
   );
+
+  useEffect(() => {
+    if (!deepLinkStart) return;
+    setHasOnboarded(true);
+    phCapture('deep_link_start', { level_id: deepLinkStart });
+    if (!isSignedIn && completedLevels.length >= ANON_LESSON_LIMIT) return;
+    void startSession(deepLinkStart, { deferAudio: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   /**
    * Start a Daily Review session. Pulls due items from the Leitner schedule, picks the source
@@ -1324,26 +1345,12 @@ export default function App() {
 
   /* ---------- Render ---------- */
 
-  if (route === 'landing') {
-    return (
-      <Landing
-        onStart={async () => {
-          await audioEngine.initialize();
-          setRoute(hasOnboarded ? 'path' : 'onboarding');
-        }}
-        onDemo={() => audioEngine.initialize().then(() => audioEngine.playInterval('C', 'major_3rd', 'ascending', 'melodic'))}
-      />
-    );
-  }
-
   if (route === 'onboarding') {
     return (
       <Onboarding
         onDone={(result) => {
           setHasOnboarded(true);
-          setSelectedLevelId(result.startLevelId);
-          setSettings((s) => ({ ...s, voiceRange: result.voiceRange }));
-          setRoute('path');
+          guardedStartSession(result.startLevelId);
         }}
         onSkip={() => {
           setHasOnboarded(true);
@@ -1383,7 +1390,10 @@ export default function App() {
         <LessonIntro
           pages={introPages}
           lessonName={introTitle}
-          onContinue={() => setIntroDismissed(true)}
+          onContinue={() => {
+            void audioEngine.initialize();
+            setIntroDismissed(true);
+          }}
           onExit={() => {
             phCapture('session_abandoned', { level_id: currentLevel.id, level_type: currentLevel.type, stage: 'intro' });
             setRoute('path');
