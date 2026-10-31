@@ -105,14 +105,14 @@
 
 <main class="legal">
   <h1>Privacy policy</h1>
-  <p class="meta">Last updated: April 25, 2026</p>
+  <p class="meta">Last updated: May 16, 2026</p>
 
   <div class="tldr">
     <p><strong>Short version.</strong> Your practice data stays on your device. We only collect what we need to email the waitlist and understand which pages people visit. No ad networks. No selling data. Email us at <a href="mailto:hello@fifths.io">hello@fifths.io</a> to delete anything we have on you.</p>
   </div>
 
   <h2>Who we are</h2>
-  <p>Fifths is an ear training app operated by an independent developer reachable at <a href="mailto:hello@fifths.io">hello@fifths.io</a>. This policy covers the website at <code>fifths.io</code>, the web app at <code>app.fifths.io</code>, and the iOS and Android apps once they launch.</p>
+  <p>Fifths is an ear training app operated by Ketabian LLC, reachable at <a href="mailto:hello@fifths.io">hello@fifths.io</a>. This policy covers the website at <code>fifths.io</code>, the web app at <code>app.fifths.io</code>, and the iOS and Android apps once they launch. For Ketabian's broader corporate privacy policy covering all our products, see <a href="https://ketabian.com/privacy">ketabian.com/privacy</a>.</p>
 
   <h2>What we collect, and why</h2>
 
@@ -123,7 +123,7 @@
   <p>If you fill in the two-question survey after signing up, we store your answers next to your email row. The questions are about your use case and your biggest frustration with current ear training tools. The answers shape what we build first.</p>
 
   <h3>3. Practice data inside the app</h3>
-  <p>Your practice sessions, scores, confusion matrix, and progress are stored <strong>locally on your device</strong>. They are not uploaded to a server today. When we add cloud sync (so your progress follows you between devices), it will be opt-in and we will update this policy before turning it on.</p>
+  <p>Your practice sessions, scores, confusion matrix, and progress are stored <strong>locally on your device</strong> by default. If you choose to sign in (magic link, Google, or Apple), they also sync to our Supabase database so your progress follows you between devices. Cloud sync is opt-in: without signing in, nothing leaves your device. Signed-in data is scoped to your account by row-level security — no one else, including us, accesses it casually.</p>
 
   <h3>4. Privacy-respecting analytics</h3>
   <p>The marketing site uses <a href="https://umami.is/" rel="nofollow">Umami</a>, a cookieless analytics tool that does not track users across sites. It records aggregate page views, referring sites, and rough country-level location. No personal identifiers, no cross-site profiles, no ads.</p>
@@ -131,6 +131,9 @@
 
   <h3>5. Crash and error reports</h3>
   <p>If the app crashes, we receive a stack trace and the version of the app you were running. We do not receive your practice data with crash reports.</p>
+
+  <h3>6. In-app purchases</h3>
+  <p>When you buy Fifths Pro, your purchase is processed by Apple (App Store) on iOS, Google (Play Billing) on Android, or Stripe on the web. We use <a href="https://www.revenuecat.com/" rel="nofollow">RevenueCat</a> to manage subscriptions and entitlements across these stores; RevenueCat receives your purchase receipt and a user identifier (anonymous until you sign in, then linked to your account). Your card details are handled by the payment processor and never reach our servers. To cancel a subscription, use the App Store or Play Store account screen on mobile, or the billing portal linked from Settings on the web.</p>
 
   <h2>What we do not do</h2>
   <ul>
@@ -141,7 +144,7 @@
   </ul>
 
   <h2>Where data is stored</h2>
-  <p>The waitlist database runs on Cloudflare D1 (Cloudflare's edge database). The marketing site is served from Cloudflare's CDN. Umami runs on Umami Cloud (EU-hosted). PostHog runs on PostHog Cloud (US or EU region). Cloud sync, when introduced, will run on Supabase.</p>
+  <p>The waitlist database runs on Cloudflare D1 (Cloudflare's edge database). The marketing site is served from Cloudflare's CDN. Umami runs on Umami Cloud (EU-hosted). PostHog runs on PostHog Cloud (US or EU region). Cloud sync (account, practice progress, session history when you sign in) runs on Supabase. Crash reports go to Sentry.</p>
 
   <h2>How long we keep things</h2>
   <ul>

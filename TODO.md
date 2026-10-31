@@ -623,14 +623,73 @@ Supabase auto-snapshots daily; D1 has time-travel. We've never tested actually r
 - TestFlight is iOS-only; there is no single tool that distributes both. Two builds, two dashboards, two tester pools.
 - Optional cross-platform alternatives: Firebase App Distribution, Microsoft App Center — they host both `.ipa`/`.apk` in one place but `.ipa` still requires Apple Developer enrollment to sign.
 
-**Checklist:**
+### Pre-enrollment (do now, while D-U-N-S / Apple enrollment is in flight)
+
+Code-level prep that doesn't depend on the dev account being approved:
+
+- [x] **Info.plist `UIRequiredDeviceCapabilities`** swapped `armv7` → `arm64` ([ios/App/App/Info.plist:30-32](ios/App/App/Info.plist#L30-L32)). App Store no longer accepts armv7.
+- [x] **Info.plist `ITSAppUsesNonExemptEncryption = false`** added ([ios/App/App/Info.plist](ios/App/App/Info.plist)). We only use standard HTTPS/TLS, so we qualify for the export-compliance exemption and skip that question on every upload.
+- [x] **Privacy policy updated for App Store review** ([site/privacy/index.html](site/privacy/index.html)): operator named as Ketabian LLC, Supabase cloud sync flipped to present tense, new section 6 disclosing in-app purchases / RevenueCat / payment processors.
+- [ ] **App icon alpha check**: verify [ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png](ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png) (the 1024×1024 marketing icon) has **no alpha channel** — App Store rejects transparent icons. `sips -g hasAlpha <path>` or open in Preview → Inspector. If alpha present, re-export from Figma flattened on `#fff8ef`.
+- [ ] **App Store listing copy draft** (paste into App Store Connect later):
+  - **Name** (max 30 char) — e.g., `Fifths: Ear Training`
+  - **Subtitle** (max 30 char) — short value prop
+  - **Promotional text** (max 170 char) — updatable without re-submission
+  - **Description** (max 4000 char) — full pitch + feature list
+  - **Keywords** (max 100 char, comma-separated, no spaces around commas) — e.g., `ear training,intervals,solfege,chords,music theory,perfect pitch,sight singing,jazz,classical,piano`
+  - **Support URL** — `https://fifths.io` (or `mailto:hello@fifths.io`)
+  - **Marketing URL** — `https://fifths.io`
+  - **Category** — Education (primary), Music (secondary)
+- [ ] **Screenshots** — required sizes for App Store Connect:
+  - **6.7" iPhone** (iPhone 15 Pro Max): 1290×2796
+  - **6.5" iPhone** (iPhone 11 Pro Max): 1242×2688
+  - **iPad 13"** (M4 iPad Pro): 2064×2752 — only if iPad support is on
+  - 3–10 screenshots per size. Capture from Xcode simulator or a real device.
+  - Android Play Console needs separate phone + 7"/10" tablet screenshots; can be generated from the same captures.
+- [ ] **Age rating prep** — Fifths will rate **4+** (no objectionable content). Be ready to answer Apple's questionnaire: no violence, no sexual content, no profanity, no gambling, no user-generated content, no unrestricted web access.
+
+### Blocked on Apple Developer enrollment
+
+These can only happen once Ketabian LLC's Apple Dev membership is approved:
+
+- [ ] **Replace `DEVELOPMENT_TEAM` in [ios/App/App.xcodeproj/project.pbxproj](ios/App/App.xcodeproj/project.pbxproj)** for both `Debug` and `Release` configs. Currently `A94624VVA9` (likely a personal team). Swap to the Ketabian LLC team ID once enrollment completes.
+- [ ] **Re-register bundle ID `io.fifths.app` as an App ID under the Ketabian team** in the Apple Developer portal. The bundle ID is currently unique to your personal team — once Ketabian is enrolled, register it fresh there with capabilities: **Sign in with Apple**, **In-App Purchase**, **Associated Domains** (for Universal Links), **Push Notifications** (if used).
+- [ ] **App Store Connect app created** under Ketabian LLC using the re-registered bundle ID.
+- [ ] **App Privacy "nutrition label"** filled in App Store Connect. Based on current [site/privacy/index.html](site/privacy/index.html):
+  - **Contact Info → Email Address**: collected, linked to user, used for app functionality + (optional) marketing
+  - **Identifiers → User ID**: collected, linked to user, used for app functionality + analytics
+  - **Usage Data → Product Interaction**: collected, not linked to user (PostHog is anonymized at device level pre-signin), used for analytics
+  - **Diagnostics → Crash Data**: collected, not linked to user, used for app functionality
+  - **Audio Data**: ⚠️ **Not Collected** — microphone audio is analyzed on-device for sing-back and discarded; never transmitted. State this in the "data collection" reviewer notes too.
+  - **Purchases → Purchase History**: collected via RevenueCat, linked to user (after signin), used for app functionality
+  - **Tracking question: NO** — we don't run cross-app tracking (no IDFA, no Meta SDK, no Branch). Skip ATT entirely.
+
+### iOS permissions policy (decisions to stay aware of)
+
+Don't drift on these without a real reason:
+
+- ✅ **`NSMicrophoneUsageDescription`** — required for the sing-back feature ([ios/App/App/Info.plist](ios/App/App/Info.plist)).
+- ❌ **`NSCameraUsageDescription`** — do NOT add. We don't scan QR codes or take photos. Adding it triggers reviewer questions.
+- ❌ **`NSPhotoLibraryUsageDescription`** — do NOT add. Same reason.
+- ❌ **`NSUserTrackingUsageDescription`** — do NOT add. We don't run cross-app tracking, so we answer "No" on the App Privacy "Tracking" question and skip ATT entirely. Adding the key when we don't need it triggers reviewer questions.
+
+### Submission workflow
+
 - [ ] Apple Developer Program enrolled ($99/yr) — unlocks TestFlight + Sign in with Apple + iOS IAP
 - [ ] Google Play Developer account ($25 one-time)
 - [ ] App Store Connect app created
 - [ ] Play Console app created
-- [ ] App icon + splash generated (Android still pending)
+- [ ] App icon + splash generated (Android still pending — see Android launcher icon regeneration step earlier in this file)
 - [x] Privacy policy URL live → [fifths.io/privacy](https://fifths.io/privacy/)
-- [ ] Screenshots (6.7", 6.5", 5.5" for iPhone; phone + tablet for Android)
-- [ ] App description, keywords, category
+- [ ] Screenshots captured + uploaded (sizes above)
+- [ ] App description, keywords, category filled in App Store Connect + Play Console
+- [ ] App Privacy "nutrition label" filled in App Store Connect
+- [ ] Age rating questionnaire completed → 4+
+- [ ] Sandbox tester account created in App Store Connect (for IAP testing on TestFlight)
+- [ ] Sign in with Apple wired in Supabase (see "Sign in with Apple" section earlier — Apple guideline 4.8 requires it once we offer Google sign-in)
+- [ ] `@sentry/capacitor` added for native crash reporting (see "Sentry" section earlier)
 - [ ] TestFlight build uploaded + internal testers invited
 - [ ] Play Console internal testing track uploaded
+- [ ] Sandbox IAP test through TestFlight build (Apple sandbox tester, real purchase flow, entitlement lands in RevCat)
+- [ ] License-test on Play Internal track
+- [ ] Submit for App Store review
