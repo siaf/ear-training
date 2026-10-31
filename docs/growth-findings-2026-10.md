@@ -8,6 +8,31 @@ All numbers are one-off PostHog queries over the last 60 days, excluding the own
 
 ## 1. The numbers
 
+### How much of this is bots? (checked Oct 31)
+
+PostHog only sees browsers that run the page's JavaScript, and it drops self-declared bots by default, so classic crawlers (Googlebot, Bingbot) never appear here. To catch the rest, each of the 964 visitors in the window was scored:
+
+| Verdict | Visitors | How identified |
+|---|---|---|
+| Bot, flagged by PostHog | 31 (3%) | `$virt_traffic_type`: NotebookLM, headless browsers faking Edge, WebPageTest, a Chinese search crawler (360 Spider), Google Ads checks |
+| Likely bot | 126 (13%) | No interaction, plus a headless or data-center fingerprint: 800×600 or 1600×1200 screen, Linux desktop, data-center cities (The Dalles, San Jose, Eatonton…), or China |
+| Likely human | 561 (58%) | Clicked or used something, or stayed 15 seconds or more |
+| Unclear | 246 (26%) | A brief visit with no bot fingerprint: mostly the apps post (112) and the tool (75). Probably mostly real people bouncing, especially on phones, which often don't report leaving the page |
+
+All 17 lesson starters are in "likely human", including one test session from Oct 31, so 16 real learners. The heaviest tool users (4 people with 1,000+ interactions each) are real people on normal phones and laptops, some returning over several days.
+
+**Bots are about 16% of visitors, not most of them.** They don't change the conclusions. With bots removed, per content:
+
+| Content | Likely-human visitors | Unclear | Bots |
+|---|---|---|---|
+| Circle of Fifths tool | 379 | 75 | 11 |
+| "Best ear training apps" post | 120 | 112 | 19 |
+| Other blog posts | 51 | 20 | 18 |
+
+The tool's human visitors are real (heavy interaction) but still almost never start a lesson. The apps post is still the main source of learners. Roughly 3% of likely-human visitors start a lesson.
+
+The visitor numbers in the tables below include bots, about 16% overall. Lesson and sign-in numbers don't, since bots never started a lesson.
+
 ### Funnel (60 days)
 
 | Step | People |
@@ -133,6 +158,14 @@ The biggest problem is that learners don't come back (1 of 16). The second is th
 
 7. Bulk reference pages (13 interval pages, 24 key pages), the glossary, and blog tag pages. These are long-term search traffic and don't help conversion until the items above work.
 8. More long-form research blog posts: hold until there's evidence they bring in learners. The 38 existing ones brought in 3 in 60 days.
+
+### Keeping bots out of the numbers
+
+- **Project-wide filter:** add `$virt_is_bot is not true` to PostHog's "filter out internal and test users" setting, so every insight excludes flagged bots by default. Not done yet; it changes project settings.
+- **Count engaged visitors:** for decisions, count visitors who interacted or stayed 15 seconds or more (a saved cohort or action), not raw page views.
+- **Watch session replays** of "unclear" visitors now and then to recalibrate the rules.
+- **Protect the forms:** if fake waitlist signups appear, add Cloudflare Turnstile to the waitlist form.
+- **See the crawlers too:** Cloudflare's dashboard (Analytics and Security → Bots) shows the crawlers PostHog never sees.
 
 ### How to tell if it's working (check monthly in PostHog)
 
