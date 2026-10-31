@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Piano Notes — keyboard chart and a free note-learning game · Fifths</title>
+<meta name="description" content="Learn the piano notes: a chart of every key (with sharps and flats) plus a free game. Name the highlighted key or find the note, practise untimed or race a 60-second sprint. Works on phone and desktop, no signup.">
+<link rel="canonical" href="https://fifths.io/tools/piano-notes/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Piano Notes — keyboard chart and a free note-learning game · Fifths">
+<meta property="og:description" content="Every piano key named, plus a game that teaches them using the black-key groups as landmarks. Practice or 60-second sprint. No signup.">
+<meta property="og:url" content="https://fifths.io/tools/piano-notes/">
+<meta property="og:image" content="https://fifths.io/brand/logos/logo-stacked-light.png">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://fifths.io/brand/logos/logo-stacked-light.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/brand/favicons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/brand/favicons/favicon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/brand/favicons/favicon-180.png">
+<meta name="theme-color" content="#fff8ef">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=DM+Serif+Display:ital@0;1&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=DM+Serif+Display:ital@0;1&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;600&display=swap"></noscript>
+<link rel="stylesheet" href="/styles.css">
+<link rel="stylesheet" href="/tools/_instrument-games/games.css">
+<!-- Sentry Loader (same public key as site/app.js): pulls the full SDK only when an error happens. -->
+<script src="https://js.sentry-cdn.com/f5f1cd3cbbd39fab5bd1d5a0635b81e6.min.js" crossorigin="anonymous" async></script>
+<!-- Umami analytics -->
+<script defer src="https://cloud.umami.is/script.js" data-website-id="8cc10640-f114-49ab-8572-036552f64527"></script>
+<script defer src="/posthog.js"></script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-LJYKXFDR9L"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-LJYKXFDR9L');
+  gtag('config', 'AW-17007845333');
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebApplication",
+      "name": "Piano Notes Game",
+      "applicationCategory": "EducationalApplication",
+      "operatingSystem": "Web",
+      "browserRequirements": "Requires JavaScript",
+      "url": "https://fifths.io/tools/piano-notes/",
+      "description": "Free game for learning the notes on the piano keyboard. Name a highlighted key or find a named note, in untimed practice or a 60-second sprint, with hints based on the black-key groups and an accuracy map of every note.",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "publisher": { "@type": "Organization", "name": "Fifths", "url": "https://fifths.io/" }
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        { "@type": "Question", "name": "What are the notes on the piano called?", "acceptedAnswer": { "@type": "Answer", "text": "The white keys are named with the letters A to G: C, D, E, F, G, A, B, then C again. The black keys are sharps or flats of the white keys either side, so the black key between C and D is C sharp, also called D flat. Those 12 notes (7 white and 5 black) repeat in every octave up and down the keyboard." } },
+        { "@type": "Question", "name": "How do I find middle C?", "acceptedAnswer": { "@type": "Answer", "text": "Find a group of two black keys near the middle of the keyboard, usually close to the maker's name. The white key just to the left of that group is middle C, written C4. On an 88-key piano it is the fourth C from the bottom." } },
+        { "@type": "Question", "name": "What are the black keys called?", "acceptedAnswer": { "@type": "Answer", "text": "Each black key has two names. Named from the white key below, it is a sharp: C sharp, D sharp, F sharp, G sharp, A sharp. Named from the white key above, it is a flat: D flat, E flat, G flat, A flat, B flat. C sharp and D flat are the same key; which name is used depends on the key of the music." } },
+        { "@type": "Question", "name": "Why is there no black key between E and F, or between B and C?", "acceptedAnswer": { "@type": "Answer", "text": "E to F and B to C are already a half step (semitone) apart, the smallest distance on the keyboard, so there is no note between them. Every other pair of neighbouring white keys is a whole step apart, with a black key in between. That gap is what creates the pattern of two and three black keys." } },
+        { "@type": "Question", "name": "How many keys does a piano have?", "acceptedAnswer": { "@type": "Answer", "text": "A full-size piano has 88 keys: 52 white and 36 black, running from A0 at the bottom to C8 at the top. Many digital keyboards have 61 or 76 keys. The note names work the same way on all of them because the 12-note pattern simply repeats." } },
+        { "@type": "Question", "name": "What's the fastest way to learn the piano keys?", "acceptedAnswer": { "@type": "Answer", "text": "Use the black-key groups as landmarks instead of counting up from A or C. Learn C, D and E around the group of two black keys first, then F, G, A and B around the group of three, then the black keys. Short daily practice where you both name keys and find named notes builds the link in both directions." } }
+      ]
+    }
+  ]
+}
+</script>
+
+<!-- React (production) + Tone — JSX is pre-compiled at build time, no Babel runtime. -->
+<script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/tone@14.7.77/build/Tone.js"></script>
+<script src="piano-notes.js" defer></script>
+</head>
+<body class="ig-body">
+
+<header class="nav">
+  <a href="/" class="brand" aria-label="Fifths">
+    <img src="/brand/logos/logo-horizontal-light.png" alt="Fifths" width="120" height="28"/>
+  </a>
+  <nav class="nav-links">
+    <a href="/tools/">All tools</a>
+    <a href="/tools/note-identification/">Note games</a>
+    <a href="/blog/">Blog</a>
+    <a href="https://app.fifths.io" data-ph-track data-ph-cta="nav-app">Open the app</a>
+  </nav>
+</header>
+
+<main class="ig-page">
+  <div class="ig-strip">
+    <h1>Piano notes: <em>learn the keys</em></h1>
+    <p>A chart of every key, plus a game that teaches them with the black-key groups as landmarks. Name the key or find the note. Free, no signup.</p>
+    <div class="ig-topcta">
+      <span>Knowing where notes are is half of it. Fifths trains your ear to hear them.</span>
+      <a href="https://app.fifths.io/?utm_source=fifths.io&amp;utm_medium=tool&amp;utm_campaign=piano-notes&amp;utm_content=top" data-ph-track data-ph-cta="tool-top">Try the app →</a>
+    </div>
+    <details class="ig-chart ig-chart--top" open>
+      <summary><strong>Piano notes chart</strong> <span class="ig-muted">(two octaves from middle C)</span></summary>
+      <!--chart:pianoTop--><svg viewBox="-1 -1 422 142" role="img" aria-label="Piano keyboard chart with every note name, two octaves from middle C" xmlns="http://www.w3.org/2000/svg"><title>Piano keyboard chart with every note name, two octaves from middle C</title><g transform="translate(0 0)" font-family="Outfit, system-ui, sans-serif"><rect x="0" y="0" width="30" height="140" rx="3" fill="#fff0c1" stroke="#b7acc4"/><text x="15" y="126" text-anchor="middle" font-size="11.4" font-weight="700" fill="#2a1d3a">C</text><text x="15" y="107" text-anchor="middle" font-size="7.199999999999999" fill="#8a7b9d">middle C</text><rect x="30" y="0" width="30" height="140" rx="3" fill="#fffdf9" stroke="#b7acc4"/><text x="45" y="126" text-anchor="middle" font-size="11.4" font-weight="700" fill="#2a1d3a">D</text><rect x="60" y="0" width="30" height="140" rx="3" fill="#fffdf9" stroke="#b7acc4"/><text x="75" y="126" text-anchor="middle" font-size="11.4" font-weight="700" fill="#2a1d3a">E</text><rect x="90" y="0" width="30" height="140" rx="3" fill="#fffdf9" stroke="#b7acc4"/><text x="105" y="126" text-anchor="middle" font-size="11.4" font-weight="700" fill="#2a1d3a">F</text><rect x="120" y="0" width="30" height="140" rx="3" fill="#fffdf9" stroke="#b7acc4"/><text x="135" y="126" text-anchor="middle" font-size="11.4" font-weight="700" fill="#2a1d3a">G</text><rect x="150" y="0" width="30" height="140" rx="3" fill="#fffdf9" stroke="#b7acc4"/><text x="165" y="126" text-anchor="middle" font-size="11.4" font-weight="700" fill="#2a1d3a">A</text><rect x="180" y="0" width="30" height="140" rx="3" fill="#fffdf9" stroke="#b7acc4"/><text x="195" y="126" text-anchor="middle" font-size="11.4" font-weight="700" fill="#2a1d3a">B</text><rect x="210" y="0" width="30" height="140" rx="3" fill="#fffdf9" stroke="#b7acc4"/><text x="225" y="126" text-anchor="middle" font-size="11.4" font-weight="700" fill="#2a1d3a">C</text><text x="225" y="107" text-anchor="middle" font-size="7.199999999999999" fill="#8a7b9d">C5</text><rect x="240" y="0" width="30" height="140" rx="3" fill="#fffdf9" stroke="#b7acc4"/><text x="255" y="126" text-anchor="middle" font-size="11.4" font-weight="700" fill="#2a1d3a">D</text><rect x="270" y="0" width="30" height="140" rx="3" fill="#fffdf9" stroke="#b7acc4"/><text x="285" y="126" text-anchor="middle" font-size="11.4" font-weight="700" fill="#2a1d3a">E</text><rect x="300" y="0" width="30" height="140" rx="3" fill="#fffdf9" stroke="#b7acc4"/><text x="315" y="126" text-anchor="middle" font-size="11.4" font-weight="700" fill="#2a1d3a">F</text><rect x="330" y="0" width="30" height="140" rx="3" fill="#fffdf9" stroke="#b7acc4"/><text x="345" y="126" text-anchor="middle" font-size="11.4" font-weight="700" fill="#2a1d3a">G</text><rect x="360" y="0" width="30" height="140" rx="3" fill="#fffdf9" stroke="#b7acc4"/><text x="375" y="126" text-anchor="middle" font-size="11.4" font-weight="700" fill="#2a1d3a">A</text><rect x="390" y="0" width="30" height="140" rx="3" fill="#fffdf9" stroke="#b7acc4"/><text x="405" y="126" text-anchor="middle" font-size="11.4" font-weight="700" fill="#2a1d3a">B</text><rect x="18" y="0" width="18" height="86.8" rx="2.5" fill="#2a1d3a"/><text x="27" y="64.8" text-anchor="middle" font-size="7.5" font-weight="700" fill="#fff8ef">C♯</text><text x="27" y="77.8" text-anchor="middle" font-size="7.5" font-weight="700" fill="#fff8ef">D♭</text><rect x="54" y="0" width="18" height="86.8" rx="2.5" fill="#2a1d3a"/><text x="63" y="64.8" text-anchor="middle" font-size="7.5" font-weight="700" fill="#fff8ef">D♯</text><text x="63" y="77.8" text-anchor="middle" font-size="7.5" font-weight="700" fill="#fff8ef">E♭</text><rect x="107" y="0" width="18" height="86.8" rx="2.5" fill="#2a1d3a"/><text x="116" y="64.8" text-anchor="middle" font-size="7.5" font-weight="700" fill="#fff8ef">F♯</text><text x="116" y="77.8" text-anchor="middle" font-size="7.5" font-weight="700" fill="#fff8ef">G♭</text><rect x="141" y="0" width="18" height="86.8" rx="2.5" fill="#2a1d3a"/><text x="150" y="64.8" text-anchor="middle" font-size="7.5" font-weight="700" fill="#fff8ef">G♯</text><text x="150" y="77.8" text-anchor="middle" font-size="7.5" font-weight="700" fill="#fff8ef">A♭</text><rect x="175" y="0" width="18" height="86.8" rx="2.5" fill="#2a1d3a"/><text x="184" y="64.8" text-anchor="middle" font-size="7.5" font-weight="700" fill="#fff8ef">A♯</text><text x="184" y="77.8" text-anchor="middle" font-size="7.5" font-weight="700" fill="#fff8ef">B♭</text><rect x="228" y="0" width="18" height="86.8" rx="2.5" fill="#2a1d3a"/><text x="237" y="64.8" text-anchor="middle" font-size="7.5" font-weight="700" fill="#fff8ef">C♯</text><text x="237" y="77.8" text-anchor="middle" font-size="7.5" font-weight="700" fill="#fff8ef">D♭</text><rect x="264" y="0" width="18" height="86.8" rx="2.5" fill="#2a1d3a"/><text x="273" y="64.8" text-anchor="middle" font-size="7.5" font-weight="700" fill="#fff8ef">D♯</text><text x="273" y="77.8" text-anchor="middle" font-size="7.5" font-weight="700" fill="#fff8ef">E♭</text><rect x="317" y="0" width="18" height="86.8" rx="2.5" fill="#2a1d3a"/><text x="326" y="64.8" text-anchor="middle" font-size="7.5" font-weight="700" fill="#fff8ef">F♯</text><text x="326" y="77.8" text-anchor="middle" font-size="7.5" font-weight="700" fill="#fff8ef">G♭</text><rect x="351" y="0" width="18" height="86.8" rx="2.5" fill="#2a1d3a"/><text x="360" y="64.8" text-anchor="middle" font-size="7.5" font-weight="700" fill="#fff8ef">G♯</text><text x="360" y="77.8" text-anchor="middle" font-size="7.5" font-weight="700" fill="#fff8ef">A♭</text><rect x="385" y="0" width="18" height="86.8" rx="2.5" fill="#2a1d3a"/><text x="394" y="64.8" text-anchor="middle" font-size="7.5" font-weight="700" fill="#fff8ef">A♯</text><text x="394" y="77.8" text-anchor="middle" font-size="7.5" font-weight="700" fill="#fff8ef">B♭</text></g></svg><!--/chart:pianoTop-->
+      <p class="ig-small" style="margin-top:6px">Black keys have two names: the sharp of the key below or the flat of the key above. <a href="#chart">Full chart and how to remember it ↓</a></p>
+    </details>
+  </div>
+
+  <div id="root">
+    <noscript><p>The piano notes game needs JavaScript. The chart above and the guide below work without it.</p></noscript>
+  </div>
+</main>
+
+<!-- ============= SEO content (visible, crawlable) ============= -->
+<section class="ig-seo">
+  <h2>How to play</h2>
+  <ul>
+    <li><strong>Name the key:</strong> a key lights up. Tap its letter (or press A–G on your keyboard). On the black-key levels, tap ♯ or ♭ first; either name counts.</li>
+    <li><strong>Find the note:</strong> a note name appears. Tap that key on the keyboard. Any octave counts.</li>
+    <li><strong>Practice</strong> is untimed, with a hint button. <strong>Sprint</strong> gives you 60 seconds; every five in a row raises your combo multiplier, up to ×4, and your best score per level is saved on this device.</li>
+    <li>Every key plays when you answer. Wrong answers show the right key and a landmark hint, and the notes you miss come back more often.</li>
+    <li>Your accuracy for each note is drawn on the keyboard in the <em>accuracy map</em>, so you can see your weak spots at a glance.</li>
+  </ul>
+
+  <h2 id="chart">Piano keys and their notes</h2>
+  <figure class="ig-chart">
+    <!--chart:pianoOctave--><svg viewBox="-1 -1 386 232" role="img" aria-label="One octave of piano keys, C to C, showing the two- and three-black-key groups" xmlns="http://www.w3.org/2000/svg"><title>One octave of piano keys, C to C, showing the two- and three-black-key groups</title><g transform="translate(0 30)" font-family="Outfit, system-ui, sans-serif"><rect x="0" y="0" width="48" height="200" rx="3" fill="#fff0c1" stroke="#b7acc4"/><text x="24" y="186" text-anchor="middle" font-size="18.240000000000002" font-weight="700" fill="#2a1d3a">C</text><text x="24" y="165.2" text-anchor="middle" font-size="11.52" fill="#8a7b9d">middle C</text><rect x="48" y="0" width="48" height="200" rx="3" fill="#fffdf9" stroke="#b7acc4"/><text x="72" y="186" text-anchor="middle" font-size="18.240000000000002" font-weight="700" fill="#2a1d3a">D</text><rect x="96" y="0" width="48" height="200" rx="3" fill="#fffdf9" stroke="#b7acc4"/><text x="120" y="186" text-anchor="middle" font-size="18.240000000000002" font-weight="700" fill="#2a1d3a">E</text><rect x="144" y="0" width="48" height="200" rx="3" fill="#fffdf9" stroke="#b7acc4"/><text x="168" y="186" text-anchor="middle" font-size="18.240000000000002" font-weight="700" fill="#2a1d3a">F</text><rect x="192" y="0" width="48" height="200" rx="3" fill="#fffdf9" stroke="#b7acc4"/><text x="216" y="186" text-anchor="middle" font-size="18.240000000000002" font-weight="700" fill="#2a1d3a">G</text><rect x="240" y="0" width="48" height="200" rx="3" fill="#fffdf9" stroke="#b7acc4"/><text x="264" y="186" text-anchor="middle" font-size="18.240000000000002" font-weight="700" fill="#2a1d3a">A</text><rect x="288" y="0" width="48" height="200" rx="3" fill="#fffdf9" stroke="#b7acc4"/><text x="312" y="186" text-anchor="middle" font-size="18.240000000000002" font-weight="700" fill="#2a1d3a">B</text><rect x="336" y="0" width="48" height="200" rx="3" fill="#fffdf9" stroke="#b7acc4"/><text x="360" y="186" text-anchor="middle" font-size="18.240000000000002" font-weight="700" fill="#2a1d3a">C</text><text x="360" y="165.2" text-anchor="middle" font-size="11.52" fill="#8a7b9d">C5</text><rect x="30.6" y="0" width="28.8" height="124" rx="2.5" fill="#2a1d3a"/><text x="45" y="102" text-anchor="middle" font-size="12" font-weight="700" fill="#fff8ef">C♯</text><text x="45" y="115" text-anchor="middle" font-size="12" font-weight="700" fill="#fff8ef">D♭</text><rect x="84.6" y="0" width="28.8" height="124" rx="2.5" fill="#2a1d3a"/><text x="99" y="102" text-anchor="middle" font-size="12" font-weight="700" fill="#fff8ef">D♯</text><text x="99" y="115" text-anchor="middle" font-size="12" font-weight="700" fill="#fff8ef">E♭</text><rect x="173.6" y="0" width="28.8" height="124" rx="2.5" fill="#2a1d3a"/><text x="188" y="102" text-anchor="middle" font-size="12" font-weight="700" fill="#fff8ef">F♯</text><text x="188" y="115" text-anchor="middle" font-size="12" font-weight="700" fill="#fff8ef">G♭</text><rect x="225.6" y="0" width="28.8" height="124" rx="2.5" fill="#2a1d3a"/><text x="240" y="102" text-anchor="middle" font-size="12" font-weight="700" fill="#fff8ef">G♯</text><text x="240" y="115" text-anchor="middle" font-size="12" font-weight="700" fill="#fff8ef">A♭</text><rect x="277.6" y="0" width="28.8" height="124" rx="2.5" fill="#2a1d3a"/><text x="292" y="102" text-anchor="middle" font-size="12" font-weight="700" fill="#fff8ef">A♯</text><text x="292" y="115" text-anchor="middle" font-size="12" font-weight="700" fill="#fff8ef">B♭</text></g><path d="M30.6 26 V18 H113.4 V26" fill="none" stroke="#2867b2" stroke-width="2"/><text x="72" y="12" text-anchor="middle" font-size="12" font-weight="600" fill="#2867b2" font-family="Outfit, system-ui, sans-serif">two black keys</text><path d="M173.6 26 V18 H306.4 V26" fill="none" stroke="#5b3fb3" stroke-width="2"/><text x="240" y="12" text-anchor="middle" font-size="12" font-weight="600" fill="#5b3fb3" font-family="Outfit, system-ui, sans-serif">three black keys</text></svg><!--/chart:pianoOctave-->
+    <figcaption>One octave from C to C. The white keys are C D E F G A B; each black key is named as a sharp (♯) of the key to its left or a flat (♭) of the key to its right.</figcaption>
+  </figure>
+  <p>The piano uses just <strong>12 notes</strong>: seven white keys named with the letters A to G, and five black keys in between. That pattern repeats in every octave, so once you know one octave you know the whole keyboard. A full-size piano has 88 keys (52 white, 36 black) running from A0 to C8; a 61-key keyboard has the same pattern, just fewer repeats.</p>
+  <table class="ig-ref">
+    <thead><tr><th>Key</th><th>Name</th><th>Where to find it</th></tr></thead>
+    <tbody>
+      <tr><td>White</td><td>C</td><td>Left of the two black keys</td></tr>
+      <tr><td>White</td><td>D</td><td>Between the two black keys</td></tr>
+      <tr><td>White</td><td>E</td><td>Right of the two black keys</td></tr>
+      <tr><td>White</td><td>F</td><td>Left of the three black keys</td></tr>
+      <tr><td>White</td><td>G and A</td><td>Between the three black keys (G first, then A)</td></tr>
+      <tr><td>White</td><td>B</td><td>Right of the three black keys</td></tr>
+      <tr><td>Black</td><td>C♯/D♭, D♯/E♭</td><td>The group of two</td></tr>
+      <tr><td>Black</td><td>F♯/G♭, G♯/A♭, A♯/B♭</td><td>The group of three</td></tr>
+    </tbody>
+  </table>
+
+  <h2>How to memorise the piano notes</h2>
+  <h3>Use the black keys as landmarks</h3>
+  <p>Don't count up from A. Look at the black keys: they come in groups of <strong>two</strong> and <strong>three</strong>. C is always the white key just left of a group of two, and F is always just left of a group of three. Everything else hangs off those two anchors: D sits between the two black keys, E just after them; G and A sit inside the group of three and B comes after it. That's why the game's first level is C D E and the second is F G A B.</p>
+  <h3>Why the pattern looks the way it does</h3>
+  <p>Most neighbouring white keys are a whole step apart, with a black key between them. But E to F and B to C are only a half step (a semitone) apart, so there's no black key there. Those two gaps split the black keys into the groups of two and three. It's also why "E sharp" lands on the white key F, a spelling you'll only meet in more advanced music.</p>
+  <h3>Sharps, flats and enharmonics</h3>
+  <p>A sharp raises a note by a half step and a flat lowers it by a half step. So the black key between C and D is C♯ (C raised) and also D♭ (D lowered). Two names for one key are called <em>enharmonic</em> spellings. Which one you see in sheet music depends on the key the piece is in. The <a href="/tools/circle-of-fifths/">interactive circle of fifths</a> shows which sharps or flats belong to each key.</p>
+  <h3>Middle C</h3>
+  <p>Middle C (C4) is the C closest to the centre of the keyboard, usually near the brand name. It's the meeting point of the treble and bass clefs, so it's the first note most piano methods teach. On an 88-key piano it's the fourth C from the bottom.</p>
+
+  <h2>How to practise</h2>
+  <ol>
+    <li><strong>One landmark at a time.</strong> Play every C on the keyboard, bottom to top, saying "C" each time. Then every F. Then fill in the rest.</li>
+    <li><strong>Practise both directions.</strong> "What's this key?" and "where's this note?" are different skills. Alternate between <em>Name the key</em> and <em>Find the note</em>.</li>
+    <li><strong>Accuracy first, then speed.</strong> Use Practice until you pass about 85% on a level, then try a Sprint. Speed comes from repetition, not guessing.</li>
+    <li><strong>A few minutes every day</strong> beats one long session. See <a href="/blog/spaced-repetition-for-musicians/">spaced repetition for musicians</a> and <a href="/blog/interleaved-practice-music/">why mixing things up helps</a>.</li>
+    <li><strong>Connect names to sounds.</strong> Listen to each key as you answer and sing it back. Knowing a note's name is different from hearing it, which is where <a href="/tools/interval-ear-trainer/">interval ear training</a> and <a href="/blog/what-is-solfege/">solfège</a> come in.</li>
+  </ol>
+  <p>Learning to read those notes on the staff as well? Try the <a href="/tools/note-identification/">note-reading games</a> for treble and bass clef, or learn the <a href="/tools/guitar-fretboard-notes/">guitar fretboard notes</a> if you play both.</p>
+
+  <h2>Frequently asked questions</h2>
+  <h3>What are the notes on the piano called?</h3>
+  <p>The white keys use the letters A to G: C, D, E, F, G, A, B, then C again. The black keys are sharps or flats of the white keys beside them, so the key between C and D is C♯, also called D♭. Those 12 notes (7 white, 5 black) repeat in every octave.</p>
+  <h3>How do I find middle C?</h3>
+  <p>Find a group of two black keys near the middle of the keyboard, usually close to the maker's name. The white key just left of that group is middle C, written C4. On an 88-key piano it's the fourth C from the bottom.</p>
+  <h3>What are the black keys called?</h3>
+  <p>Each black key has two names. Named from the white key below, it's a sharp: C♯, D♯, F♯, G♯, A♯. Named from the white key above, it's a flat: D♭, E♭, G♭, A♭, B♭. C♯ and D♭ are the same key; the name used depends on the key of the music.</p>
+  <h3>Why is there no black key between E and F, or between B and C?</h3>
+  <p>E to F and B to C are already a half step apart, the smallest distance on the keyboard, so there's no note between them. Every other pair of neighbouring white keys is a whole step apart with a black key in between. That's what creates the groups of two and three black keys.</p>
+  <h3>How many keys does a piano have?</h3>
+  <p>A full-size piano has 88 keys: 52 white and 36 black, from A0 to C8. Many digital keyboards have 61 or 76 keys. Note names work the same on all of them because the 12-note pattern repeats.</p>
+  <h3>What's the fastest way to learn the piano keys?</h3>
+  <p>Use the black-key groups as landmarks instead of counting from A or C. Learn C, D and E around the two black keys first, then F, G, A and B around the three, then the black keys. Short daily practice in both directions, naming keys and finding named notes, builds the link fastest.</p>
+
+  <div class="cta">
+    <p><strong>Knowing where notes are is half of it.</strong> Fifths is an ear-training app that teaches you to hear them: higher or lower, intervals, scale degrees and melodies, in short daily sessions that focus on what you miss.</p>
+    <a href="https://app.fifths.io/?utm_source=fifths.io&amp;utm_medium=tool&amp;utm_campaign=piano-notes&amp;utm_content=bottom" data-ph-track data-ph-cta="seo-bottom">Try Fifths free →</a>
+  </div>
+</section>
+
+<footer class="site-foot">
+  <p><a href="/">Home</a> · <a href="/tools/">All tools</a> · <a href="/tools/note-identification/">Note games</a> · <a href="/tools/guitar-fretboard-notes/">Guitar fretboard notes</a> · <a href="/blog/">Blog</a> · <a href="/privacy/">Privacy</a> · <a href="/terms/">Terms</a></p>
+  <p class="site-foot-mark">fifths.io · 2026</p>
+</footer>
+
+</body>
+</html>
