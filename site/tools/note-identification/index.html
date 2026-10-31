@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Note Identification — free treble &amp; bass clef note reading practice · Fifths</title>
+<meta name="description" content="Free note identification trainer. See a note on the treble or bass clef staff, tap its letter name, hear it played. Add ledger lines and sharps/flats when you're ready. Works on phone and desktop. No signup.">
+<link rel="canonical" href="https://fifths.io/tools/note-identification/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Note Identification — treble &amp; bass clef reading practice · Fifths">
+<meta property="og:description" content="See a note on the staff, name it, hear it. Rounds of 20 with a list of the notes to review. No signup.">
+<meta property="og:url" content="https://fifths.io/tools/note-identification/">
+<meta property="og:image" content="https://fifths.io/brand/logos/logo-stacked-light.png">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://fifths.io/brand/logos/logo-stacked-light.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/brand/favicons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/brand/favicons/favicon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/brand/favicons/favicon-180.png">
+<meta name="theme-color" content="#fff8ef">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=DM+Serif+Display:ital@0;1&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=DM+Serif+Display:ital@0;1&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;600&display=swap"></noscript>
+<link rel="stylesheet" href="/styles.css">
+<!-- Sentry Loader (same public key as site/app.js): pulls the full SDK only when an error happens. -->
+<script src="https://js.sentry-cdn.com/f5f1cd3cbbd39fab5bd1d5a0635b81e6.min.js" crossorigin="anonymous" async></script>
+<!-- Umami analytics -->
+<script defer src="https://cloud.umami.is/script.js" data-website-id="8cc10640-f114-49ab-8572-036552f64527"></script>
+<script defer src="/posthog.js"></script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-LJYKXFDR9L"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-LJYKXFDR9L');
+  gtag('config', 'AW-17007845333');
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebApplication",
+      "name": "Note Identification Trainer",
+      "applicationCategory": "EducationalApplication",
+      "operatingSystem": "Web",
+      "browserRequirements": "Requires JavaScript",
+      "url": "https://fifths.io/tools/note-identification/",
+      "description": "Free note reading practice. Identify notes on the treble and bass clef staff, with optional ledger lines and sharps and flats. Each note is played back when you answer.",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "publisher": { "@type": "Organization", "name": "Fifths", "url": "https://fifths.io/" }
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        { "@type": "Question", "name": "What's the easiest way to remember the treble clef notes?", "acceptedAnswer": { "@type": "Answer", "text": "The lines from bottom to top are E, G, B, D, F, often remembered as 'Every Good Boy Does Fine'. The spaces from bottom to top spell FACE. It also helps to know that the curl of the treble clef wraps around the second line, which is G." } },
+        { "@type": "Question", "name": "How do I remember the bass clef notes?", "acceptedAnswer": { "@type": "Answer", "text": "The lines from bottom to top are G, B, D, F, A ('Good Boys Do Fine Always'), and the spaces from bottom to top are A, C, E, G ('All Cows Eat Grass'). The two dots of the bass clef sit either side of the fourth line, which is F." } },
+        { "@type": "Question", "name": "Where is middle C on the staff?", "acceptedAnswer": { "@type": "Answer", "text": "Middle C sits on one ledger line below the treble staff, and on one ledger line above the bass staff. On the grand staff it is the same note in both places, shared between the two clefs." } },
+        { "@type": "Question", "name": "What are ledger lines?", "acceptedAnswer": { "@type": "Answer", "text": "Ledger lines are short lines added above or below the five-line staff for notes that fall outside it. They continue the line-space-line pattern of the staff, so you can read them by counting steps out from the nearest staff line." } },
+        { "@type": "Question", "name": "Should I rely on mnemonics or learn landmark notes?", "acceptedAnswer": { "@type": "Answer", "text": "Use both, but aim to move beyond spelling out mnemonics. Learning a few landmark notes, such as treble G, bass F and middle C, and reading by step or skip from them is faster in real music than reciting a sentence for every note." } },
+        { "@type": "Question", "name": "Is this note reading practice free?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. It is free, with no signup and no email gate, and it runs in your browser. Notes are played back when you answer; on iPhone, sound starts after your first tap because iOS requires a user gesture before a page can play audio." } }
+      ]
+    }
+  ]
+}
+</script>
+<style>
+  body { --disp: 'Fraunces', 'DM Serif Display', Georgia, serif; }
+  body.ni-body { background: var(--page); min-height: 100vh; overflow-x: hidden; }
+  #root { min-height: 760px; }
+
+  .ni-page { max-width: 720px; margin: 0 auto; padding: 12px 16px 8px; }
+  .ni-strip { padding: 8px 0 14px; }
+  .ni-strip h1 { font-family: var(--disp); font-weight: 700; font-size: 30px; line-height: 1.12; letter-spacing: -0.01em; margin: 0 0 6px; color: var(--ink-1); }
+  .ni-strip h1 em { font-style: italic; color: var(--coral-ink); }
+  .ni-strip p { margin: 0; color: var(--ink-2); font-size: 15px; }
+  .ni-topcta {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px 14px; flex-wrap: wrap;
+    margin: 12px 0 0; padding: 10px 14px; border-radius: 14px;
+    background: var(--coral-soft); color: var(--ink-1); font-size: 14px;
+  }
+  .ni-topcta a { font-weight: 600; color: var(--coral-ink); white-space: nowrap; }
+
+  .ni-app { display: flex; flex-direction: column; gap: 14px; }
+  .ni-card { background: var(--card); border: 1px solid var(--hairline); border-radius: 20px; padding: 18px 16px; box-shadow: var(--sh-sm); }
+  @media (min-width: 600px) { .ni-card { padding: 24px 26px; } }
+  .ni-eyebrow { font-weight: 600; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-3); margin: 0 0 6px; }
+  .ni-muted { color: var(--ink-3); }
+  .ni-hint { font-size: 13px; color: var(--ink-2); margin: 4px 0 0; }
+  .ni-card--settings .ni-hint { color: var(--ink-3); font-size: 12.5px; }
+
+  .ni-status { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-size: 14px; color: var(--ink-2); }
+  .ni-status strong { color: var(--ink-1); }
+  .ni-progress { height: 6px; border-radius: 3px; background: var(--ink-5); margin: 10px 0 8px; overflow: hidden; }
+  .ni-progress span { display: block; height: 100%; background: var(--mint-ink); transition: width 200ms ease; }
+
+  .ni-staff-wrap { position: relative; max-width: 420px; margin: 0 auto; }
+  .ni-staff { width: 100%; height: auto; display: block; }
+  .ni-clef-tag { position: absolute; top: 0; right: 0; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3); font-weight: 600; }
+
+  .ni-feedback-slot { min-height: 74px; text-align: center; margin: 2px 0 10px; }
+  .ni-prompt { margin: 12px 0 0; font-size: 16px; color: var(--ink-2); font-weight: 500; }
+  .ni-fb { border-radius: 12px; padding: 10px 12px; }
+  .ni-fb p { margin: 0; }
+  .ni-fb--ok { background: var(--mint-soft); color: var(--mint-ink); font-weight: 700; font-size: 18px; margin: 6px 0 0; }
+  .ni-fb--no { background: var(--coral-soft); color: var(--ink-1); font-size: 15px; }
+
+  .ni-acc { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 8px; }
+  .ni-letters { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+  @media (max-width: 400px) { .ni-letters { grid-template-columns: repeat(4, 1fr); gap: 8px; } }
+  .ni-letter {
+    min-height: 58px; border-radius: 14px; cursor: pointer;
+    background: var(--page); border: 1.5px solid var(--hairline); color: var(--ink-1);
+    font-family: var(--disp); font-weight: 700; font-size: 24px;
+    transition: transform 100ms ease;
+  }
+  .ni-letter:not(:disabled):active { transform: scale(0.96); }
+  @media (hover: hover) { .ni-letter:not(:disabled):hover { border-color: var(--coral); } }
+  .ni-letter:disabled { cursor: default; }
+  .ni-letter.is-correct { background: var(--mint-soft); border-color: var(--mint-ink); }
+  .ni-letter.is-wrong { background: var(--coral-soft); border-color: var(--coral); }
+
+  .ni-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 12px; }
+  .ni-row .btn-sm { min-height: 46px; }
+  .ni-next { flex: 1; min-width: 140px; }
+  .ni-row--center { justify-content: center; margin-top: 18px; }
+  .ni-kbd-hint { margin: 12px 0 0; font-size: 12px; color: var(--ink-3); text-align: center; }
+  @media (hover: none) { .ni-kbd-hint { display: none; } }
+
+  .ni-settings { display: flex; flex-direction: column; gap: 14px; }
+  .ni-field { border: 0; padding: 0; margin: 0; min-width: 0; }
+  .ni-field legend { font-weight: 600; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 8px; padding: 0; }
+  .ni-seg { display: grid; gap: 8px; }
+  .ni-chip {
+    min-height: 46px; padding: 8px 10px; border-radius: 12px; cursor: pointer;
+    border: 1.5px solid var(--hairline); background: var(--page); color: var(--ink-1);
+    font-weight: 600; font-size: 14px; line-height: 1.2;
+  }
+  .ni-chip.is-on { border-color: var(--coral); background: var(--coral-soft); color: var(--coral-ink); }
+  .ni-chip:disabled { opacity: 0.6; cursor: default; }
+
+  .ni-end-score { display: flex; align-items: baseline; gap: 8px; }
+  .ni-end-num { font-family: var(--disp); font-size: 64px; font-weight: 700; line-height: 1; color: var(--ink-1); }
+  .ni-end-of { font-size: 20px; color: var(--ink-3); }
+  .ni-end-head { margin: 6px 0 6px; color: var(--ink-2); }
+  .ni-end-line { margin: 0 0 12px; color: var(--ink-2); font-size: 14.5px; }
+  .ni-missed { margin: 10px 0 16px; }
+  .ni-missed ul { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 6px; }
+  .ni-missed li { font-family: var(--mono); font-size: 13px; padding: 4px 10px; border-radius: 999px; background: var(--page-2); color: var(--ink-1); }
+  .ni-cta { padding: 18px 16px; border-radius: 16px; background: var(--coral-soft); border: 1px solid var(--coral); margin-top: 8px; }
+  .ni-cta h3 { font-family: var(--disp); font-size: 21px; line-height: 1.2; margin: 0 0 8px; color: var(--ink-1); }
+  .ni-cta p { margin: 0 0 14px; font-size: 14.5px; color: var(--ink-2); }
+  .ni-cta-btn { width: 100%; white-space: normal; text-align: center; }
+
+  /* SEO content */
+  .ni-seo { max-width: 720px; margin: 48px auto 24px; padding: 0 16px; color: var(--ink-2); line-height: 1.65; }
+  .ni-seo h2 { font-family: var(--disp); font-weight: 700; font-size: 24px; color: var(--ink-1); letter-spacing: -0.01em; margin: 36px 0 12px; }
+  .ni-seo h3 { font-weight: 700; font-size: 16px; color: var(--ink-1); margin: 20px 0 8px; }
+  .ni-seo p { margin: 0 0 14px; font-size: 15px; }
+  .ni-seo ul, .ni-seo ol { padding-left: 20px; margin: 0 0 16px; }
+  .ni-seo li { margin: 6px 0; font-size: 15px; }
+  .ni-seo a { color: var(--coral-ink); }
+  .ni-ref { width: 100%; border-collapse: collapse; font-size: 14px; margin: 0 0 16px; background: var(--card); border: 1px solid var(--hairline); border-radius: 14px; overflow: hidden; }
+  .ni-ref th, .ni-ref td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--hairline); vertical-align: top; }
+  .ni-ref th { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); font-weight: 600; }
+  .ni-ref tr:last-child td { border-bottom: 0; }
+  .ni-seo .cta { margin: 28px 0 0; padding: 18px 20px; background: var(--coral-soft); border: 1px solid var(--coral); border-radius: 16px; }
+  .ni-seo .cta strong { color: var(--coral-ink); }
+  .ni-seo .cta a { color: #fff; background: var(--coral); padding: 10px 16px; border-radius: 999px; text-decoration: none; font-weight: 600; display: inline-block; margin-top: 8px; }
+
+  @media (prefers-reduced-motion: reduce) { .ni-page * { transition-duration: 0.01ms !important; } }
+</style>
+
+<!-- React (production) + Tone — JSX is pre-compiled at build time, no Babel runtime. -->
+<script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/tone@14.7.77/build/Tone.js"></script>
+<script src="note-identification.js" defer></script>
+</head>
+<body class="ni-body">
+
+<header class="nav">
+  <a href="/" class="brand" aria-label="Fifths">
+    <img src="/brand/logos/logo-horizontal-light.png" alt="Fifths" width="120" height="28"/>
+  </a>
+  <nav class="nav-links">
+    <a href="/tools/">All tools</a>
+    <a href="/tools/interval-ear-trainer/">Interval ear trainer</a>
+    <a href="/blog/">Blog</a>
+    <a href="https://app.fifths.io" data-ph-track data-ph-cta="nav-app">Open the app</a>
+  </nav>
+</header>
+
+<main class="ni-page">
+  <div class="ni-strip">
+    <h1>Note <em>identification</em></h1>
+    <p>Read the note on the staff, tap its name, hear it played. Treble and bass clef. Free, no signup.</p>
+    <div class="ni-topcta">
+      <span>Reading is half of it. Fifths trains your ear to hear notes, too.</span>
+      <a href="https://app.fifths.io/?start=found_higher_lower&amp;utm_source=fifths.io&amp;utm_medium=tool&amp;utm_campaign=note-identification&amp;utm_content=top" data-ph-track data-ph-cta="tool-top">Try the app →</a>
+    </div>
+  </div>
+
+  <div id="root">
+    <noscript><p>This note reading trainer needs JavaScript.</p></noscript>
+  </div>
+</main>
+
+<!-- ============= SEO content (visible, crawlable) ============= -->
+<section class="ni-seo">
+  <h2>How to use this note reading trainer</h2>
+  <ul>
+    <li><strong>Read the note</strong> on the staff and tap its letter name, A to G (or press the letter on your keyboard). The note plays when you answer, so you start linking what you see to what you hear.</li>
+    <li><strong>Pick a clef</strong>: treble, bass, or both mixed together. The clef name is shown above the staff as well as drawn on it.</li>
+    <li><strong>Pick a range</strong>: <em>On the staff</em> covers the five lines, four spaces and the note just above and below. <em>+ Ledger lines</em> adds up to two ledger lines above and below, including middle C.</li>
+    <li><strong>Turn on accidentals</strong> when the naturals are easy. Choose ♭, ♮ or ♯ first, then tap the letter.</li>
+    <li>Each round is 20 notes. At the end you get your score and a list of the exact notes you missed.</li>
+  </ul>
+
+  <h2>Treble clef notes</h2>
+  <p>The treble clef is also called the G clef: its inner curl wraps around the second line from the bottom, and that line is G (the G above middle C). From there:</p>
+  <table class="ni-ref">
+    <thead><tr><th></th><th>Bottom to top</th><th>Mnemonic</th></tr></thead>
+    <tbody>
+      <tr><td>Lines</td><td>E G B D F</td><td>Every Good Boy Does Fine</td></tr>
+      <tr><td>Spaces</td><td>F A C E</td><td>Spells FACE</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Bass clef notes</h2>
+  <p>The bass clef is the F clef: its two dots sit either side of the fourth line from the bottom, and that line is F (the F below middle C).</p>
+  <table class="ni-ref">
+    <thead><tr><th></th><th>Bottom to top</th><th>Mnemonic</th></tr></thead>
+    <tbody>
+      <tr><td>Lines</td><td>G B D F A</td><td>Good Boys Do Fine Always</td></tr>
+      <tr><td>Spaces</td><td>A C E G</td><td>All Cows Eat Grass</td></tr>
+    </tbody>
+  </table>
+  <p>A common stumbling block is reading bass clef as if it were treble. The same position on the staff is a different note in each clef: the bottom line is E in treble but G in bass. If you play from both clefs, practice them mixed (the <em>Both</em> setting) so you're forced to check the clef every time.</p>
+
+  <h2>Landmark notes: faster than mnemonics</h2>
+  <p>Mnemonics get you started, but reciting "Every Good Boy…" for every note is slow. Most fluent readers work from a handful of <strong>landmark notes</strong> they recognize instantly, then read nearby notes by step (line to the next space) or skip (line to the next line):</p>
+  <ul>
+    <li><strong>Middle C</strong>: one ledger line below the treble staff, one ledger line above the bass staff.</li>
+    <li><strong>Treble G</strong>: second line, where the clef curls.</li>
+    <li><strong>Bass F</strong>: fourth line, between the clef's dots.</li>
+    <li><strong>The outer lines</strong>: treble bottom line E and top line F; bass bottom line G and top line A.</li>
+  </ul>
+  <p>Once those are automatic, a note one step above treble G is A, two steps below bass F is D, and so on. It's the same move-by-distance thinking you use to hear intervals, which is why reading and <a href="/tools/interval-ear-trainer/">interval ear training</a> reinforce each other.</p>
+
+  <h2>Ledger lines and accidentals</h2>
+  <p><strong>Ledger lines</strong> are short extra lines for notes above or below the staff. They continue the line-space-line pattern, so count out from the nearest staff line. Middle C is the one to memorize first: the same pitch sits one ledger line below the treble staff and one above the bass staff, which is how the two staves connect in piano music.</p>
+  <p>A <strong>sharp (♯)</strong> raises a note by a semitone and a <strong>flat (♭)</strong> lowers it by a semitone. The letter name comes from the staff position; the accidental just modifies it, so a sharp on the treble G line is G♯. This trainer leaves out E♯, B♯, F♭ and C♭, which are correct spellings but rare in beginner material. Key signatures are a separate topic. The <a href="/tools/circle-of-fifths/">interactive circle of fifths</a> shows which sharps or flats belong to each key.</p>
+
+  <h2>How to practice note reading</h2>
+  <ol>
+    <li><strong>Accuracy first, then speed.</strong> Take the time you need to get each note right; speed comes from repetition, not from guessing.</li>
+    <li><strong>A few minutes every day.</strong> Short daily sessions beat an occasional long one. See <a href="/blog/spaced-repetition-for-musicians/">spaced repetition for musicians</a>.</li>
+    <li><strong>Say it, then hear it.</strong> Name the note out loud before you tap, then listen to the playback. If you have an instrument nearby, find the note on it too.</li>
+    <li><strong>Expand gradually.</strong> On-staff notes in one clef, then ledger lines, then the other clef, then mixed clefs, then accidentals.</li>
+    <li><strong>Read real music.</strong> Drills build recognition; simple sight-reading puts it to work.</li>
+  </ol>
+
+  <h2>Reading notes vs hearing them</h2>
+  <p>Note reading tells you what a note is <em>called</em>. It doesn't tell you what it <em>sounds like</em>, which is why many people who read well still can't play by ear or sing a line they've never heard. That second skill is ear training: hearing which note is higher, how far apart two notes are, and how each note relates to the key. For an introduction, see <a href="/blog/musical-intervals-explained/">musical intervals explained</a> and <a href="/blog/what-is-solfege/">what is solfège</a>.</p>
+
+  <h2>Frequently asked questions</h2>
+  <h3>What's the easiest way to remember the treble clef notes?</h3>
+  <p>The lines from bottom to top are E, G, B, D, F ("Every Good Boy Does Fine"), and the spaces spell FACE. It also helps to know the treble clef's curl wraps around the second line, which is G.</p>
+
+  <h3>How do I remember the bass clef notes?</h3>
+  <p>Lines from bottom to top: G, B, D, F, A ("Good Boys Do Fine Always"). Spaces: A, C, E, G ("All Cows Eat Grass"). The two dots of the bass clef sit either side of the fourth line, which is F.</p>
+
+  <h3>Where is middle C on the staff?</h3>
+  <p>One ledger line below the treble staff, and one ledger line above the bass staff. On the grand staff it's the same note in both places, shared between the two clefs.</p>
+
+  <h3>What are ledger lines?</h3>
+  <p>Short lines added above or below the five-line staff for notes that fall outside it. They continue the staff's line-space-line pattern, so you can read them by counting steps out from the nearest staff line.</p>
+
+  <h3>Should I rely on mnemonics or learn landmark notes?</h3>
+  <p>Both, but aim to move beyond spelling out mnemonics. A few landmark notes (treble G, bass F, middle C), read by step or skip from there, are faster in real music than reciting a sentence for every note.</p>
+
+  <h3>Is this note reading practice free?</h3>
+  <p>Yes. There's no signup and no email gate, and it runs in your browser. Notes play back when you answer; on iPhone, sound starts after your first tap because iOS requires a user gesture before a page can play audio.</p>
+
+  <div class="cta">
+    <p><strong>Now train your ear to hear notes, not just read them.</strong> Fifths is an ear-training app that starts with telling higher from lower and builds up to intervals, scale degrees and melodies, focusing on what you miss.</p>
+    <a href="https://app.fifths.io/?start=found_higher_lower&amp;utm_source=fifths.io&amp;utm_medium=tool&amp;utm_campaign=note-identification&amp;utm_content=bottom" data-ph-track data-ph-cta="seo-bottom">Try Fifths free →</a>
+  </div>
+</section>
+
+<footer class="site-foot">
+  <p><a href="/">Home</a> · <a href="/tools/">All tools</a> · <a href="/blog/">Blog</a> · <a href="/tools/interval-ear-trainer/">Interval ear trainer</a> · <a href="/privacy/">Privacy</a> · <a href="/terms/">Terms</a></p>
+  <p class="site-foot-mark">fifths.io · 2026</p>
+</footer>
+
+</body>
+</html>

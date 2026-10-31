@@ -131,7 +131,7 @@ ${body}
     </div>
     <aside class="article-cta">
       <p><strong>Want to put this into practice?</strong> Fifths is the ear training app built around the research we cite — scale-degree-first, with analytics that pinpoint exactly which intervals, scale degrees, and keys keep tripping you up.</p>
-      <a href="https://app.fifths.io" class="btn btn-coral" data-ph-track data-ph-cta="article-bottom">Try Fifths free →</a>
+      <a href="https://app.fifths.io/?utm_source=fifths.io&utm_medium=blog&utm_campaign=${slug}" class="btn btn-coral" data-ph-track data-ph-cta="article-bottom">Try Fifths free →</a>
     </aside>
     <p class="article-back"><a href="/blog/">← Back to all articles</a></p>
   </article>
@@ -195,6 +195,9 @@ const STATIC_PAGES = [
   { url: '/', priority: '1.0', changefreq: 'weekly' },
   { url: '/tools/', priority: '0.85', changefreq: 'monthly' },
   { url: '/tools/circle-of-fifths/', priority: '0.9', changefreq: 'monthly' },
+  { url: '/tools/vocal-range-test/', priority: '0.8', changefreq: 'monthly' },
+  { url: '/tools/interval-ear-trainer/', priority: '0.8', changefreq: 'monthly' },
+  { url: '/tools/note-identification/', priority: '0.8', changefreq: 'monthly' },
   { url: '/jazz/', priority: '0.8', changefreq: 'monthly' },
   { url: '/classical/', priority: '0.8', changefreq: 'monthly' },
   { url: '/transcribing/', priority: '0.8', changefreq: 'monthly' },

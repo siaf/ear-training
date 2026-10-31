@@ -11,7 +11,7 @@ description: "Most ear-training-app roundups copy each other. This one tries to 
 
 Most "best ear training apps" lists are functionally identical: same names, same paragraphs, same lazy ordering. We are obviously not unbiased — we make one of the apps on this list. But Fifths exists because the existing apps each get something right and something wrong, and a learner who picks the wrong one for their goals can spend months drilling without much musical improvement to show for it.
 
-This is a more honest comparison: what each app actually does, where it falls short, and which kind of learner it suits.
+This is a more honest comparison: what each app actually does, where it falls short, and which kind of learner it suits. If you'd rather just try one while you read, [Fifths runs free in your browser](https://app.fifths.io/?utm_source=fifths.io&utm_medium=blog&utm_campaign=best-ear-training-apps), with no signup and your first question one tap away.
 
 ## The one question to answer first
 
@@ -28,12 +28,12 @@ Some apps support both. Some only really support one. Ask the question before yo
 
 ### 1. EarMaster
 
-The category default. A 1996 desktop product (Denmark) that has aged into a comprehensive web/iOS/Android app covering intervals, chord identification, scale identification, melodic and rhythmic dictation, and sight-singing. Hundreds of lessons. Uses a "guided cadence" mode for functional training and supports multiple notation systems.
+The category default. A 1996 desktop product (Denmark) that has grown into a comprehensive Windows/macOS/iOS/Android app covering intervals, chord identification, scale identification, melodic and rhythmic dictation, and sight-singing. Hundreds of lessons. Uses a "guided cadence" mode for functional training and supports multiple notation systems.
 
 **Strengths:** breadth, instructional polish, longevity (the curriculum is well-tested), cadence-priming on most lessons.
 **Weaknesses:** UI dates itself; subscription is on the higher end for a self-directed learner; the depth-of-curriculum can feel overwhelming for someone who just wants to start drilling.
 **Best for:** the serious student who wants one app that covers the whole aural-skills curriculum a music-school program would, and is willing to commit time to a structured path.
-**Pricing (2026):** Pro subscription ~$5/mo billed annually, with free tier on web.
+**Pricing (as of October 2026):** $49.95/year All-Access Pass for all devices, or a $59.95 one-time desktop licence; on iOS, a free download with modules sold separately ([earmaster.com](https://www.earmaster.com/)).
 
 ### 2. Tenuto
 
@@ -100,12 +100,12 @@ Different category — ear training for *audio engineers and mixers*. Drills inc
 
 ### 9. Fifths *(this one's us)*
 
-A 2025 web-and-mobile app that prioritizes functional, scale-degree-based training and uses spaced repetition to surface specifically the items each learner keeps getting wrong. The differentiation: every exercise is presented inside an established key (cadence-primed); session analytics show *which* intervals, scale degrees, and keys are tripping you up; the 12-key rotation tradition (jazz pedagogy) and the Voice section (with pitch-detection feedback) are first-class. We are biased; here are the trade-offs.
+A browser-based app (iOS and Android versions are on the way) that prioritizes functional, scale-degree-based training and uses spaced repetition to surface specifically the items each learner keeps getting wrong. The differentiation: every exercise is presented inside an established key (cadence-primed); session analytics show *which* intervals, scale degrees, and keys are tripping you up; the 12-key rotation tradition (jazz pedagogy) and the Voice section (with pitch-detection feedback) are first-class. We are biased; here are the trade-offs.
 
-**Strengths:** functional-first curriculum (informed by tonal-hierarchy research and the Berklee/Banacos jazz-pedagogy literature); per-item spaced-repetition surfaces weaknesses without you having to track them yourself; web + iOS + Android; one-time $99 lifetime tier for the first 100 seats; no ads, ever.
-**Weaknesses:** newer (so less battle-tested than EarMaster); the lifetime tier is limited; the app deliberately does not gamify with streaks-or-die mechanics, which some learners do prefer.
+**Strengths:** functional-first curriculum (informed by tonal-hierarchy research and the Berklee/Banacos jazz-pedagogy literature); per-item spaced-repetition surfaces weaknesses without you having to track them yourself; runs in any modern browser, desktop or phone; no ads, ever.
+**Weaknesses:** newer (so less battle-tested than EarMaster); no App Store or Play Store app yet; the app deliberately does not gamify with streaks-or-die mechanics, which some learners do prefer.
 **Best for:** adult learners who want measurable progress on functional hearing, jazz musicians who want serious harmony coverage, and the learners who tried interval-only apps and bounced off them.
-**Pricing:** free to try (no signup); $4.99/mo Pro; $99 lifetime for first 100.
+**Pricing:** [free to try](https://app.fifths.io/?utm_source=fifths.io&utm_medium=blog&utm_campaign=best-ear-training-apps) (no signup); Pro is $4.99/mo or $39.99/yr.
 
 ### Honourable mentions
 
@@ -118,7 +118,7 @@ A 2025 web-and-mobile app that prioritizes functional, scale-degree-based traini
 
 | App | Platform | Price | Functional mode | Best for |
 |---|---|---|---|---|
-| EarMaster | Web/iOS/Android | ~$5/mo | Yes (cadence mode) | Comprehensive curriculum |
+| EarMaster | Win/Mac/iOS/Android | $49.95/yr or $59.95 desktop | Yes (cadence mode) | Comprehensive curriculum |
 | Tenuto | iOS only | $4.99 once | Limited | iOS, one-time purchase |
 | Functional Ear Trainer | iOS/Android | Free | **Yes (only mode)** | Pure functional drilling |
 | Perfect Ear | Android-first | Free + ads | Limited | Android breadth |
@@ -126,7 +126,7 @@ A 2025 web-and-mobile app that prioritizes functional, scale-degree-based traini
 | Musictheory.net | Web | Free | No | Free interval/chord drills |
 | Teoria | Web | Free | Limited | Free, school-aligned |
 | SoundGym | Web | $$$ subscription | N/A (engineering) | Production / mixing |
-| Fifths | Web/iOS/Android | $4.99/mo or $99 lifetime | **Yes (default)** | Functional + analytics + jazz |
+| Fifths | Web (iOS/Android coming) | Free tier; $4.99/mo or $39.99/yr | **Yes (default)** | Functional + analytics + jazz |
 
 ## How to actually choose
 

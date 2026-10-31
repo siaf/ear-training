@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Interval Ear Trainer — free online interval ear training with sound · Fifths</title>
+<meta name="description" content="Free interval ear trainer. Hear two notes, name the interval, get instant feedback. Practice 4ths & 5ths, 3rds or every interval in the octave — ascending, descending or harmonic. Works on phone and desktop. No signup.">
+<link rel="canonical" href="https://fifths.io/tools/interval-ear-trainer/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Interval Ear Trainer — free, with instant feedback · Fifths">
+<meta property="og:description" content="Hear an interval, tap the answer, hear it again. Rounds of 10 with a per-interval accuracy breakdown. No signup.">
+<meta property="og:url" content="https://fifths.io/tools/interval-ear-trainer/">
+<meta property="og:image" content="https://fifths.io/brand/logos/logo-stacked-light.png">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://fifths.io/brand/logos/logo-stacked-light.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/brand/favicons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/brand/favicons/favicon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/brand/favicons/favicon-180.png">
+<meta name="theme-color" content="#fff8ef">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=DM+Serif+Display:ital@0;1&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=DM+Serif+Display:ital@0;1&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;600&display=swap"></noscript>
+<link rel="stylesheet" href="/styles.css">
+<!-- Sentry Loader (same public key as site/app.js): pulls the full SDK only when an error happens. -->
+<script src="https://js.sentry-cdn.com/f5f1cd3cbbd39fab5bd1d5a0635b81e6.min.js" crossorigin="anonymous" async></script>
+<!-- Umami analytics -->
+<script defer src="https://cloud.umami.is/script.js" data-website-id="8cc10640-f114-49ab-8572-036552f64527"></script>
+<script defer src="/posthog.js"></script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-LJYKXFDR9L"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-LJYKXFDR9L');
+  gtag('config', 'AW-17007845333');
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebApplication",
+      "name": "Interval Ear Trainer",
+      "applicationCategory": "EducationalApplication",
+      "operatingSystem": "Web",
+      "browserRequirements": "Requires JavaScript and Web Audio",
+      "url": "https://fifths.io/tools/interval-ear-trainer/",
+      "description": "Free online interval ear trainer. Hear two notes, identify the interval and get instant feedback. Practice perfect 4ths and 5ths, thirds or all intervals within an octave, ascending, descending or harmonic.",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "publisher": { "@type": "Organization", "name": "Fifths", "url": "https://fifths.io/" }
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        { "@type": "Question", "name": "What is interval ear training?", "acceptedAnswer": { "@type": "Answer", "text": "Interval ear training is practice at recognizing the distance between two notes by sound alone: you hear two pitches and name the interval, such as a perfect fifth or a minor third. It is one of the core skills in aural-skills courses because melodies and chords are built from intervals." } },
+        { "@type": "Question", "name": "Which intervals should I learn first?", "acceptedAnswer": { "@type": "Answer", "text": "Start with a small set that sounds very different, such as the perfect 4th and perfect 5th, and only add more once you are consistently right. Thirds (major vs minor) are a good second step. Training all twelve intervals at once is the slowest way to begin because too many options sound alike." } },
+        { "@type": "Question", "name": "What is the difference between harmonic and melodic intervals?", "acceptedAnswer": { "@type": "Answer", "text": "A harmonic interval is two notes played at the same time, so you hear their blend. A melodic interval is two notes played one after the other, either ascending (low then high) or descending (high then low). They are heard differently, so it is worth practicing each." } },
+        { "@type": "Question", "name": "Should I practice ascending and descending intervals separately?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. Most learners find descending intervals harder than ascending ones, and recognizing an interval going up does not automatically mean you will recognize it going down. Get comfortable with one direction, then train the other on its own before mixing them." } },
+        { "@type": "Question", "name": "Do song references actually work for learning intervals?", "acceptedAnswer": { "@type": "Answer", "text": "They are a useful starting point: associating an interval with the opening of a familiar tune gives you something to compare against. Their limit is that they work on isolated two-note tests and transfer poorly to real music, where hearing notes relative to a key matters more. Treat them as training wheels." } },
+        { "@type": "Question", "name": "Is this interval trainer free?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. It is free, with no signup and no email gate. Audio is generated in your browser. On iPhone, sound starts after your first tap, because iOS requires a user gesture before a page can play audio." } }
+      ]
+    }
+  ]
+}
+</script>
+<style>
+  body { --disp: 'Fraunces', 'DM Serif Display', Georgia, serif; }
+  body.it-body { background: var(--page); min-height: 100vh; overflow-x: hidden; }
+
+  /* Reserve space for the React-mounted tool to limit layout shift. */
+  #root { min-height: 620px; }
+
+  kbd {
+    display: inline-block; padding: 1px 6px; border-radius: 5px;
+    background: var(--card); border: 1px solid var(--hairline);
+    font-family: var(--mono); font-size: 10.5px; color: var(--ink-3);
+    box-shadow: 0 1px 0 var(--hairline);
+  }
+  @media (hover: none) { .it-replay kbd { display: none; } }
+
+  .it-page { max-width: 720px; margin: 0 auto; padding: 12px 16px 8px; }
+  .it-strip { padding: 8px 0 14px; }
+  .it-strip h1 {
+    font-family: var(--disp); font-weight: 700; font-size: 30px; line-height: 1.12;
+    letter-spacing: -0.01em; margin: 0 0 6px; color: var(--ink-1);
+  }
+  .it-strip h1 em { font-style: italic; color: var(--coral-ink); }
+  .it-strip p { margin: 0; color: var(--ink-2); font-size: 15px; }
+  .it-topcta {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px 14px; flex-wrap: wrap;
+    margin: 12px 0 0; padding: 10px 14px; border-radius: 14px;
+    background: var(--coral-soft); color: var(--ink-1); font-size: 14px;
+  }
+  .it-topcta a { font-weight: 600; color: var(--coral-ink); white-space: nowrap; }
+
+  .it-card {
+    background: var(--card); border: 1px solid var(--hairline); border-radius: 20px;
+    padding: 18px 16px; box-shadow: var(--sh-sm);
+  }
+  @media (min-width: 600px) { .it-card { padding: 24px 26px; } }
+  .it-h2 { font-family: var(--disp); font-size: 22px; margin: 0 0 4px; color: var(--ink-1); }
+  .it-sub { margin: 0 0 16px; color: var(--ink-2); font-size: 14.5px; }
+  .it-eyebrow { font-family: var(--ui); font-weight: 600; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-3); margin: 0 0 6px; }
+  .it-muted { color: var(--ink-3); font-weight: 400; }
+  .it-hint { font-size: 12.5px; color: var(--ink-3); margin: 6px 0 0; }
+
+  /* Settings */
+  .it-settings { display: flex; flex-direction: column; gap: 14px; margin-bottom: 18px; }
+  .it-field { border: 0; padding: 0; margin: 0; min-width: 0; }
+  .it-field legend { font-weight: 600; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 8px; padding: 0; }
+  .it-seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .it-seg--wrap { grid-template-columns: repeat(2, 1fr); }
+  @media (min-width: 600px) { .it-seg--wrap { grid-template-columns: repeat(4, 1fr); } }
+  .it-chip {
+    min-height: 46px; padding: 8px 10px; border-radius: 12px; cursor: pointer;
+    border: 1.5px solid var(--hairline); background: var(--page); color: var(--ink-1);
+    font-weight: 600; font-size: 14px; line-height: 1.2;
+  }
+  .it-chip.is-on { border-color: var(--coral); background: var(--coral-soft); color: var(--coral-ink); }
+  .it-checks { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-top: 10px; }
+  @media (min-width: 600px) { .it-checks { grid-template-columns: repeat(3, 1fr); } }
+  .it-check {
+    display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 6px 10px;
+    border: 1px solid var(--hairline); border-radius: 10px; cursor: pointer; font-size: 13.5px;
+  }
+  .it-check.is-on { border-color: var(--coral); background: #fff7f3; }
+  .it-check input { width: 18px; height: 18px; accent-color: var(--coral-ink); margin: 0; }
+  .it-check-short { font-family: var(--mono); font-weight: 600; min-width: 22px; }
+  .it-check-name { color: var(--ink-2); }
+  .it-checks .it-hint { grid-column: 1 / -1; margin: 0; }
+  .it-toggle { display: flex; align-items: center; gap: 10px; min-height: 44px; font-size: 14.5px; cursor: pointer; }
+  .it-toggle input { width: 20px; height: 20px; accent-color: var(--coral-ink); margin: 0; }
+  .it-toggle em { color: var(--ink-3); font-style: normal; }
+  .it-start { width: 100%; font-size: 17px; padding: 16px 22px; }
+
+  /* Question */
+  .it-status { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-size: 14px; color: var(--ink-2); }
+  .it-status strong { color: var(--ink-1); }
+  .it-progress { display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; margin: 10px 0 16px; }
+  .it-progress span { height: 6px; border-radius: 3px; background: var(--ink-5); }
+  .it-progress span.ok { background: var(--mint-ink); }
+  .it-progress span.no { background: var(--coral); }
+  .it-progress span.cur { background: var(--ink-3); }
+  .it-prompt { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+  .it-prompt-label { margin: 0; font-size: 13px; color: var(--ink-3); font-weight: 600; letter-spacing: 0.04em; }
+  .it-replay { padding: 11px 18px; font-size: 15px; }
+
+  .it-answers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  @media (min-width: 600px) { .it-answers { grid-template-columns: repeat(4, 1fr); } }
+  .it-answers--few { grid-template-columns: repeat(2, 1fr) !important; }
+  .it-ans {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+    min-height: 64px; padding: 8px 6px; border-radius: 14px; cursor: pointer;
+    background: var(--page); border: 1.5px solid var(--hairline); color: var(--ink-1);
+    transition: transform 100ms ease, background 120ms ease;
+  }
+  .it-answers--few .it-ans { min-height: 76px; }
+  .it-ans:not(:disabled):active { transform: scale(0.97); }
+  @media (hover: hover) { .it-ans:not(:disabled):hover { border-color: var(--coral); } }
+  .it-ans:disabled { cursor: default; }
+  .it-ans-short { font-family: var(--mono); font-weight: 600; font-size: 17px; }
+  .it-ans-name { font-size: 12px; color: var(--ink-2); }
+  .it-ans.is-correct { background: var(--mint-soft); border-color: var(--mint-ink); }
+  .it-ans.is-wrong { background: var(--coral-soft); border-color: var(--coral); }
+  .it-ans.is-dim { opacity: 0.45; }
+
+  .it-feedback { margin-top: 16px; padding: 14px; border-radius: 14px; }
+  .it-feedback.is-right { background: var(--mint-soft); }
+  .it-feedback.is-wrong { background: var(--coral-soft); }
+  .it-feedback-head { margin: 0 0 2px; font-size: 16px; color: var(--ink-1); }
+  .it-feedback-notes { margin: 0 0 12px; font-family: var(--mono); font-size: 13px; color: var(--ink-2); }
+  .it-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .it-row--center { justify-content: center; margin-top: 18px; gap: 14px; }
+  .it-row .btn-sm { min-height: 42px; }
+  .it-next { width: 100%; margin-top: 12px; }
+  .it-linkbtn { background: none; border: 0; cursor: pointer; padding: 10px 0; font-family: inherit; }
+  .it-settings-toggle { margin-top: 14px; border-top: 1px solid var(--hairline); padding-top: 4px; }
+  .it-settings-toggle .it-settings { margin-top: 10px; margin-bottom: 0; }
+
+  /* Round end */
+  .it-end { text-align: left; }
+  .it-end-score { display: flex; align-items: baseline; gap: 8px; }
+  .it-end-num { font-family: var(--disp); font-size: 64px; font-weight: 700; line-height: 1; color: var(--ink-1); }
+  .it-end-of { font-size: 20px; color: var(--ink-3); }
+  .it-end-head { margin: 6px 0 14px; color: var(--ink-2); }
+  .it-table { width: 100%; border-collapse: collapse; font-size: 14px; margin-bottom: 18px; }
+  .it-table th { text-align: left; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3); font-weight: 600; padding: 6px 4px; border-bottom: 1px solid var(--hairline); }
+  .it-table td { padding: 8px 4px; border-bottom: 1px solid var(--hairline); vertical-align: middle; }
+  .it-bar { display: inline-block; width: 52px; height: 6px; border-radius: 3px; background: var(--ink-5); margin-right: 8px; vertical-align: middle; overflow: hidden; }
+  .it-bar span { display: block; height: 100%; background: var(--mint-ink); }
+  @media (max-width: 380px) { .it-bar { display: none; } .it-table .it-muted { display: none; } .it-table td.it-muted { display: table-cell; } }
+  .it-cta { padding: 18px 16px; border-radius: 16px; background: var(--coral-soft); border: 1px solid var(--coral); }
+  .it-cta h3 { font-family: var(--disp); font-size: 21px; line-height: 1.2; margin: 0 0 8px; color: var(--ink-1); }
+  .it-cta p { margin: 0 0 14px; font-size: 14.5px; color: var(--ink-2); }
+  .it-cta-btn { width: 100%; white-space: normal; text-align: center; }
+
+  /* SEO content */
+  .it-seo { max-width: 720px; margin: 48px auto 24px; padding: 0 16px; color: var(--ink-2); line-height: 1.65; }
+  .it-seo h2 { font-family: var(--disp); font-weight: 700; font-size: 24px; color: var(--ink-1); letter-spacing: -0.01em; margin: 36px 0 12px; }
+  .it-seo h3 { font-weight: 700; font-size: 16px; color: var(--ink-1); margin: 20px 0 8px; }
+  .it-seo p { margin: 0 0 14px; font-size: 15px; }
+  .it-seo ul, .it-seo ol { padding-left: 20px; margin: 0 0 16px; }
+  .it-seo li { margin: 6px 0; font-size: 15px; }
+  .it-seo a { color: var(--coral-ink); }
+  .it-tablewrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 0 0 12px; border: 1px solid var(--hairline); border-radius: 14px; background: var(--card); }
+  .it-ref { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 520px; }
+  .it-ref th, .it-ref td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--hairline); vertical-align: top; }
+  .it-ref th { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); font-weight: 600; }
+  .it-ref tr:last-child td { border-bottom: 0; }
+  .it-ref td:first-child { font-family: var(--mono); white-space: nowrap; }
+  .it-seo .cta { margin: 28px 0 0; padding: 18px 20px; background: var(--coral-soft); border: 1px solid var(--coral); border-radius: 16px; }
+  .it-seo .cta strong { color: var(--coral-ink); }
+  .it-seo .cta a { color: #fff; background: var(--coral); padding: 10px 16px; border-radius: 999px; text-decoration: none; font-weight: 600; display: inline-block; margin-top: 8px; }
+
+  @media (prefers-reduced-motion: reduce) { .it-page * { transition-duration: 0.01ms !important; } }
+</style>
+
+<!-- React (production) + Tone — JSX is pre-compiled at build time, no Babel runtime. -->
+<script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/tone@14.7.77/build/Tone.js"></script>
+<script src="interval-ear-trainer.js" defer></script>
+</head>
+<body class="it-body">
+
+<header class="nav">
+  <a href="/" class="brand" aria-label="Fifths">
+    <img src="/brand/logos/logo-horizontal-light.png" alt="Fifths" width="120" height="28"/>
+  </a>
+  <nav class="nav-links">
+    <a href="/tools/">All tools</a>
+    <a href="/blog/musical-intervals-explained/">Intervals explained</a>
+    <a href="/blog/">Blog</a>
+    <a href="https://app.fifths.io" data-ph-track data-ph-cta="nav-app">Open the app</a>
+  </nav>
+</header>
+
+<main class="it-page">
+  <div class="it-strip">
+    <h1>Interval <em>ear trainer</em></h1>
+    <p>Hear two notes, name the interval, get instant feedback. Free, no signup.</p>
+    <div class="it-topcta">
+      <span>Want a full course? The Fifths app adapts to the intervals you miss.</span>
+      <a href="https://app.fifths.io/?start=int_harmonic_4ths_5ths&amp;utm_source=fifths.io&amp;utm_medium=tool&amp;utm_campaign=interval-ear-trainer&amp;utm_content=top" data-ph-track data-ph-cta="tool-top">Try the app →</a>
+    </div>
+  </div>
+
+  <div id="root">
+    <noscript><p>This interval trainer needs JavaScript and Web Audio to play sounds.</p></noscript>
+  </div>
+</main>
+
+<!-- ============= SEO content (visible, crawlable) ============= -->
+<section class="it-seo">
+  <h2>How to use this interval trainer</h2>
+  <ul>
+    <li><strong>Pick a set of intervals.</strong> Start with <em>4ths &amp; 5ths</em> or <em>3rds</em>; move to <em>All within an octave</em> once those feel easy. <em>Custom</em> lets you tick any intervals from the minor 2nd (m2) to the octave (P8).</li>
+    <li><strong>Pick a direction.</strong> <em>Ascending</em> plays the lower note first, <em>descending</em> plays the higher note first, and <em>harmonic</em> plays both together.</li>
+    <li><strong>Listen, then answer.</strong> Tap <em>Replay</em> (or press <kbd>space</kbd>) as often as you like. After each answer you see the notes that were played, and you can hear the interval again melodically or harmonically, or hear the interval you guessed for comparison.</li>
+    <li><strong>Review the round.</strong> Every 10 questions you get a per-interval breakdown, so you know which intervals to focus on next.</li>
+  </ul>
+  <p>Leave <em>random starting note</em> on. If every question starts on C, you can end up recognizing the second note's pitch rather than the distance between the two notes.</p>
+
+  <h2>How to practice interval ear training</h2>
+  <p><strong>Interval ear training</strong> is learning to recognize the distance between two pitches by sound. A few habits make the practice pay off:</p>
+  <ol>
+    <li><strong>Start with two intervals that sound very different.</strong> The perfect 4th and perfect 5th are a good first pair. Add a new interval only once you're consistently right on the current set. Too many options at once makes everything sound alike.</li>
+    <li><strong>Harmonic first, then melodic.</strong> Hearing two notes together lets you focus on the color of the blend. Melodic intervals add the shape of the movement; train ascending first, then descending on its own.</li>
+    <li><strong>Sing it back.</strong> After each answer, hum both notes. Singing ties the sound to something you produce yourself, which tends to stick better than passive listening. More on this in <a href="/blog/singing-ear-training-sensorimotor/">why singing helps ear training</a>.</li>
+    <li><strong>Short, frequent sessions.</strong> A few rounds a day beats one long session a week. Spacing practice out is one of the best-supported findings in learning research; see <a href="/blog/spaced-repetition-for-musicians/">spaced repetition for musicians</a>.</li>
+    <li><strong>Mix things up once the basics hold.</strong> Mixing intervals and directions within a session (rather than drilling one at a time) feels harder but tends to produce more durable learning. See <a href="/blog/interleaved-practice-music/">interleaved practice</a>.</li>
+  </ol>
+
+  <h2>Interval reference: semitones, names and song cues</h2>
+  <p>Every interval within an octave, counted in semitones (half-steps), with an example from C. The ascending song cues match our longer guide, <a href="/blog/musical-intervals-explained/">musical intervals explained</a>; descending cues are listed only where the opening is a clear, well-known example.</p>
+  <div class="it-tablewrap">
+    <table class="it-ref">
+      <thead><tr><th>Semitones</th><th>Interval</th><th>From C</th><th>Ascending cue</th><th>Descending cue</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Minor 2nd (m2)</td><td>C–D♭</td><td>Jaws theme</td><td>Für Elise (opening)</td></tr>
+        <tr><td>2</td><td>Major 2nd (M2)</td><td>C–D</td><td>Happy Birthday ("Hap-py")</td><td>Mary Had a Little Lamb ("Ma-ry")</td></tr>
+        <tr><td>3</td><td>Minor 3rd (m3)</td><td>C–E♭</td><td>Greensleeves</td><td>Hey Jude ("Hey Jude")</td></tr>
+        <tr><td>4</td><td>Major 3rd (M3)</td><td>C–E</td><td>When the Saints Go Marching In</td><td>Swing Low, Sweet Chariot ("Swing low")</td></tr>
+        <tr><td>5</td><td>Perfect 4th (P4)</td><td>C–F</td><td>Here Comes the Bride; Amazing Grace</td><td>Eine kleine Nachtmusik (opening)</td></tr>
+        <tr><td>6</td><td>Tritone (A4/d5)</td><td>C–F♯</td><td>The Simpsons theme; Maria (West Side Story)</td><td>—</td></tr>
+        <tr><td>7</td><td>Perfect 5th (P5)</td><td>C–G</td><td>Twinkle Twinkle Little Star; Star Wars theme</td><td>The Flintstones ("Flint-stones")</td></tr>
+        <tr><td>8</td><td>Minor 6th (m6)</td><td>C–A♭</td><td>The Entertainer</td><td>—</td></tr>
+        <tr><td>9</td><td>Major 6th (M6)</td><td>C–A</td><td>NBC chimes; My Bonnie Lies Over the Ocean</td><td>—</td></tr>
+        <tr><td>10</td><td>Minor 7th (m7)</td><td>C–B♭</td><td>Somewhere (West Side Story); original Star Trek theme</td><td>—</td></tr>
+        <tr><td>11</td><td>Major 7th (M7)</td><td>C–B</td><td>Take On Me (a-ha)</td><td>—</td></tr>
+        <tr><td>12</td><td>Octave (P8)</td><td>C–C</td><td>Somewhere Over the Rainbow ("Some-where")</td><td>—</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Perfect intervals (4th, 5th, octave) come in one "perfect" size; 2nds, 3rds, 6ths and 7ths come in major and minor versions a semitone apart. The tritone, six semitones, sits exactly halfway through the octave and can be spelled as an augmented 4th or a diminished 5th. When the trainer shows you the notes it played, they are spelled to match the interval: a major 3rd above E♭ reads E♭–G, and a minor 3rd above F♯ reads F♯–A.</p>
+
+  <h2>Why song cues only get you partway</h2>
+  <p>Song cues are a good on-ramp: when you hear two notes, you run through your list and find the tune that matches. The catch is that they're built for isolated two-note tests. In real music the same interval does a different job depending on the key around it, and nobody has time to hum <em>Greensleeves</em> mid-phrase. Over time the goal is to hear intervals as movements between notes of a key: "the 5th of the scale going up to the tonic", rather than "a fourth". We cover the reasoning in <a href="/blog/functional-vs-interval-ear-training/">functional vs interval ear training</a>.</p>
+  <p>If major vs minor thirds are your sticking point, you're not alone. It's one of the most common places learners get stuck. <a href="/blog/major-minor-thirds-stuck-point/">Why major and minor thirds are hard to tell apart</a> explains why and what to do about it. For the bigger picture of how keys relate, try the free <a href="/tools/circle-of-fifths/">interactive circle of fifths</a>, and if you're also learning to read music, the <a href="/tools/note-identification/">note identification trainer</a> drills treble and bass clef.</p>
+
+  <h2>Frequently asked questions</h2>
+  <h3>What is interval ear training?</h3>
+  <p>Practice at recognizing the distance between two notes by sound alone: you hear two pitches and name the interval, such as a perfect fifth or a minor third. It's a core skill in aural-skills courses because melodies and chords are built from intervals.</p>
+
+  <h3>Which intervals should I learn first?</h3>
+  <p>Start with a small set that sounds very different, like the perfect 4th and perfect 5th, and only add more once you're consistently right. Thirds (major vs minor) make a good second step. Training all twelve intervals at once is the slowest way to begin, because too many options sound alike.</p>
+
+  <h3>What's the difference between harmonic and melodic intervals?</h3>
+  <p>A harmonic interval is two notes played at the same time, so you hear their blend. A melodic interval is two notes played one after the other, either ascending (low then high) or descending (high then low). They're heard differently, so it's worth practicing each.</p>
+
+  <h3>Should I practice ascending and descending intervals separately?</h3>
+  <p>Yes. Most learners find descending intervals harder, and recognizing an interval going up doesn't automatically mean you'll recognize it going down. Get comfortable with one direction, then train the other on its own before mixing them.</p>
+
+  <h3>Do song references actually work for learning intervals?</h3>
+  <p>They're a useful starting point, because a familiar tune gives you something to compare against. Their limit is that they work on isolated two-note tests and transfer poorly to real music, where hearing notes relative to a key matters more. Treat them as training wheels.</p>
+
+  <h3>Is this interval trainer free?</h3>
+  <p>Yes. There's no signup and no email gate, and the audio is generated in your browser. On iPhone, sound starts after your first tap, because iOS requires a user gesture before a page can play audio. If you hear nothing, check that the silent switch is off.</p>
+
+  <div class="cta">
+    <p><strong>Ready for more than 10 questions at a time?</strong> Fifths is an ear-training app that tracks every answer, brings back the intervals you keep missing, and builds from intervals into scale degrees, chords and melodies.</p>
+    <a href="https://app.fifths.io/?start=int_harmonic_4ths_5ths&amp;utm_source=fifths.io&amp;utm_medium=tool&amp;utm_campaign=interval-ear-trainer&amp;utm_content=bottom" data-ph-track data-ph-cta="seo-bottom">Try Fifths free →</a>
+  </div>
+</section>
+
+<footer class="site-foot">
+  <p><a href="/">Home</a> · <a href="/tools/">All tools</a> · <a href="/blog/">Blog</a> · <a href="/blog/musical-intervals-explained/">Musical intervals explained</a> · <a href="/privacy/">Privacy</a> · <a href="/terms/">Terms</a></p>
+  <p class="site-foot-mark">fifths.io · 2026</p>
+</footer>
+
+</body>
+</html>

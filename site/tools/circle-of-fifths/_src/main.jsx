@@ -1855,6 +1855,92 @@ const TWEAK_DEFAULTS = {
   compact: false,
 };
 
+// Ear-check quiz: plays a diatonic major or minor triad from the current key
+// and asks which it was. The tool's visitors come to look things up; this is
+// the bridge from looking to hearing, and into the app's matching lesson.
+const EAR_CHECK_APP_URL = 'https://app.fifths.io/?start=level_1&utm_source=fifths.io&utm_medium=tool&utm_campaign=circle-of-fifths';
+
+function EarCheckCard({ tonic, mode, info, onPlay }) {
+  const candidates = React.useMemo(
+    () => info.map((it, i) => ({ it, i })).filter(({ it }) => it.isDiatonic && (it.quality === 'major' || it.quality === 'minor')),
+    [info],
+  );
+  const [target, setTarget] = React.useState(null);
+  const [answer, setAnswer] = React.useState(null);
+  const [score, setScore] = React.useState({ right: 0, total: 0 });
+
+  React.useEffect(() => { setTarget(null); setAnswer(null); }, [tonic, mode]);
+
+  const ask = () => {
+    if (candidates.length === 0) return;
+    const pick = candidates[Math.floor(Math.random() * candidates.length)];
+    setTarget(pick);
+    setAnswer(null);
+    onPlay(pick.i, 'triad', { quiet: true });
+  };
+
+  const choose = (quality) => {
+    if (!target || answer) return;
+    const correct = quality === target.it.quality;
+    setAnswer(quality);
+    setScore(s => ({ right: s.right + (correct ? 1 : 0), total: s.total + 1 }));
+    phCapture('tool_ear_check_answered', { correct, quality: target.it.quality, tonic, mode });
+  };
+
+  const correct = answer && target && answer === target.it.quality;
+  const btn = (q, label) => {
+    const isPicked = answer === q;
+    const isRight = answer && target && target.it.quality === q;
+    return (
+      <button key={q} onClick={() => choose(q)} disabled={!target || !!answer}
+        style={{
+          flex: 1, padding: '10px 12px', borderRadius: 12,
+          border: '1.5px solid ' + (isRight ? 'var(--mint-ink)' : isPicked ? 'var(--coral-ink)' : 'var(--hairline)'),
+          background: isRight ? 'var(--mint-soft)' : isPicked ? 'var(--coral-soft)' : 'var(--page-2)',
+          color: 'var(--ink-1)', fontFamily: 'var(--ui)', fontWeight: 600, fontSize: 14,
+          cursor: target && !answer ? 'pointer' : 'default', opacity: target ? 1 : 0.55,
+        }}>{label}</button>
+    );
+  };
+
+  return (
+    <section className="cof-card cof-earcheck">
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12, marginBottom: 6 }}>
+        <h3 className="cof-h3" style={{ margin: 0 }}>Ear check · <span className="cof-keyname">can you hear it?</span></h3>
+        {score.total > 0 && (
+          <span style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--ink-3)' }}>{score.right}/{score.total}</span>
+        )}
+      </div>
+      <p style={{ margin: '0 0 12px', fontSize: 14, color: 'var(--ink-2)', lineHeight: 1.5 }}>
+        Seeing the chords is half of it. Play a chord from {tonic} {mode} and say whether it's major or minor, without looking at the wheel.
+      </p>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        <button onClick={target && !answer ? () => onPlay(target.i, 'triad', { quiet: true }) : ask}
+          style={{
+            padding: '10px 16px', borderRadius: 999, border: 'none', cursor: 'pointer',
+            background: 'var(--ink-1)', color: 'var(--page)', fontFamily: 'var(--ui)', fontWeight: 700, fontSize: 14,
+          }}>
+          {target && !answer ? '▶ hear it again' : target ? '▶ next chord' : '▶ play a chord'}
+        </button>
+        <div style={{ display: 'flex', gap: 8, flex: '1 1 200px' }}>
+          {btn('major', 'major')}
+          {btn('minor', 'minor')}
+        </div>
+      </div>
+      {answer && (
+        <div style={{ marginTop: 12, fontSize: 14, color: 'var(--ink-2)', lineHeight: 1.5 }}>
+          <b style={{ color: correct ? 'var(--mint-ink)' : 'var(--coral-ink)' }}>{correct ? 'Yes.' : 'Not quite.'}</b>{' '}
+          That was {target.it.label}{target.it.quality === 'minor' ? 'm' : ''} ({target.it.numeral}), a {target.it.quality} chord.{' '}
+          <a href={EAR_CHECK_APP_URL} data-ph-track data-ph-cta="tool-ear-check"
+            style={{ color: 'var(--coral-ink)', fontWeight: 700 }}>
+            Train major vs minor by ear in Fifths, free →
+          </a>
+        </div>
+      )}
+    </section>
+  );
+}
+
 function App() {
   const [tonic, setTonic] = useState('C');
   const [mode, setMode] = useState('Ionian');
@@ -1901,8 +1987,14 @@ function App() {
     setSticky(null); setActive(null); setHovered(null);
   }, [tonic, mode]);
 
-  const handlePlay = useCallback((posIdx, kind) => {
+  const handlePlay = useCallback((posIdx, kind, opts = {}) => {
     const item = info[posIdx];
+    // Quiet = sound only: the ear check must not light up the wedge (that
+    // gives the answer away) or count as a chord click.
+    if (opts.quiet) {
+      audio.play(Theory.buildChordNotes(item.pc, item.triadRelPCs, 'triad'), '4n');
+      return;
+    }
     if (kind === 'tonic') {
       const useFlat = item.label.includes('♭');
       const targetName = TONIC_OPTS.find(n => Theory.tonicByName(n).pc === item.pc &&
@@ -2096,6 +2188,7 @@ function App() {
           <div className="cof-legend">
             <Legend />
           </div>
+          <EarCheckCard tonic={tonic} mode={mode} info={info} onPlay={handlePlay} />
           {!tweaks.compact && (
             <>
               <ProgressionsCard
