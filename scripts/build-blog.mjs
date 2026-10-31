@@ -82,9 +82,12 @@ const siteFooter = `<footer class="site-foot">
 </footer>`;
 
 function articlePage(post) {
-  const { title, description, slug, date, author = 'Fifths', tags = [] } = post.data;
+  const { title, description, slug, date, author = 'Fifths', tags = [], image } = post.data;
   const canonical = `${SITE_URL}/blog/${slug}/`;
-  const ogImage = `${SITE_URL}/brand/logos/logo-stacked-light.png`;
+  const brandLogo = `${SITE_URL}/brand/logos/logo-stacked-light.png`;
+  const ogImage = image
+    ? (image.startsWith('http') ? image : `${SITE_URL}${image}`)
+    : brandLogo;
 
   const ld = {
     '@context': 'https://schema.org',
@@ -96,7 +99,7 @@ function articlePage(post) {
     publisher: {
       '@type': 'Organization',
       name: 'Fifths',
-      logo: { '@type': 'ImageObject', url: ogImage },
+      logo: { '@type': 'ImageObject', url: brandLogo },
     },
     mainEntityOfPage: canonical,
     image: ogImage,

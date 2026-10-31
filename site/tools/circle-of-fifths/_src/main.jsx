@@ -87,22 +87,155 @@ function phCapture(event, props) {
   const PC_SHARP = ['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'];
   const PC_FLAT  = ['C','D♭','D','E♭','E','F','G♭','G','A♭','A','B♭','B'];
 
+  // Letter-cycle helpers used to spell notes by scale-degree letter (so that
+  // the 6th of D♭ Aeolian comes out as B𝄫 rather than A natural). Keeping
+  // a single letter per degree is what "functional spelling" means.
+  const NATURAL_LETTERS = ['C','D','E','F','G','A','B'];
+  const NATURAL_PCS = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+  const LETTER_INDEX = { C: 0, D: 1, E: 2, F: 3, G: 4, A: 5, B: 6 };
+
+  // Lydian = +1 fifth from Ionian (sharper); Locrian = -5 fifths (flatter).
+  // Hoisted so circleInfo can use it for enharmonic preference.
+  const FIFTHS_FROM_IONIAN = {
+    Lydian: 1, Ionian: 0, Mixolydian: -1, Dorian: -2,
+    Aeolian: -3, Phrygian: -4, Locrian: -5,
+  };
+
   function tonicByName(name) {
     return TONICS.find(t => t.name === name) || TONICS[6];
   }
 
-  function chordQuality(modeName, degreeIdx) {
+  // Tonic letter is always the first character of the tonic name (C, F, B…).
+  function tonicLetterOf(name) {
+    return name.charAt(0).toUpperCase();
+  }
+
+  // Spells a pitch class against a chosen letter. Returns "C", "C♯", "D♭",
+  // "F𝄪", "B𝄫", or null if the difference exceeds a double accidental
+  // (callers should fall back to PC_SHARP/PC_FLAT in that case).
+  function spellPc(pc, letter) {
+    const naturalPc = NATURAL_PCS[letter];
+    if (naturalPc == null) return null;
+    let diff = ((pc - naturalPc) % 12 + 12) % 12;
+    if (diff > 6) diff -= 12;
+    if (diff === 0)  return letter;
+    if (diff === 1)  return letter + '♯';
+    if (diff === 2)  return letter + '𝄪';
+    if (diff === -1) return letter + '♭';
+    if (diff === -2) return letter + '𝄫';
+    return null;
+  }
+
+  // Computes the signed accidental count for a given (tonic, mode) — positive
+  // is sharps, negative is flats. Used both by keySignatureFor and by the
+  // enharmonic-preference logic in circleInfo. Wraps through the circle when
+  // the count would exceed 7 in either direction (so e.g. C♯ Lydian wraps
+  // to a flat key spelling).
+  function signedAccFor(tonicName, modeName) {
+    const tonic = tonicByName(tonicName);
+    let acc = tonic.acc + (FIFTHS_FROM_IONIAN[modeName] || 0);
+    if (acc > 7)  acc -= 12;
+    if (acc < -7) acc += 12;
+    return acc;
+  }
+
+  // Returns the diatonic note letter for each scale degree, anchored on the
+  // tonic letter. C Aeolian → [C, D, E, F, G, A, B] (letters), and the
+  // accidentals come from spellPc once we know the actual pitch class.
+  function functionalScaleSpellings(tonicName, modeName) {
+    const tonic = tonicByName(tonicName);
     const intervals = MODES[modeName];
-    const root = intervals[degreeIdx];
+    const tonicLet = tonicLetterOf(tonicName);
+    const tonicLetIdx = LETTER_INDEX[tonicLet];
+    const prefer = signedAccFor(tonicName, modeName) < 0 ? 'flat' : 'sharp';
+    return intervals.map((semi, deg) => {
+      const pc = (tonic.pc + semi) % 12;
+      const letter = NATURAL_LETTERS[(tonicLetIdx + deg) % 7];
+      const spelled = spellPc(pc, letter);
+      return { pc, deg, letter, name: spelled || (prefer === 'flat' ? PC_FLAT : PC_SHARP)[pc] };
+    });
+  }
+
+  // Spells a chord's notes given the chord's root letter, root pc, quality,
+  // and triad/seventh kind. Walks letter cycle (root, +2, +4, +6) so that
+  // e.g. F♯m comes out as F♯-A-C♯, never F♯-B♭-C♯.
+  function chordSpelledNotes(rootLetter, rootPc, quality, kind) {
+    if (kind == null) kind = 'triad';
+    const triadIntervals = {
+      major:      [0, 4, 7],
+      minor:      [0, 3, 7],
+      diminished: [0, 3, 6],
+      augmented:  [0, 4, 8],
+    };
+    const seventhIntervalsByQuality = {
+      major:      [0, 4, 7, 11],
+      minor:      [0, 3, 7, 10],
+      diminished: [0, 3, 6, 10],
+      augmented:  [0, 4, 8, 11],
+    };
+    const intervals = kind === 'seventh'
+      ? (seventhIntervalsByQuality[quality] || seventhIntervalsByQuality.major)
+      : (triadIntervals[quality] || triadIntervals.major);
+    const letterIdx = LETTER_INDEX[rootLetter];
+    return intervals.map((semi, i) => {
+      const pc = (rootPc + semi) % 12;
+      if (letterIdx == null) {
+        return PC_SHARP[pc];
+      }
+      const letter = NATURAL_LETTERS[(letterIdx + i * 2) % 7];
+      return spellPc(pc, letter) || PC_SHARP[pc];
+    });
+  }
+
+  function chordQuality(modeName, degreeIdx) {
+    return diatonicChordInfo(modeName, degreeIdx).quality;
+  }
+
+  // Returns the diatonic triad and seventh chord info for a given degree of
+  // a mode. Crucially, the 7th type is derived FROM the scale, not assumed
+  // from the triad quality — so V in Ionian comes out as a dominant 7
+  // (G B D F), not a major 7 (G B D F♯), and vii° comes out half-diminished
+  // (Bm7♭5), not fully diminished. This was the bug behind the Reddit
+  // feedback "Seventh depends on the key."
+  function diatonicChordInfo(modeName, degreeIdx) {
+    const intervals = MODES[modeName];
+    const root  = intervals[degreeIdx];
     const third = intervals[(degreeIdx + 2) % 7];
     const fifth = intervals[(degreeIdx + 4) % 7];
-    const t3 = ((third - root) + 12) % 12;
-    const t5 = ((fifth - root) + 12) % 12;
-    if (t3 === 4 && t5 === 7) return 'major';
-    if (t3 === 3 && t5 === 7) return 'minor';
-    if (t3 === 3 && t5 === 6) return 'diminished';
-    if (t3 === 4 && t5 === 8) return 'augmented';
-    return 'minor';
+    const seventh = intervals[(degreeIdx + 6) % 7];
+    const t3 = ((third   - root) + 12) % 12;
+    const t5 = ((fifth   - root) + 12) % 12;
+    const t7 = ((seventh - root) + 12) % 12;
+
+    let quality;
+    if      (t3 === 4 && t5 === 7) quality = 'major';
+    else if (t3 === 3 && t5 === 7) quality = 'minor';
+    else if (t3 === 3 && t5 === 6) quality = 'diminished';
+    else if (t3 === 4 && t5 === 8) quality = 'augmented';
+    else                            quality = 'minor';
+
+    let seventhKind, chordSuffix, romanSuffix;
+    if (quality === 'major' && t7 === 11)      { seventhKind = 'maj7';   chordSuffix = 'maj7';    romanSuffix = 'maj7'; }
+    else if (quality === 'major' && t7 === 10) { seventhKind = 'dom7';   chordSuffix = '7';       romanSuffix = '7'; }
+    else if (quality === 'minor' && t7 === 10) { seventhKind = 'min7';   chordSuffix = 'm7';      romanSuffix = '7'; }
+    else if (quality === 'minor' && t7 === 11) { seventhKind = 'minMaj7';chordSuffix = 'm(maj7)'; romanSuffix = '(maj7)'; }
+    else if (quality === 'diminished' && t7 === 9)  { seventhKind = 'dim7';     chordSuffix = '°7'; romanSuffix = '°7'; }
+    else if (quality === 'diminished' && t7 === 10) { seventhKind = 'halfDim7'; chordSuffix = 'ø7'; romanSuffix = 'ø7'; }
+    else if (quality === 'augmented'  && t7 === 11) { seventhKind = 'augMaj7';  chordSuffix = '+maj7'; romanSuffix = '+maj7'; }
+    else if (quality === 'augmented'  && t7 === 10) { seventhKind = 'aug7';     chordSuffix = '+7'; romanSuffix = '+7'; }
+    else                                            { seventhKind = '7';       chordSuffix = '7'; romanSuffix = '7'; }
+
+    return {
+      quality, seventhKind, chordSuffix, romanSuffix,
+      semitoneIntervals: { t3, t5, t7 },
+      // Pitch-class formula relative to root (used for audio + display).
+      triadPCs:   buildTriadPCsFromIntervals(t3, t5),
+      seventhPCs: [0, t3, t5, t7],
+    };
+  }
+
+  function buildTriadPCsFromIntervals(t3, t5) {
+    return [0, t3, t5];
   }
 
   function triadPCs(rootPc, quality) {
@@ -134,30 +267,54 @@ function phCapture(event, props) {
     const tonic = tonicByName(tonicName);
     const intervals = MODES[modeName];
     const numerals = MODE_NUMERALS[modeName];
-    const prefer = tonic.acc < 0 ? 'flat' : 'sharp';
 
+    // Enharmonic preference is now driven by the COMPUTED key signature, not
+    // by the tonic alone. Without this, C Aeolian (3 flats) was labelling
+    // wedges with sharps (C♯, F♯, G♯…) and C Phrygian (4 flats) was calling
+    // its ♭2 "C♯" instead of "D♭". Both came up directly in user feedback.
+    const acc = signedAccFor(tonicName, modeName);
+    const prefer = acc < 0 ? 'flat' : 'sharp';
+
+    // Diatonic spellings (functional, letter-per-degree) for the chord roots
+    // that ARE in the scale.
+    const scaleSpellings = functionalScaleSpellings(tonicName, modeName);
     const pcToDegree = new Map();
-    intervals.forEach((semi, idx) => {
-      const pc = (tonic.pc + semi) % 12;
-      pcToDegree.set(pc, idx);
-    });
+    scaleSpellings.forEach((s, idx) => { pcToDegree.set(s.pc, idx); });
 
     return CIRCLE_PCS.map((pc, posIdx) => {
       const labelObj = CIRCLE_LABELS[posIdx];
-      const label = prefer === 'flat' ? labelObj.flat : labelObj.sharp;
-      const altLabel = prefer === 'flat' ? labelObj.sharp : labelObj.flat;
+      const baseLabel = prefer === 'flat' ? labelObj.flat : labelObj.sharp;
+      const altLabel  = prefer === 'flat' ? labelObj.sharp : labelObj.flat;
       const degreeIdx = pcToDegree.has(pc) ? pcToDegree.get(pc) : null;
       const intervalSt = ((pc - tonic.pc) + 12) % 12;
       const intervalName = INTERVAL_NAMES[intervalSt].name;
 
       let numeral = null;
-      let quality = null;
+      let quality = 'major';
+      let seventhKind = 'maj7';
+      let chordSuffix = 'maj7';
+      let romanSuffix = 'maj7';
+      let rootLetter = null;
+      let label = baseLabel;
+      // Default relative-PC formulas (for non-diatonic / "borrowed" chord
+      // wedges, where there's no scale to derive the 7th from).
+      let triadRelPCs   = [0, 4, 7];
+      let seventhRelPCs = [0, 4, 7, 11];
       if (degreeIdx !== null) {
         numeral = numerals[degreeIdx];
-        quality = chordQuality(modeName, degreeIdx);
+        const ci = diatonicChordInfo(modeName, degreeIdx);
+        quality = ci.quality;
+        seventhKind = ci.seventhKind;
+        chordSuffix = ci.chordSuffix;
+        romanSuffix = ci.romanSuffix;
+        triadRelPCs = ci.triadPCs;
+        seventhRelPCs = ci.seventhPCs;
+        // Use the functional letter (so Lydian's #4 of F♯ comes out E♯, not F).
+        rootLetter = scaleSpellings[degreeIdx].letter;
+        const functionalName = scaleSpellings[degreeIdx].name;
+        if (functionalName) label = functionalName;
       } else {
-        numeral = null;
-        quality = 'major';
+        rootLetter = baseLabel.charAt(0);
       }
 
       return {
@@ -165,7 +322,10 @@ function phCapture(event, props) {
         altLabel: altLabel !== label ? altLabel : null,
         degreeIdx,
         isDiatonic: degreeIdx !== null,
-        numeral, quality, intervalSt, intervalName,
+        rootLetter,
+        numeral, quality, seventhKind, chordSuffix, romanSuffix,
+        triadRelPCs, seventhRelPCs,
+        intervalSt, intervalName,
       };
     });
   }
@@ -174,15 +334,7 @@ function phCapture(event, props) {
   const FLAT_ORDER  = ['B','E','A','D','G','C','F'];
 
   function keySignatureFor(tonicName, modeName) {
-    const fifthsFromIonian = {
-      Lydian: 1, Ionian: 0, Mixolydian: -1, Dorian: -2, Aeolian: -3, Phrygian: -4, Locrian: -5,
-    };
-    const tonic = tonicByName(tonicName);
-    const signedAcc = tonic.acc + fifthsFromIonian[modeName];
-    let acc = signedAcc;
-    if (acc > 7) acc -= 12;
-    if (acc < -7) acc += 12;
-
+    const acc = signedAccFor(tonicName, modeName);
     let kind = 'natural';
     let count = 0;
     let letters = [];
@@ -197,7 +349,16 @@ function phCapture(event, props) {
   function buildChordNotes(rootPc, quality, kind, baseOctave) {
     if (kind == null) kind = 'triad';
     if (baseOctave == null) baseOctave = 4;
-    const pcs = kind === 'seventh' ? seventhPCs(rootPc, quality) : triadPCs(rootPc, quality);
+    // Accept either a quality string ("major") or an explicit relative-PC
+    // array ([0, 4, 7, 10]). The latter lets callers pass the actual
+    // diatonic interval list — important for V7 in major (dom7, not maj7)
+    // and vii° in major (half-dim, not fully-dim).
+    let pcs;
+    if (Array.isArray(quality)) {
+      pcs = quality.map(s => (rootPc + s) % 12);
+    } else {
+      pcs = kind === 'seventh' ? seventhPCs(rootPc, quality) : triadPCs(rootPc, quality);
+    }
     const notes = [];
     let prevAbs = baseOctave * 12 + pcs[0];
     notes.push(prevAbs);
@@ -216,8 +377,11 @@ function phCapture(event, props) {
 
   window.Theory = {
     TONICS, CIRCLE_PCS, CIRCLE_LABELS, MODES, MODE_NUMERALS, INTERVAL_NAMES,
-    PC_SHARP, PC_FLAT,
-    tonicByName, chordQuality, triadPCs, seventhPCs, pcToNoteName,
+    PC_SHARP, PC_FLAT, NATURAL_LETTERS, NATURAL_PCS, LETTER_INDEX,
+    FIFTHS_FROM_IONIAN,
+    tonicByName, tonicLetterOf, spellPc, signedAccFor,
+    functionalScaleSpellings, chordSpelledNotes,
+    chordQuality, diatonicChordInfo, triadPCs, seventhPCs, pcToNoteName,
     circleInfo, keySignatureFor, buildChordNotes,
   };
 })();
@@ -579,16 +743,14 @@ const SCALE_DEGREE_LABELS = {
 };
 
 function ScaleNotesStrip({ tonic, mode, onPlayNote }) {
-  const t = Theory.tonicByName(tonic);
-  const intervals = Theory.MODES[mode];
-  const useFlat = t.acc < 0 || (mode === 'Phrygian' || mode === 'Locrian' || mode === 'Aeolian' || mode === 'Dorian');
   const labels = SCALE_DEGREE_LABELS[mode] || ['1', '2', '3', '4', '5', '6', '7'];
-
-  const notes = intervals.map((semi, idx) => {
-    const pc = (t.pc + semi) % 12;
-    const noteName = (useFlat ? Theory.PC_FLAT : Theory.PC_SHARP)[pc];
-    return { pc, noteName, semi, label: labels[idx] };
-  });
+  // Functional spelling: each scale degree gets its own letter, walking
+  // C → D → E … from the tonic letter. So D Phrygian is D, E♭, F, G, A,
+  // B♭, C — never E♯/F♭ confusion.
+  const spellings = Theory.functionalScaleSpellings(tonic, mode);
+  const notes = spellings.map((s, idx) => ({
+    pc: s.pc, noteName: s.name, semi: Theory.MODES[mode][idx], label: labels[idx],
+  }));
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -781,17 +943,76 @@ const MODE_TAGLINE = {
   Locrian: 'diminished · unstable',
 };
 
+// SVG glyph for a sharp (♯), centred at (cx, cy). Drawn as paths rather
+// than relying on the Unicode glyph from whatever font is loaded — that
+// approach gave inconsistent vertical alignment across systems and was
+// the proximate cause of "the accidentals are in the wrong place" reports.
+function SharpGlyph({ cx, cy, color, scale = 1 }) {
+  const s = scale;
+  return (
+    <g stroke={color} strokeLinecap="round" fill={color}>
+      {/* Two slightly-staggered vertical strokes. */}
+      <line x1={cx - 2.0 * s} y1={cy - 7.5 * s} x2={cx - 2.0 * s} y2={cy + 6.5 * s} strokeWidth={1.3 * s} />
+      <line x1={cx + 2.0 * s} y1={cy - 6.5 * s} x2={cx + 2.0 * s} y2={cy + 7.5 * s} strokeWidth={1.3 * s} />
+      {/* Two slanted bars (slope upward to the right). */}
+      <line x1={cx - 4.4 * s} y1={cy - 1.6 * s} x2={cx + 4.4 * s} y2={cy - 3.4 * s} strokeWidth={2.6 * s} />
+      <line x1={cx - 4.4 * s} y1={cy + 3.4 * s} x2={cx + 4.4 * s} y2={cy + 1.6 * s} strokeWidth={2.6 * s} />
+    </g>
+  );
+}
+
+// SVG glyph for a flat (♭). Visual reference point is the *bowl centre*
+// (sitting on the staff line / space), not the geometric centre — the
+// stem extends upward.
+function FlatGlyph({ cx, cy, color, scale = 1 }) {
+  const s = scale;
+  // Bowl is a filled teardrop sitting at (cx, cy); stem extends upward from
+  // the bowl's left side.
+  const stemTop = cy - 13 * s;
+  const stemBottom = cy + 4 * s;
+  const stemX = cx - 2.4 * s;
+  return (
+    <g fill={color} stroke={color}>
+      <line x1={stemX} y1={stemTop} x2={stemX} y2={stemBottom} strokeWidth={1.3 * s} strokeLinecap="round" />
+      <path
+        d={`
+          M ${stemX} ${cy + 3.5 * s}
+          C ${cx + 1.5 * s} ${cy + 4.5 * s},
+            ${cx + 4.5 * s} ${cy + 0.5 * s},
+            ${cx + 2.0 * s} ${cy - 2.0 * s}
+          C ${cx - 0.5 * s} ${cy - 3.0 * s},
+            ${cx - 1.6 * s} ${cy - 0.5 * s},
+            ${stemX} ${cy + 1.5 * s}
+          Z
+        `}
+        stroke="none"
+      />
+    </g>
+  );
+}
+
 function KeySignatureCard({ tonic, mode }) {
   const sig = useMemo(() => Theory.keySignatureFor(tonic, mode), [tonic, mode]);
   const tonicObj = Theory.tonicByName(tonic);
 
-  const w = 180, staffH = 92;
-  const lineGap = 11;
-  const top = 12;
+  const w = 180, staffH = 96;
+  const lineGap = 9;
+  // Top of the staff (top line = F5). Increased headroom so high accidentals
+  // (G♯ above the staff) aren't clipped.
+  const top = 22;
   const lines = [0, 1, 2, 3, 4].map(i => top + i * lineGap);
-  const SHARP_POSITIONS = { F: 0.5, C: 2, G: 0, D: 1.5, A: 3, E: 1, B: 2.5 };
-  const FLAT_POSITIONS  = { B: 2.5, E: 1, A: 3.5, D: 1.5, G: 4, C: 3, F: 5 };
+
+  // Half-line steps from the top line (F5). Step 0 = F5 line, step 1 = E5
+  // space, step 2 = D5 line, … step 8 = E4 line. Negative steps = above
+  // the staff. These coordinates are the standard treble-clef key-signature
+  // positions used in modern engraving.
+  const SHARP_POSITIONS = { F: 0,  C: 3, G: -1, D: 2, A: 5, E: 1, B: 4 };
+  const FLAT_POSITIONS  = { B: 4,  E: 1, A: 5,  D: 2, G: 6, C: 3, F: 7 };
   function yForStep(step) { return top + step * (lineGap / 2); }
+
+  const accColor = 'var(--coral-ink)';
+  const accSpacing = 9;
+  const accStartX = 64;
 
   return (
     <div className="cof-keysig" style={{
@@ -827,26 +1048,28 @@ function KeySignatureCard({ tonic, mode }) {
 
         <svg width={w} height={staffH} viewBox={`0 0 ${w} ${staffH}`} style={{ marginTop: 4 }}>
           {lines.map((y, i) => (
-            <line key={i} x1={16} y1={y} x2={w - 10} y2={y}
+            <line key={i} x1={14} y1={y} x2={w - 10} y2={y}
                   stroke="var(--ink-3)" strokeWidth="1" />
           ))}
-          <text x={10} y={top + lineGap * 4 + 14} fontFamily="var(--disp)"
-                fontSize={94} fill="var(--ink-1)">{'𝄞'}</text>
+          {/* Treble clef glyph still uses Unicode — cross-system rendering
+              of the clef is generally acceptable since alignment isn't
+              precision-critical. */}
+          <text x={10} y={top + lineGap * 4 + 12} fontFamily="var(--disp)"
+                fontSize={lineGap * 7.4} fill="var(--ink-1)">{'𝄞'}</text>
 
           {sig.letters.map((letter, i) => {
             const pos = sig.kind === 'sharp' ? SHARP_POSITIONS[letter] : FLAT_POSITIONS[letter];
-            const x = 70 + i * 13;
-            const y = yForStep(pos) + 6;
-            return (
-              <text key={i} x={x} y={y} fontFamily="var(--disp)" fontSize={28}
-                    fill="var(--coral-ink)" fontWeight={600}>
-                {sig.kind === 'sharp' ? '♯' : '♭'}
-              </text>
-            );
+            if (pos == null) return null;
+            const cx = accStartX + i * accSpacing;
+            const cy = yForStep(pos);
+            const scale = lineGap / 11;
+            return sig.kind === 'sharp'
+              ? <SharpGlyph key={i} cx={cx} cy={cy} color={accColor} scale={scale} />
+              : <FlatGlyph  key={i} cx={cx} cy={cy} color={accColor} scale={scale} />;
           })}
           {sig.kind === 'natural' && (
-            <text x={w / 2 + 14} y={top + lineGap * 2 + 6} textAnchor="middle"
-                  fontFamily="var(--mono)" fontSize={12} fill="var(--ink-3)">
+            <text x={w / 2 + 14} y={top + lineGap * 2 + 4} textAnchor="middle"
+                  fontFamily="var(--mono)" fontSize={11} fill="var(--ink-3)">
               no accidentals
             </text>
           )}
@@ -1447,28 +1670,36 @@ function Readout({ tonic, mode, view, posIdx, lastKind }) {
   const fg = `var(--${tone}-ink, var(--ink-1))`;
   const bg = `var(--${tone}-soft, var(--page-2))`;
 
-  const triadPcs = Theory.triadPCs(item.pc, item.quality);
-  const seventhPcs = Theory.seventhPCs(item.pc, item.quality);
-  const useFlat = item.label.includes('♭');
-  const labelPcs = (pcs) => pcs.map(pc => (useFlat ? Theory.PC_FLAT : Theory.PC_SHARP)[pc]).join(' · ');
+  // Functional spelling: walk the letter cycle from the root so e.g. F♯m
+  // comes out F♯-A-C♯ (not F♯-B♭-C♯), and V7 in C major comes out G-B-D-F
+  // (not G-B-D-F♯). For non-diatonic chords we still fall back to a
+  // simple sharp/flat preference based on the wedge label.
+  const triadNotes = Theory.chordSpelledNotes(item.rootLetter, item.pc, item.quality, 'triad');
+  const seventhNotes = item.isDiatonic
+    ? item.seventhRelPCs.map((semi, i) => {
+        const pc = (item.pc + semi) % 12;
+        const letter = item.rootLetter
+          ? Theory.NATURAL_LETTERS[(Theory.LETTER_INDEX[item.rootLetter] + i * 2) % 7]
+          : null;
+        return (letter && Theory.spellPc(pc, letter)) || (item.label.includes('♭') ? Theory.PC_FLAT : Theory.PC_SHARP)[pc];
+      })
+    : Theory.chordSpelledNotes(item.rootLetter, item.pc, item.quality, 'seventh');
+  const labelNotes = (notes) => notes.join(' · ');
 
   const triadSym = item.label + (
     item.quality === 'minor' ? 'm' :
     item.quality === 'diminished' ? '°' :
     item.quality === 'augmented' ? '+' : ''
   );
-  const seventhSym = item.label + (
+  const seventhSym = item.label + (item.isDiatonic ? item.chordSuffix : (
     item.quality === 'major'      ? 'maj7' :
     item.quality === 'minor'      ? 'm7'   :
     item.quality === 'diminished' ? '°7'   :
     item.quality === 'augmented'  ? '+maj7': '7'
-  );
-  const seventhNumeral = item.numeral ? (
-    item.quality === 'major'      ? item.numeral + 'M7'   :
-    item.quality === 'minor'      ? item.numeral + '7'    :
-    item.quality === 'diminished' ? item.numeral + '°7'   :
-    item.quality === 'augmented'  ? item.numeral + '+M7'  : item.numeral + '7'
-  ) : null;
+  ));
+  const seventhNumeral = item.numeral
+    ? item.numeral + (item.isDiatonic ? item.romanSuffix : '7')
+    : null;
 
   return (
     <div>
@@ -1482,7 +1713,7 @@ function Readout({ tonic, mode, view, posIdx, lastKind }) {
           fontFamily: 'var(--ui)', fontSize: 11, fontWeight: 700,
           letterSpacing: '0.16em', textTransform: 'uppercase',
         }}>
-          {item.isDiatonic ? `degree · ${item.numeral}` : 'chromatic'}
+          {item.isDiatonic ? `degree · ${item.numeral}` : 'non-diatonic'}
         </span>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '90px 1fr', rowGap: 10, fontSize: 13, color: 'var(--ink-2)' }}>
@@ -1498,7 +1729,7 @@ function Readout({ tonic, mode, view, posIdx, lastKind }) {
               <span style={{ fontFamily: 'var(--disp)', fontStyle: 'italic', color: 'var(--ink-3)', fontSize: 12 }}>{item.numeral}</span>
             )}
           </span>
-          <span style={{ fontFamily: 'var(--mono)', color: 'var(--ink-3)', fontSize: 12 }}>{labelPcs(triadPcs)}</span>
+          <span style={{ fontFamily: 'var(--mono)', color: 'var(--ink-3)', fontSize: 12 }}>{labelNotes(triadNotes)}</span>
         </span>
         <span style={{ fontFamily: 'var(--mono)', color: 'var(--ink-3)', alignSelf: 'start', paddingTop: 3 }}>seventh</span>
         <span style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
@@ -1508,7 +1739,7 @@ function Readout({ tonic, mode, view, posIdx, lastKind }) {
               <span style={{ fontFamily: 'var(--disp)', fontStyle: 'italic', color: 'var(--ink-3)', fontSize: 12 }}>{seventhNumeral}</span>
             )}
           </span>
-          <span style={{ fontFamily: 'var(--mono)', color: 'var(--ink-3)', fontSize: 12 }}>{labelPcs(seventhPcs)}</span>
+          <span style={{ fontFamily: 'var(--mono)', color: 'var(--ink-3)', fontSize: 12 }}>{labelNotes(seventhNotes)}</span>
         </span>
       </div>
       {lastKind && (
@@ -1526,7 +1757,7 @@ function Legend() {
     { label: 'Major',       color: 'var(--butter)', ink: 'var(--butter-ink)' },
     { label: 'Minor',       color: 'var(--lav)',    ink: 'var(--lav-ink)' },
     { label: 'Diminished',  color: 'var(--sky)',    ink: 'var(--sky-ink)' },
-    { label: 'Chromatic',   color: 'var(--page-2)', ink: 'var(--ink-3)' },
+    { label: 'Non-diatonic', color: 'var(--page-2)', ink: 'var(--ink-3)' },
   ];
   return (
     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
@@ -1694,7 +1925,11 @@ function App() {
     setActive(posIdx);
     setSticky(posIdx);
     setLastKind(kind === 'seventh' ? '7th chord' : 'triad');
-    const notes = Theory.buildChordNotes(item.pc, item.quality, kind);
+    // Use the diatonic seventh (dom7 / half-dim7 / etc.) when we have one,
+    // not the formula-by-quality seventh. Triad relative-PCs are also
+    // pre-computed so chromatic wedges still play their default major triad.
+    const relPCs = kind === 'seventh' ? item.seventhRelPCs : item.triadRelPCs;
+    const notes = Theory.buildChordNotes(item.pc, relPCs, kind);
     audio.play(notes, kind === 'seventh' ? '2n' : '4n');
     setTimeout(() => setActive(null), 700);
   }, [info, audio, tonic, mode, view]);

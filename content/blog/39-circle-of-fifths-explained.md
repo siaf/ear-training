@@ -4,6 +4,7 @@ slug: circle-of-fifths-explained
 date: 2026-05-05
 author: Fifths
 tags: [circle-of-fifths, keys, harmony, glossary, beginner]
+image: /brand/screenshots/circle-of-fifths-tool.png
 description: "The circle of fifths is the visual map of all 12 major and minor keys, organized by ascending fifths. It is the most useful single diagram in Western music theory, and the one tool every musician eventually learns to read fluently. This article explains what it is, how it works, and what to actually do with it."
 ---
 
@@ -12,6 +13,10 @@ description: "The circle of fifths is the visual map of all 12 major and minor k
 The **circle of fifths** is the visual map of all twelve major and minor keys, arranged so that adjacent keys differ by one accidental (sharp or flat). C major sits at the top with no sharps or flats; moving clockwise, each key adds one sharp; moving counterclockwise, each key adds one flat. After twelve steps in either direction, the circle closes and you are back where you started.
 
 It is the most-printed single diagram in Western music theory, and one of the few tools every working musician eventually internalizes. This article explains what it is, why it is shaped the way it is, and the practical things musicians actually do with it.
+
+[![Interactive circle of fifths showing all twelve major keys around the rim, relative minors inside, with key-signature accidentals at each position](/brand/screenshots/circle-of-fifths-tool.png)](/tools/circle-of-fifths/)
+
+*Want to explore as you read? [Open our interactive circle of fifths](/tools/circle-of-fifths/) — click any key to hear it, switch between major and minor, and see the diatonic chords for each key.*
 
 ## The basic shape
 
@@ -39,20 +44,22 @@ This makes the circle the natural representation of *key proximity*: two keys th
 
 Every major key has a **relative minor** — a minor key with the exact same key signature, whose tonic is the sixth scale degree of the major key. C major's relative minor is A minor (no sharps or flats). G major's relative minor is E minor (one sharp). D major's relative minor is B minor (two sharps). And so on.
 
-In a typical printed circle of fifths, the minor keys are written **inside** the circle, lined up with their relative majors:
+In a typical printed circle of fifths (like the one [pictured above](/tools/circle-of-fifths/)), the minor keys are written **inside** the circle, lined up with their relative majors. Each major and its relative minor share a key signature — they're effectively the same set of seven notes, organized around two different tonal centers.
 
-```
-                C / a
-           F / d         G / e
-      B♭ / g                  D / b
-   E♭ / c                        A / f♯
-      A♭ / f                  E / c♯
-           D♭ / b♭        B / g♯
-                G♭ / e♭
-                  / d♯  (C♯/a♯)
-```
-
-(Lowercase letters denote minor keys.)
+| Major key | Relative minor | Sharps / flats |
+|---|---|---|
+| C | A minor | — |
+| G | E minor | 1♯ |
+| D | B minor | 2♯ |
+| A | F♯ minor | 3♯ |
+| E | C♯ minor | 4♯ |
+| B | G♯ minor | 5♯ |
+| F♯ / G♭ | D♯ / E♭ minor | 6♯ / 6♭ |
+| D♭ | B♭ minor | 5♭ |
+| A♭ | F minor | 4♭ |
+| E♭ | C minor | 3♭ |
+| B♭ | G minor | 2♭ |
+| F | D minor | 1♭ |
 
 ## A brief history
 
@@ -90,7 +97,9 @@ If you need to play a song a different key — to fit a singer's range, to match
 
 A standard printed circle of fifths is a wheel: twelve sectors, the major key letter on the outside, the relative minor on the inside, the key-signature accidentals (♯ or ♭ count) at the rim. Most music classrooms have one on the wall.
 
-Many digital and interactive versions show additional information on top of the basic structure — the diatonic chords for each key, common-tone modulations, mode shifts (parallel minor, parallel major), or chord substitutions. These are useful study tools but are extensions of the basic circle, not the circle itself. (We host one: [an interactive circle of fifths](/tools/circle-of-fifths/) that plays each chord, shows the key signature, and lets you switch tonic and mode in one click.)
+Many digital and interactive versions show additional information on top of the basic structure — the diatonic chords for each key, common-tone modulations, mode shifts (parallel minor, parallel major), or chord substitutions. These are useful study tools but are extensions of the basic circle, not the circle itself.
+
+> **Try it yourself:** Our [interactive circle of fifths](/tools/circle-of-fifths/) plays each chord, shows the key signature, and lets you switch tonic and mode in one click — so you can hear modulation distance instead of just reading about it.
 
 ## Why the circle is the foundation of ear training for harmony
 

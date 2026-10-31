@@ -39,7 +39,7 @@ There are three standard ways to traverse all 12 keys when practicing vocabulary
 
 C → F → B♭ → E♭ → A♭ → D♭ → G♭ → B → E → A → D → G → C
 
-This is the dominant rotation in jazz education. Each transition is a perfect fifth down (or perfect fourth up — same thing).
+This is the dominant rotation in jazz education. Each transition is a perfect fifth down (or perfect fourth up — same thing). The path traces the [circle of fifths](/blog/circle-of-fifths-explained/) counterclockwise; an [interactive circle of fifths](/tools/circle-of-fifths/) is a useful companion when you're first internalizing the rotation.
 
 **Pros:**
 - Mirrors the V → I cadential motion that organizes most of jazz harmony. Practicing through the cycle of fourths is, in a sense, practicing through 12 different "tonics" related by the same harmonic motion that defines the language.
