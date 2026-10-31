@@ -1,5 +1,7 @@
 import { isNative, platform } from './native';
 import { trackPurchase } from './attribution';
+import { phCapture } from './posthog';
+import { reportError } from './reportError';
 
 // Entitlement identifier configured in RevenueCat dashboard.
 // All paid tiers (monthly, annual, lifetime) grant this same entitlement.
@@ -69,7 +71,7 @@ export async function initBilling(userId?: string): Promise<void> {
       provider = await initWeb(userId);
     }
   } catch (err) {
-    console.warn('[billing] init failed', err);
+    reportError('billing', err, { step: 'init' });
     provider = null;
     initStarted = false;
   }
@@ -77,7 +79,7 @@ export async function initBilling(userId?: string): Promise<void> {
 
 export async function identifyUser(userId: string): Promise<void> {
   if (!provider) return;
-  try { await provider.identifyUser(userId); } catch (err) { console.warn('[billing] identify failed', err); }
+  try { await provider.identifyUser(userId); } catch (err) { reportError('billing', err, { step: 'identify' }); }
 }
 
 export async function logOutBilling(): Promise<void> {
@@ -86,14 +88,21 @@ export async function logOutBilling(): Promise<void> {
 }
 
 export async function purchaseProduct(productId: string): Promise<boolean> {
+  phCapture('purchase_started', { product_id: productId });
   if (!provider) {
-    console.warn('[billing] purchaseProduct called before init');
+    reportError('billing', new Error('purchaseProduct called before billing init'), { step: 'purchase', productId });
+    phCapture('purchase_failed', { product_id: productId, reason: 'billing_not_ready' });
     return false;
   }
   try { return await provider.purchaseProduct(productId); }
   catch (err) {
     const code = (err as { code?: string }).code;
-    if (code !== 'PURCHASE_CANCELLED') console.warn('[billing] purchase failed', err);
+    if (code === 'PURCHASE_CANCELLED') {
+      phCapture('purchase_cancelled', { product_id: productId });
+    } else {
+      reportError('billing', err, { step: 'purchase', productId });
+      phCapture('purchase_failed', { product_id: productId, reason: code ?? 'error' });
+    }
     return false;
   }
 }
@@ -101,7 +110,7 @@ export async function purchaseProduct(productId: string): Promise<boolean> {
 export async function restorePurchases(): Promise<boolean> {
   if (!provider) return false;
   try { return await provider.restorePurchases(); }
-  catch (err) { console.warn('[billing] restore failed', err); return false; }
+  catch (err) { reportError('billing', err, { step: 'restore' }); return false; }
 }
 
 // ─── Web (Stripe via RevenueCat Web Billing) ────────────────────────────

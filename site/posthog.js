@@ -11,7 +11,7 @@
 posthog.init('phc_vy9ynWCmqQ27B9FRAvXN6SNay28XjaGHHo3NCvszDF3h', {
   api_host: 'https://us.i.posthog.com',
   defaults: '2026-01-30',
-  person_profiles: 'identified_only',
+  person_profiles: 'always',
   property_blacklist: ['$ip'],
   ip: false,
   capture_pageview: true,

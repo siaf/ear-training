@@ -14,7 +14,9 @@ export function initPostHog(): void {
   posthog.init(key, {
     api_host: host || 'https://us.i.posthog.com',
     defaults: '2026-01-30',
-    person_profiles: 'identified_only',
+    // Profiles for signed-out learners too: most people never sign in, and
+    // retention and cohort reports need a profile per learner.
+    person_profiles: 'always',
     property_blacklist: ['$ip'],
     ip: false,
     capture_pageview: true,

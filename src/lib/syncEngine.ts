@@ -9,6 +9,8 @@ import {
 import { subscribeMastery } from './itemMastery';
 import { identifyUser, isPro, logOutBilling } from './billing';
 import { trackAccountSignup } from './attribution';
+import { phCapture } from './posthog';
+import { reportError } from './reportError';
 
 const FLUSH_DEBOUNCE_MS = 2000;
 
@@ -73,6 +75,8 @@ export function startSyncEngine(opts: { getProfile: GetProfile; applyProfile: Ap
   });
   unsubscribeAuth = () => sub.data.subscription.unsubscribe();
 
+  reportAuthRedirectError();
+
   // Initial session check (page reload after magic link, etc.).
   void supabase.auth.getSession().then(({ data }) => handleSession(data.session));
 
@@ -120,7 +124,7 @@ async function initialSync() {
     await pushSessions();  // and the local session backlog
     setState('idle');
   } catch (e) {
-    console.warn('[sync] initial sync failed', e);
+    reportError('sync', e, { step: 'initial' });
     setState('error');
   }
 }
@@ -251,9 +255,36 @@ export async function flushNow() {
     await pushSessions();
     setState('idle');
   } catch (e) {
-    console.warn('[sync] flush failed', e);
+    reportError('sync', e, { step: 'flush' });
     setState('error');
   }
+}
+
+async function assertAuthReachable(): Promise<void> {
+  const url = import.meta.env.VITE_SUPABASE_URL as string | undefined;
+  const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined;
+  if (!url || !key) return;
+  let status = 0;
+  try {
+    const res = await fetch(`${url}/auth/v1/health`, { headers: { apikey: key }, signal: AbortSignal.timeout(6000) });
+    status = res.status;
+  } catch {
+    status = 0;
+  }
+  if (status !== 200) {
+    throw new Error(`Sign-in is temporarily unavailable (auth health ${status || 'unreachable'}). Please try again in a few minutes.`);
+  }
+}
+
+// Supabase sends failed OAuth / magic-link logins back with ?error= or #error=.
+function reportAuthRedirectError(): void {
+  if (typeof window === 'undefined') return;
+  const params = new URLSearchParams(window.location.search + '&' + window.location.hash.replace(/^#/, ''));
+  const error = params.get('error') || params.get('error_code');
+  if (!error) return;
+  const description = params.get('error_description') ?? '';
+  reportError('auth', new Error(`Auth redirect error: ${error} ${description}`.trim()), { step: 'redirect' });
+  phCapture('auth_failed', { step: 'redirect', reason: error });
 }
 
 export async function signInWithMagicLink(email: string): Promise<void> {
@@ -271,6 +302,9 @@ export async function signInWithGoogle(): Promise<void> {
   if (!supabase) throw new Error('Supabase is not configured');
   const redirectTo =
     typeof window !== 'undefined' ? `${window.location.origin}${window.location.pathname}` : undefined;
+  // OAuth leaves the page for Supabase, so a down or paused project shows the
+  // user a dead page and we never hear about it. Check first and fail here.
+  await assertAuthReachable();
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: { redirectTo },

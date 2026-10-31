@@ -3,14 +3,18 @@ import { Check } from 'lucide-react';
 import { Bean, Blob } from './primitives';
 import { signInWithGoogle, signInWithMagicLink } from '../lib/syncEngine';
 import { phCapture } from '../lib/posthog';
+import { reportError } from '../lib/reportError';
 
 interface Props {
   onClose: () => void;
+  // 'first_lesson' = the soft ask after someone's first finished lesson.
+  reason?: 'sync' | 'first_lesson';
 }
 
 type Status = 'idle' | 'sending' | 'sent' | 'error';
 
-export default function AuthSheet({ onClose }: Props) {
+export default function AuthSheet({ onClose, reason = 'sync' }: Props) {
+  const firstLesson = reason === 'first_lesson';
   const [mounted, setMounted] = useState(false);
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<Status>('idle');
@@ -25,7 +29,7 @@ export default function AuthSheet({ onClose }: Props) {
       if (e.key === 'Escape') onClose();
     };
     window.addEventListener('keydown', onKey);
-    phCapture('auth_sheet_opened');
+    phCapture('auth_sheet_opened', { reason });
     return () => {
       clearTimeout(t);
       window.removeEventListener('keydown', onKey);
@@ -44,6 +48,8 @@ export default function AuthSheet({ onClose }: Props) {
       await signInWithMagicLink(trimmed);
       setStatus('sent');
     } catch (err) {
+      reportError('auth', err, { provider: 'magic_link' });
+      phCapture('auth_failed', { provider: 'magic_link', reason: err instanceof Error ? err.message : 'unknown' });
       setStatus('error');
       setErrorMsg(err instanceof Error ? err.message : 'Could not send the link.');
     }
@@ -98,7 +104,7 @@ export default function AuthSheet({ onClose }: Props) {
                   marginBottom: 6,
                 }}
               >
-                cloud sync
+                {firstLesson ? 'nice work' : 'cloud sync'}
               </div>
               <h2
                 style={{
@@ -110,10 +116,16 @@ export default function AuthSheet({ onClose }: Props) {
                   margin: '0 0 10px',
                 }}
               >
-                Sync your practice across <span style={{ fontStyle: 'italic', color: 'var(--mint-ink)' }}>devices.</span>
+                {firstLesson ? (
+                  <>Keep your <span style={{ fontStyle: 'italic', color: 'var(--mint-ink)' }}>progress.</span></>
+                ) : (
+                  <>Sync your practice across <span style={{ fontStyle: 'italic', color: 'var(--mint-ink)' }}>devices.</span></>
+                )}
               </h2>
               <p style={{ fontSize: 14, color: 'var(--ink-2)', lineHeight: 1.5, margin: '0 0 18px' }}>
-                Sign in once and your sessions, streaks, and progress will follow you to any device.
+                {firstLesson
+                  ? 'Save this lesson and pick up where you left off on any device. We\'ll send an occasional nudge to keep your streak going; unsubscribe anytime.'
+                  : 'Sign in once and your sessions, streaks, and progress will follow you to any device.'}
               </p>
               <Bean
                 tone="coral"
@@ -126,6 +138,8 @@ export default function AuthSheet({ onClose }: Props) {
                   phCapture('auth_provider_clicked', { provider: 'google' });
                   try { await signInWithGoogle(); }
                   catch (err) {
+                    reportError('auth', err, { provider: 'google' });
+                    phCapture('auth_failed', { provider: 'google', reason: err instanceof Error ? err.message : 'unknown' });
                     setErrorMsg(err instanceof Error ? err.message : 'Could not start Google sign-in.');
                     setStatus('error');
                     setGoogleStarting(false);
@@ -200,7 +214,15 @@ export default function AuthSheet({ onClose }: Props) {
                 <div style={{ fontSize: 13, color: 'var(--coral-ink)', textAlign: 'center', marginTop: 10 }}>{errorMsg}</div>
               )}
 
-              <Bean tone="ghost" size="sm" onClick={onClose} style={{ alignSelf: 'center', marginTop: 10 }}>
+              <Bean
+                tone="ghost"
+                size="sm"
+                onClick={() => {
+                  phCapture('auth_sheet_dismissed', { reason });
+                  onClose();
+                }}
+                style={{ alignSelf: 'center', marginTop: 10 }}
+              >
                 not now
               </Bean>
             </>

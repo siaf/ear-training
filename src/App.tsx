@@ -50,6 +50,15 @@ import {
   type SyncState,
   type ProfileSnapshot,
 } from './lib/syncEngine';
+import { supabaseEnabled } from './lib/supabase';
+
+const SIGNUP_PROMPTED_KEY = 'fifths.signupPrompted';
+function readFlag(key: string): boolean {
+  try { return localStorage.getItem(key) === '1'; } catch { return false; }
+}
+function writeFlag(key: string): void {
+  try { localStorage.setItem(key, '1'); } catch { /* private mode */ }
+}
 import { PRODUCT_IDS, isPro, purchaseProduct, subscribeBilling } from './lib/billing';
 import { trackEngagedAnon } from './lib/attribution';
 import { phCapture } from './lib/posthog';
@@ -283,6 +292,7 @@ export default function App() {
   const [syncState, setSyncState] = useState<SyncState>('disabled');
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [showAuth, setShowAuth] = useState(false);
+  const [showFirstLessonPrompt, setShowFirstLessonPrompt] = useState(false);
   const [proActive, setProActive] = useState<boolean>(isPro());
   useEffect(() => subscribeBilling(() => setProActive(isPro())), []);
   const completedLevelsRef = useRef<string[]>(initial.completedLevels);
@@ -928,6 +938,12 @@ export default function App() {
           completed_levels_count: completedLevels.length + 1,
         });
       }
+      // Ask signed-out learners once, right after a finished lesson, so they
+      // land on the email list. Skippable; the hard ask stays at ANON_LESSON_LIMIT.
+      if (!isSignedIn && supabaseEnabled() && !readFlag(SIGNUP_PROMPTED_KEY)) {
+        writeFlag(SIGNUP_PROMPTED_KEY);
+        setShowFirstLessonPrompt(true);
+      }
     }
     if (firstUnlock) {
       setMasteryLevelId(currentLevel.id);
@@ -1368,7 +1384,10 @@ export default function App() {
           pages={introPages}
           lessonName={introTitle}
           onContinue={() => setIntroDismissed(true)}
-          onExit={() => setRoute('path')}
+          onExit={() => {
+            phCapture('session_abandoned', { level_id: currentLevel.id, level_type: currentLevel.type, stage: 'intro' });
+            setRoute('path');
+          }}
         />
       );
     }
@@ -1408,7 +1427,17 @@ export default function App() {
         onEndSession={endSession}
         onToggleDrone={() => setSettings((s) => ({ ...s, drone: !s.drone }))}
         onSpeedChange={(v) => setSettings((s) => ({ ...s, playbackSpeed: v }))}
-        onExit={() => setRoute('path')}
+        onExit={() => {
+          phCapture('session_abandoned', {
+            level_id: currentLevel.id,
+            level_type: currentLevel.type,
+            stage: 'practice',
+            questions_answered: stats.totalQuestions,
+            accuracy: stats.accuracy,
+            duration_ms: sessionStartedAt ? Date.now() - sessionStartedAt : null,
+          });
+          setRoute('path');
+        }}
       />
     );
   }
@@ -1427,6 +1456,9 @@ export default function App() {
           onNextLesson={handleNextLesson}
           onNavigate={(tab) => setRoute(tab)}
         />
+        {showFirstLessonPrompt && !masteryLevel && (
+          <AuthSheet reason="first_lesson" onClose={() => setShowFirstLessonPrompt(false)} />
+        )}
         {masteryLevel && (
           <MasteryOverlay
             level={masteryLevel}

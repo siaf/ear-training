@@ -128,7 +128,7 @@ ${body}
     </div>
     <aside class="article-cta">
       <p><strong>Want to put this into practice?</strong> Fifths is the ear training app built around the research we cite — scale-degree-first, with analytics that pinpoint exactly which intervals, scale degrees, and keys keep tripping you up.</p>
-      <a href="https://app.fifths.io" class="btn btn-coral">Try Fifths free →</a>
+      <a href="https://app.fifths.io" class="btn btn-coral" data-ph-track data-ph-cta="article-bottom">Try Fifths free →</a>
     </aside>
     <p class="article-back"><a href="/blog/">← Back to all articles</a></p>
   </article>

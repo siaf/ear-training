@@ -1,10 +1,19 @@
 // Fifths — marketing-site JS. Captures UTM params, hijacks form submits,
 // opens the survey modal, and POSTs to /waitlist with first-touch attribution.
 
+// Sentry Loader: a tiny stub that pulls in the full SDK only when an error
+// happens. The key is the public DSN key, the same one the app ships.
+(function sentryLoader() {
+  var s = document.createElement('script');
+  s.src = 'https://js.sentry-cdn.com/f5f1cd3cbbd39fab5bd1d5a0635b81e6.min.js';
+  s.crossOrigin = 'anonymous';
+  document.head.appendChild(s);
+})();
+
 // PostHog — privacy-respecting init. Project key is public-safe (phc_ prefix is
 // designed for browser exposure). Privacy posture matches /privacy:
 //   - ip:false + property_blacklist:['$ip']  → no IP collection
-//   - person_profiles:'identified_only'      → no profiles for anon visitors
+//   - person_profiles:'always'               → anonymous profile per browser (no IP, no PII)
 //   - session_recording.maskAllInputs        → input fields never recorded
 (function initPostHog() {
   if (typeof window === 'undefined' || window.posthog && window.posthog.__loaded) return;
@@ -12,7 +21,7 @@
   window.posthog.init('phc_vy9ynWCmqQ27B9FRAvXN6SNay28XjaGHHo3NCvszDF3h', {
     api_host: 'https://us.i.posthog.com',
     defaults: '2026-01-30',
-    person_profiles: 'identified_only',
+    person_profiles: 'always',
     property_blacklist: ['$ip'],
     ip: false,
     capture_pageview: true,
@@ -195,6 +204,13 @@ if (Object.keys(fresh).length > 0) saveAttribution(attribution);
     });
   }
 
+  // Same Sentry project as the app (fifths-web), so site failures alert too.
+  function reportSiteError(message) {
+    console.warn(message);
+    try { if (window.Sentry) window.Sentry.captureMessage(message, { level: 'error', tags: { area: 'site' } }); } catch {}
+    try { if (window.posthog && window.posthog.captureException) window.posthog.captureException(new Error(message)); } catch {}
+  }
+
   async function postWaitlist(form, extra) {
     const fd = new FormData(form);
     if (extra) for (const [k, v] of Object.entries(extra)) fd.set(k, v);
@@ -206,9 +222,10 @@ if (Object.keys(fresh).length > 0) saveAttribution(attribution);
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: body.toString(),
       });
+      if (!res.ok) reportSiteError('waitlist POST failed: HTTP ' + res.status);
       return res.ok;
     } catch (err) {
-      console.warn('waitlist post failed', err);
+      reportSiteError('waitlist POST failed: ' + (err && err.message));
       return false;
     }
   }
@@ -221,18 +238,39 @@ if (Object.keys(fresh).length > 0) saveAttribution(attribution);
       const email = emailEl ? (emailEl.value || '').trim().toLowerCase() : '';
       if (!email) return;
 
-      try { localStorage.setItem('fifths.waitlist.email', email); } catch {}
+      const source = form.querySelector('input[name=form_source]')?.value || form.dataset.source || 'hero';
+      const button = form.querySelector('button[type=submit]');
+      const errorEl = form.parentElement.querySelector('.waitlist-error') || (() => {
+        const el = document.createElement('p');
+        el.className = 'waitlist-error';
+        el.setAttribute('role', 'alert');
+        el.style.cssText = 'color:var(--coral-ink,#b3402a);font-size:13px;margin:8px 0 0;text-align:center';
+        form.insertAdjacentElement('afterend', el);
+        return el;
+      })();
+      errorEl.textContent = '';
+      if (button) button.disabled = true;
 
-      // Open modal immediately for snappy feel.
-      openModal();
-      // Fire and forget the backend write.
-      postWaitlist(form);
+      // Wait for the write: this used to open the "you're in" modal before the
+      // POST, so every failed signup still looked like a success.
+      const ok = await postWaitlist(form);
+      if (button) button.disabled = false;
       try {
         if (window.posthog) {
-          window.posthog.identify(email, { email });
-          window.posthog.capture('waitlist_submit', { form_source: form.dataset.source || 'hero' });
+          if (ok) {
+            window.posthog.identify(email, { email });
+            window.posthog.capture('waitlist_submit', { form_source: source });
+          } else {
+            window.posthog.capture('waitlist_failed', { form_source: source });
+          }
         }
       } catch {}
+      if (!ok) {
+        errorEl.textContent = "Sorry, that didn't go through. Please try again, or email hello@fifths.io.";
+        return;
+      }
+      try { localStorage.setItem('fifths.waitlist.email', email); } catch {}
+      openModal();
     });
   });
 

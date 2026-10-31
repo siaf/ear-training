@@ -23,6 +23,8 @@ if (sentryDsn) {
     integrations: [
       Sentry.browserTracingIntegration(),
       Sentry.replayIntegration({ maskAllText: false, blockAllMedia: false }),
+      // Audio and lesson code logs failures with console.error; send those too.
+      Sentry.captureConsoleIntegration({ levels: ['error'] }),
     ],
   })
 }
