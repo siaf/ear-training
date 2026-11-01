@@ -1,0 +1,15 @@
+Instrument samples used by the free tools on fifths.io
+=======================================================
+
+Neither set needs a credit; this file records where they came from.
+The files are trimmed, mono, 96 kbps copies made by scripts/build-samples.sh
+(leading silence removed, shortened with a fade-out, re-encoded as MP3).
+
+piano/  Steinway B grand piano, close mics, middle velocity layer, from the
+        Versilian Community Sample Library (VCSL), https://github.com/sgossner/VCSL
+        Licence: CC0 1.0 (public domain dedication).
+
+guitar/ Steel-string acoustic guitar, University of Iowa Electronic Music
+        Studios Musical Instrument Samples, https://theremin.music.uiowa.edu/MIS.html
+        ("freely available ... may be downloaded and used for any projects,
+        without restrictions"). Prepared by nbrosowsky/tonejs-instruments.

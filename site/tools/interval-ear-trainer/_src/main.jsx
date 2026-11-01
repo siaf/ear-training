@@ -6,6 +6,7 @@ import {
   INTERVALS, PRESETS, DIRECTIONS, intervalBySemitones, lessonIdFor, appUrl,
   makeQuestion, spellInterval, noteLabel, noteMidi, midiToFreq,
 } from './theory.js';
+import { withSamples } from '../../_shared/samples.js';
 
 const { useState, useEffect, useRef, useCallback, useMemo } = React;
 
@@ -20,7 +21,7 @@ function phCapture(event, props) {
   } catch (_) { /* swallow */ }
 }
 
-// ---- Audio (same Tone.js PolySynth + limiter approach as circle-of-fifths) ----
+// ---- Audio: sampled piano (synth until the samples load), through a limiter ----
 function useAudio() {
   const synthRef = useRef(null);
   const ensure = useCallback(async () => {
@@ -32,7 +33,7 @@ function useAudio() {
       envelope: { attack: 0.01, decay: 0.25, sustain: 0.35, release: 0.9 },
       volume: -8,
     }).connect(limiter);
-    synthRef.current = synth;
+    synthRef.current = withSamples('piano', synth, limiter);
     return synth;
   }, []);
 

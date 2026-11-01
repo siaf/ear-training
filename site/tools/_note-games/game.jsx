@@ -11,6 +11,7 @@ import {
   statPositions, appUrl, UNLOCK_WINDOW,
 } from './theory.js';
 import { renderScore } from './staff.js';
+import { withSamples } from '../_shared/samples.js';
 
 const { useState, useEffect, useRef, useCallback, useMemo } = React;
 
@@ -45,7 +46,7 @@ function phCapture(event, props) {
   } catch (_) { /* swallow */ }
 }
 
-// ---- Audio: Tone.js PolySynth + limiter, as in the circle-of-fifths tool.
+// ---- Audio: sampled piano (synth until the samples load), through a limiter.
 // Created lazily inside the first tap/keypress so iOS allows it.
 function useAudio(mutedRef) {
   const synthRef = useRef(null);
@@ -59,7 +60,7 @@ function useAudio(mutedRef) {
       envelope: { attack: 0.01, decay: 0.25, sustain: 0.35, release: 0.9 },
       volume: -6,
     }).connect(limiter);
-    synthRef.current = synth;
+    synthRef.current = withSamples('piano', synth, limiter);
     return synth;
   }, []);
   const playNote = useCallback(async (note, force) => {

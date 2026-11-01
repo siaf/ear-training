@@ -1,6 +1,7 @@
 // Generated source: theory + circle-svg + extras + app combined.
 // Edit and rebuild via:  npm run build:tool:cof
 /* global React, ReactDOM, Tone */
+import { withSamples } from '../../_shared/samples.js';
 
 // PostHog capture helper. No-ops if posthog snippet hasn't loaded yet —
 // the snippet's stub queues calls until the SDK arrives, but we still
@@ -901,20 +902,24 @@ const { useState, useEffect, useRef, useCallback, useMemo } = React;
 function useAudio() {
   const synthRef = useRef(null);
   const initRef = useRef(false);
-  const synthTypeRef = useRef('triangle');
+  const synthTypeRef = useRef('piano');
 
   const ensure = useCallback(async () => {
     if (initRef.current) return synthRef.current;
     await Tone.start();
     const limiter = new Tone.Limiter(-1).toDestination();
+    const type = synthTypeRef.current;
     const synth = new Tone.PolySynth(Tone.Synth, {
-      oscillator: { type: synthTypeRef.current },
+      oscillator: { type: type === 'piano' ? 'triangle' : type },
       envelope: { attack: 0.01, decay: 0.18, sustain: 0.35, release: 0.85 },
       volume: -8,
     }).connect(limiter);
-    synthRef.current = synth;
+    // Piano samples always load; they're used while the voice is 'piano'.
+    const voice = withSamples('piano', synth, limiter);
+    voice.useSamples = type === 'piano';
+    synthRef.current = voice;
     initRef.current = true;
-    return synth;
+    return voice;
   }, []);
 
   const play = useCallback(async (notes, duration = '2n') => {
@@ -924,7 +929,9 @@ function useAudio() {
 
   const setSynth = useCallback((type) => {
     synthTypeRef.current = type;
-    if (synthRef.current) synthRef.current.set({ oscillator: { type } });
+    if (!synthRef.current) return;
+    synthRef.current.useSamples = type === 'piano';
+    if (type !== 'piano') synthRef.current.set({ oscillator: { type } });
   }, []);
 
   return { play, ensure, setSynth };
@@ -1848,7 +1855,7 @@ function DiatonicList({ info, onPlay }) {
 }
 
 const TWEAK_DEFAULTS = {
-  synth: 'triangle',
+  synth: 'piano',
   showRelativeMinor: true,
   highlightOnly: false,
   palette: 'bold',
@@ -2144,6 +2151,7 @@ function App() {
                   value={tweaks.synth}
                   onChange={(v) => setTweakTracked('synth', v)}
                   options={[
+                    { value: 'piano',    label: 'Piano' },
                     { value: 'triangle', label: 'Triangle (warm)' },
                     { value: 'sine',     label: 'Sine (pure)' },
                     { value: 'square',   label: 'Square (bright)' },
@@ -2252,6 +2260,7 @@ function App() {
               <CollapsibleCard title="Sound" summary={tweaks.synth} defaultOpen={false}>
                 <PageSelect label="Synth voice" value={tweaks.synth} onChange={(v) => setTweakTracked('synth', v)}
                   options={[
+                    { value: 'piano',    label: 'Piano' },
                     { value: 'triangle', label: 'Triangle (warm)' },
                     { value: 'sine',     label: 'Sine (pure)' },
                     { value: 'square',   label: 'Square (bright)' },

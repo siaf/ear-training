@@ -18,6 +18,7 @@ body.ig-body {
   --ig-string: #efe4d2;
   --ig-inlay: rgba(255, 246, 230, 0.75);
   --ig-dot-edge: rgba(42, 29, 58, 0.55);
+  --ig-root: #2a1d3a;
   background: var(--page); min-height: 100vh; overflow-x: hidden;
 }
 #root { min-height: 720px; }
@@ -181,6 +182,7 @@ body.ig-body {
 .gf-strlabel { font: 700 14px var(--ui); fill: var(--ink-2); }
 .gf-dotlabel { font: 700 11px var(--ui); fill: var(--ink-1); pointer-events: none; }
 .gf-dotlabel--sm { font-size: 8px; }
+.gf-dot.is-root .gf-dotlabel { fill: #fff8ef; }
 .gf-dot { pointer-events: none; }
 .gf-dot circle { transform-box: fill-box; transform-origin: center; }
 .gf-dot.is-target circle { animation: ig-dot 1.1s ease-in-out infinite; }
@@ -228,3 +230,14 @@ body.ig-body {
   .ig-page *, .ig-page *::before { animation: none !important; transition-duration: 0.01ms !important; }
 }
 .ig-reset { background: none; border: 0; padding: 0; cursor: pointer; font-family: var(--ui); }
+
+/* Interval answer pad and stats (guitar-fretboard-intervals) */
+.ig-choices { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+@media (min-width: 640px) { .ig-choices--wide { grid-template-columns: repeat(6, 1fr); } }
+.ig-letter.ig-choice { font-size: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; padding: 4px 2px; }
+.ig-choice small { font: 500 10.5px var(--ui); color: var(--ink-2); line-height: 1.1; }
+.ig-ivbars { list-style: none; padding: 0; margin: 10px 0 16px; display: grid; gap: 6px; }
+.ig-ivbars li { display: grid; grid-template-columns: 7.5em 1fr 4.5em; align-items: center; gap: 8px; font-size: 14px; color: var(--ink-1); }
+.ig-ivbar { height: 10px; border-radius: 5px; background: var(--hairline); overflow: hidden; }
+.ig-ivbar i { display: block; height: 100%; border-radius: 5px; }
+.ig-ivbars small { text-align: right; color: var(--ink-2); }

@@ -205,6 +205,7 @@ const STATIC_PAGES = [
   { url: '/tools/grand-staff-notes/', priority: '0.8', changefreq: 'monthly' },
   { url: '/tools/piano-notes/', priority: '0.8', changefreq: 'monthly' },
   { url: '/tools/guitar-fretboard-notes/', priority: '0.8', changefreq: 'monthly' },
+  { url: '/tools/guitar-fretboard-intervals/', priority: '0.8', changefreq: 'monthly' },
   { url: '/jazz/', priority: '0.8', changefreq: 'monthly' },
   { url: '/classical/', priority: '0.8', changefreq: 'monthly' },
   { url: '/transcribing/', priority: '0.8', changefreq: 'monthly' },

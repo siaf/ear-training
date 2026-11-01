@@ -33,10 +33,10 @@ function Seg({ label, value, options, onChange, className }) {
   );
 }
 
-export function AppCard({ slug, placement, compact }) {
+export function AppCard({ slug, placement, compact, headline }) {
   return (
     <div className={'ig-appcard' + (compact ? ' ig-appcard--compact' : '')}>
-      <h3>Knowing where notes are is half of it — Fifths trains your ear to hear them.</h3>
+      <h3>{headline || 'Knowing where notes are is half of it — Fifths trains your ear to hear them.'}</h3>
       {!compact && <p>Short daily ear-training sessions: higher or lower, intervals, scale degrees and melodies, focused on what you miss. Free to start.</p>}
       <a className="btn btn-coral ig-appcard-btn" href={appUrl(slug, placement)} data-ph-track data-ph-cta="tool-result">
         Train your ear in Fifths →
@@ -87,6 +87,28 @@ function LetterPad({ onLetter, accOn, acc, setAcc, disabled, picked, correctPc, 
           );
         })}
       </div>
+    </div>
+  );
+}
+
+// Answer pad for games whose answers aren't note letters (def.choices).
+function ChoicePad({ choices, onChoice, disabled, picked, correctKey, showResult }) {
+  return (
+    <div className={'ig-choices' + (choices.length > 8 ? ' ig-choices--wide' : '')}
+      style={choices.length < 4 ? { gridTemplateColumns: `repeat(${choices.length}, 1fr)` } : undefined}>
+      {choices.map((c) => {
+        let cls = 'ig-letter ig-choice';
+        if (showResult) {
+          if (c.key === correctKey) cls += ' is-correct';
+          else if (picked && c.key === picked.key) cls += ' is-wrong';
+        }
+        return (
+          <button key={c.key} type="button" className={cls} disabled={disabled} onClick={() => onChoice(c.key)}
+            aria-label={c.sub || c.label}>
+            {c.label}{c.sub && <small>{c.sub}</small>}
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -267,7 +289,7 @@ export function NoteGame({ def }) {
     if (L.play === 'sprint' && sprint.current.status !== 'running') return;
     const a = def.levels[L.level].acc ? L.acc : 0;
     const correct = answerMatches(L.q.pc, letter, a);
-    audio.play(L.q.midi);
+    playAnswer(L.q);
     if (!record(correct, L.q.statKey, L.q.note, Object.assign({ answer: answerLabel(letter, a) }, L.q.extra))) return;
     setPicked({ letter, acc: a });
     setResult({ correct });
@@ -275,6 +297,24 @@ export function NoteGame({ def }) {
     const sp = L.play === 'sprint';
     if (correct) later(nextQuestion, sp ? 320 : 700);
     else if (sp) later(nextQuestion, 1300);
+  };
+
+  const playAnswer = (cq) => { if (def.playAnswer) def.playAnswer(audio, cq); else audio.play(cq.midi); };
+
+  const answerChoice = (key) => {
+    const L = live.current;
+    if (!L.q || L.q.task !== 'name' || L.phase !== 'ask') return;
+    if (L.play === 'sprint' && sprint.current.status !== 'running') return;
+    const correct = key === L.q.answerKey;
+    playAnswer(L.q);
+    if (!record(correct, L.q.statKey, L.q.note, Object.assign({ answer: key }, L.q.extra))) return;
+    const choice = def.choices(L.q, L.level).find((c) => c.key === key);
+    setPicked({ key, label: choice ? choice.label : key });
+    setResult({ correct });
+    setPhase('fb');
+    const sp = L.play === 'sprint';
+    if (correct) later(nextQuestion, sp ? 420 : 900);
+    else if (sp) later(nextQuestion, 1500);
   };
 
   const endFind = (correct, extraResult) => {
@@ -291,16 +331,16 @@ export function NoteGame({ def }) {
     if (!cq) return;
     if (cq.task !== 'find' || L.phase !== 'ask' || (L.play === 'sprint' && sprint.current.status !== 'running')) {
       // Outside a find question the instrument is still playable for listening.
-      if (cq.task === 'name' && L.phase === 'fb') audio.play(def.midiOfPos(pos));
+      if (L.phase === 'fb') audio.play(def.midiOfPos(pos));
       return;
     }
     if (def.isActive && !def.isActive(cq, pos)) return;
     const id = def.posId(pos);
     if (marks.current[id]) return;
-    audio.play(def.midiOfPos(pos));
+    if (def.playTap) def.playTap(audio, cq, pos); else audio.play(def.midiOfPos(pos));
     const isTarget = cq.targets.some((t) => def.posId(t) === id);
     if (isTarget) {
-      if (!record(true, def.statKeyOfPos(pos), cq.note, Object.assign({ tapped: def.posLabel(pos) }, cq.extra))) return;
+      if (!record(true, def.statKeyOfPos(pos, cq), cq.note, Object.assign({ tapped: def.posLabel(pos) }, cq.extra))) return;
       marks.current = { ...marks.current, [id]: 'hit' };
       const hits = cq.targets.filter((t) => marks.current[def.posId(t)] === 'hit').length;
       if (!cq.needAll || hits === cq.targets.length) endFind(qMisses.current === 0, { hits, total: cq.targets.length });
@@ -320,7 +360,9 @@ export function NoteGame({ def }) {
     const cq = L.q;
     if (!cq || cq.task !== 'find' || L.phase !== 'ask') return;
     const left = cq.targets.filter((t) => marks.current[def.posId(t)] !== 'hit');
-    left.forEach((t) => record(false, def.statKeyOfPos(t), cq.note, Object.assign({ gave_up: true }, cq.extra)));
+    // One miss per question when a single hit would have answered it.
+    (cq.needAll ? left : left.slice(0, 1))
+      .forEach((t) => record(false, def.statKeyOfPos(t, cq), cq.note, Object.assign({ gave_up: true }, cq.extra)));
     endFind(false, { hits: cq.targets.length - left.length, total: cq.targets.length, revealed: true });
   };
 
@@ -334,7 +376,12 @@ export function NoteGame({ def }) {
       const k = (e.key || '').toUpperCase();
       const i = LETTERS.indexOf(k);
       const accOn = def.levels[L.level].acc;
-      if (L.phase === 'ask' && L.q && L.q.task === 'name') {
+      if (L.phase === 'ask' && L.q && L.q.task === 'name' && def.choices) {
+        // 1–9 then 0, -, = pick the pad buttons in order.
+        const n = '1234567890-='.indexOf(e.key);
+        const cs = def.choices(L.q, L.level);
+        if (n >= 0 && n < cs.length) { e.preventDefault(); answerChoice(cs[n].key); }
+      } else if (L.phase === 'ask' && L.q && L.q.task === 'name') {
         if (i >= 0) { e.preventDefault(); answerName(i); return; }
         if (accOn && (e.key === '#' || e.key === '=' || e.key === '+' || e.key === 'ArrowUp')) { e.preventDefault(); setAcc((a) => (a === 1 ? 0 : 1)); return; }
         if (accOn && (e.key === '-' || e.key === '_' || e.key === 'ArrowDown')) { e.preventDefault(); setAcc((a) => (a === -1 ? 0 : -1)); return; }
@@ -351,7 +398,7 @@ export function NoteGame({ def }) {
   const lv = def.levels[level];
   const accOn = !!lv.acc;
   const st = store.current;
-  const viewMarks = {};
+  const viewMarks = q && def.baseMarks ? def.baseMarks(q, phase) : {};
   if (q) {
     if (q.task === 'name') {
       const id = def.posId(q.pos);
@@ -362,10 +409,10 @@ export function NoteGame({ def }) {
       if (phase === 'fb') {
         q.targets.forEach((t) => {
           const id = def.posId(t);
-          viewMarks[id] = { state: marks.current[id] === 'hit' ? 'hit' : 'reveal', label: def.posShort(t) };
+          viewMarks[id] = { state: marks.current[id] === 'hit' ? 'hit' : 'reveal', label: def.posShort(t, q) };
         });
         if (result && result.tappedPos && def.posId(result.tappedPos) in marks.current) {
-          viewMarks[def.posId(result.tappedPos)] = { state: 'miss', label: def.posShort(result.tappedPos) };
+          viewMarks[def.posId(result.tappedPos)] = { state: 'miss', label: def.posShort(result.tappedPos, q) };
         }
       }
     }
@@ -407,7 +454,7 @@ export function NoteGame({ def }) {
         ? <p className="ig-fb ig-fb--ok">✓ {q.answerLong}</p>
         : (
           <div className="ig-fb ig-fb--no">
-            <p><strong>That's {q.answerLong}</strong> — you picked {answerLabel(picked.letter, picked.acc)}.</p>
+            <p><strong>That's {q.answerLong}</strong> — you picked {picked.label || answerLabel(picked.letter, picked.acc)}.</p>
             <p className="ig-hint">{def.hint(q, ctx)}</p>
           </div>
         );
@@ -462,8 +509,8 @@ export function NoteGame({ def }) {
           <button type="button" className="btn btn-soft ig-grow" onClick={startSprint}>Play again</button>
         </div>
         <p className="ig-share-preview">“{shareText}”</p>
-        {weak && <p className="ig-result-line">Your weakest note so far: <strong>{def.keyLabel(weak.k)}</strong> ({Math.round(weak.a * 100)}%).</p>}
-        <AppCard slug={def.slug} placement="sprint-result" />
+        {weak && <p className="ig-result-line">Your weakest {def.weakNoun || 'note'} so far: <strong>{def.keyLabel(weak.k)}</strong> ({Math.round(weak.a * 100)}%).</p>}
+        <AppCard slug={def.slug} placement="sprint-result" headline={def.appHeadline} />
       </div>
     );
   } else {
@@ -496,19 +543,24 @@ export function NoteGame({ def }) {
           {showHint && phase === 'ask' && q && <p className="ig-hint ig-hint--pre">{def.hint(q, ctx)}</p>}
         </div>
 
-        {q && q.task === 'name' && (
+        {q && q.task === 'name' && def.choices && (
+          <ChoicePad choices={def.choices(q, level)} onChoice={answerChoice} disabled={!canAnswer}
+            picked={picked} correctKey={q.answerKey} showResult={phase === 'fb'} />
+        )}
+        {q && q.task === 'name' && !def.choices && (
           <LetterPad onLetter={answerName} accOn={accOn} acc={acc} setAcc={setAcc}
             disabled={!canAnswer} picked={picked} correctPc={q.pc} showResult={phase === 'fb'} />
         )}
 
         <div className="ig-row">
+          {def.listenLabel && phase === 'ask' && q && canAnswer && <button type="button" className="btn btn-soft btn-sm" onClick={() => playAnswer(q)}>{def.listenLabel}</button>}
           {!inSprint && phase === 'ask' && q && <button type="button" className="btn btn-soft btn-sm" onClick={() => setShowHint(true)} disabled={showHint}>Hint</button>}
           {!inSprint && phase === 'ask' && q && q.task === 'find' && <button type="button" className="btn btn-soft btn-sm" onClick={giveUp}>Show me</button>}
           {!inSprint && phase === 'fb' && result && !result.correct && (
             <button type="button" className="btn btn-coral ig-grow" onClick={nextQuestion}>Next →</button>
           )}
         </div>
-        <p className="ig-kbd">{task === 'name' ? `Keyboard: A–G to answer${accOn ? ', # or ↑ for sharp, - or ↓ for flat' : ''}, Enter for next.` : 'Tap the instrument to answer.'}</p>
+        <p className="ig-kbd">{def.kbdText ? def.kbdText(task) : task === 'name' ? `Keyboard: A–G to answer${accOn ? ', # or ↑ for sharp, - or ↓ for flat' : ''}, Enter for next.` : 'Tap the instrument to answer.'}</p>
       </>
     );
   }
@@ -537,7 +589,7 @@ export function NoteGame({ def }) {
           <button type="button" className="ig-x" aria-label="Dismiss" onClick={() => setBreakCard(null)}>×</button>
           <p className="ig-eyebrow">Nice — {breakCard.n} answers</p>
           <p className="ig-result-line">{breakCard.ok} of {breakCard.n} right ({Math.round((breakCard.ok / breakCard.n) * 100)}%) in that stretch. Keep going, or take a breather.</p>
-          <AppCard slug={def.slug} placement="practice-break" compact />
+          <AppCard slug={def.slug} placement="practice-break" compact headline={def.appHeadline} />
         </div>
       )}
 
@@ -552,17 +604,21 @@ export function NoteGame({ def }) {
 
       <div className="ig-card ig-stats">
         <p className="ig-eyebrow">Your accuracy map</p>
-        <p className="ig-small">Every answer you give is saved on this device and drawn on the {def.instrumentNoun} below.</p>
-        <div className="ig-instrument ig-instrument--compact">
-          <def.Instrument ctx={ctx} q={null} marks={{}} heat={st.stats} compact />
-        </div>
-        <Legend />
+        {def.StatsView ? <def.StatsView stats={st.stats} /> : (
+          <>
+            <p className="ig-small">Every answer you give is saved on this device and drawn on the {def.instrumentNoun} below.</p>
+            <div className="ig-instrument ig-instrument--compact">
+              <def.Instrument ctx={ctx} q={null} marks={{}} heat={st.stats} compact />
+            </div>
+            <Legend />
+          </>
+        )}
         <div className="ig-statgrid">
           <div><span>Session</span><strong>{se.n ? Math.round((se.ok / se.n) * 100) + '%' : '—'}</strong><small>{se.ok}/{se.n} right</small></div>
           <div><span>Best streak</span><strong>{Math.max(st.bestStreak || 0, se.best)}</strong><small>all time</small></div>
           <div><span>Sprint best</span><strong>{best || '—'}</strong><small>level {levelNum}, {def.tasks[task].short}</small></div>
         </div>
-        <p className="ig-weak">{weak ? <>Your weakest note: <strong>{def.keyLabel(weak.k)}</strong> — {Math.round(weak.a * 100)}% over {weak.n} answers. It will come up more often.</> : 'Answer a few more and your weakest note will show up here.'}</p>
+        <p className="ig-weak">{weak ? <>Your weakest {def.weakNoun || 'note'}: <strong>{def.keyLabel(weak.k)}</strong> — {Math.round(weak.a * 100)}% over {weak.n} answers. It will come up more often.</> : `Answer a few more and your weakest ${def.weakNoun || 'note'} will show up here.`}</p>
         <button type="button" className="btn-link ig-reset" onClick={() => {
           if (!window.confirm('Reset your saved accuracy, unlocks and personal bests for this game?')) return;
           store.current = { unlocked: 0, recent: {}, stats: {}, w: {}, best: {}, bestStreak: 0, lastLevel: level };

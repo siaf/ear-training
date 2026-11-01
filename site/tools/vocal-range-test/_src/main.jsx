@@ -16,6 +16,7 @@ import {
   resultQuery,
   VOICE_TYPES,
 } from './range.js';
+import { rawSampler } from '../../_shared/samples.js';
 
 const { useState, useEffect, useRef, useCallback } = React;
 
@@ -182,7 +183,7 @@ function readFrame(analyser, buf, byteBuf) {
   }
 }
 
-// ---------------- Playback (tiny Web Audio synth, no samples) ----------------
+// ---------------- Playback: piano samples for notes, a synth for the sweep ----------------
 let playCtx = null;
 function getPlayCtx() {
   const Ctx = window.AudioContext || window.webkitAudioContext;
@@ -209,8 +210,12 @@ function makeVoice(ctx, t0, dur) {
   osc.stop(t0 + dur + 0.05);
   return osc;
 }
+// Loaded on the first tap; the synth voice covers it until the samples decode.
+let piano = null;
 function playNote(midi, dur = 1.2) {
   const ctx = getPlayCtx(); if (!ctx) return;
+  if (!piano) piano = rawSampler(ctx, 'piano');
+  if (piano.play(midi, dur)) return;
   const t0 = ctx.currentTime + 0.03;
   makeVoice(ctx, t0, dur).frequency.setValueAtTime(midiToHz(midi), t0);
 }

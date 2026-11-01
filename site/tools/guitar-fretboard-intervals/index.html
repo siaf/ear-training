@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Guitar Intervals on the Fretboard — shapes and a free game · Fifths</title>
+<meta name="description" content="Learn guitar interval shapes on the fretboard: minor and major 3rds, 4ths, 5ths, 6ths, 7ths and octaves from any root. Free game: name the interval or find it on the neck, with sound. No signup.">
+<link rel="canonical" href="https://fifths.io/tools/guitar-fretboard-intervals/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Guitar Intervals on the Fretboard — shapes and a free game · Fifths">
+<meta property="og:description" content="Every interval shape from a root on the guitar neck, plus a game that drills them with sound. No signup.">
+<meta property="og:url" content="https://fifths.io/tools/guitar-fretboard-intervals/">
+<meta property="og:image" content="https://fifths.io/brand/logos/logo-stacked-light.png">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://fifths.io/brand/logos/logo-stacked-light.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/brand/favicons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/brand/favicons/favicon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/brand/favicons/favicon-180.png">
+<meta name="theme-color" content="#fff8ef">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=DM+Serif+Display:ital@0;1&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=DM+Serif+Display:ital@0;1&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;600&display=swap"></noscript>
+<link rel="stylesheet" href="/styles.css">
+<link rel="stylesheet" href="/tools/_instrument-games/games.css">
+<!-- Sentry Loader (same public key as site/app.js): pulls the full SDK only when an error happens. -->
+<script src="https://js.sentry-cdn.com/f5f1cd3cbbd39fab5bd1d5a0635b81e6.min.js" crossorigin="anonymous" async></script>
+<!-- Umami analytics -->
+<script defer src="https://cloud.umami.is/script.js" data-website-id="8cc10640-f114-49ab-8572-036552f64527"></script>
+<script defer src="/posthog.js"></script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-LJYKXFDR9L"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-LJYKXFDR9L');
+  gtag('config', 'AW-17007845333');
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebApplication",
+      "name": "Guitar Fretboard Intervals Game",
+      "applicationCategory": "EducationalApplication",
+      "operatingSystem": "Web",
+      "browserRequirements": "Requires JavaScript",
+      "url": "https://fifths.io/tools/guitar-fretboard-intervals/",
+      "description": "Free game for learning interval shapes on the guitar fretboard. See a root and a second note and name the interval, or find an interval above a root, with sound, in untimed practice or a 60-second sprint.",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "publisher": { "@type": "Organization", "name": "Fifths", "url": "https://fifths.io/" }
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        { "@type": "Question", "name": "What is an interval on guitar?", "acceptedAnswer": { "@type": "Answer", "text": "An interval is the distance between two notes, counted in half steps. On guitar one fret is one half step, so every interval has a fixed shape on the neck: a major 3rd is always four half steps above the root, whether that's four frets up the same string or one string up and one fret back." } },
+        { "@type": "Question", "name": "What are the most important guitar intervals to learn first?", "acceptedAnswer": { "@type": "Answer", "text": "The perfect 5th and octave (the power chord), then the major and minor 3rds, which decide whether a chord is major or minor. After that, learn the rest of the major scale (2nd, 4th, 6th, 7th), then the minor intervals and the tritone." } },
+        { "@type": "Question", "name": "Why do interval shapes change on the B string?", "acceptedAnswer": { "@type": "Answer", "text": "In standard tuning each string is a perfect 4th (5 half steps) above the one below it, except the B string, which is a major 3rd (4 half steps) above the G string. Any shape that crosses from the G string to the B string moves up one fret to make up the difference." } },
+        { "@type": "Question", "name": "How do I find a major 3rd on guitar?", "acceptedAnswer": { "@type": "Answer", "text": "From a root on the low E, A or D string, go one string up and one fret back, or four frets up the same string. From a root on the G string, the major 3rd is on the B string at the same fret, because of the shorter G\u2013B gap." } },
+        { "@type": "Question", "name": "Where is the octave on the guitar?", "acceptedAnswer": { "@type": "Answer", "text": "From a root on the low E or A string, go two strings up and two frets up. From the D or G string, go two strings up and three frets up, because the shape crosses the G\u2013B pair." } }
+      ]
+    }
+  ]
+}
+</script>
+
+<!-- React (production) + Tone — JSX is pre-compiled at build time, no Babel runtime. -->
+<script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/tone@14.7.77/build/Tone.js"></script>
+<script src="guitar-fretboard-intervals.js" defer></script>
+</head>
+<body class="ig-body">
+
+<header class="nav">
+  <a href="/" class="brand" aria-label="Fifths">
+    <img src="/brand/logos/logo-horizontal-light.png" alt="Fifths" width="120" height="28"/>
+  </a>
+  <nav class="nav-links">
+    <a href="/tools/">All tools</a>
+    <a href="/tools/guitar-fretboard-notes/">Fretboard notes</a>
+    <a href="/blog/">Blog</a>
+    <a href="https://app.fifths.io" data-ph-track data-ph-cta="nav-app">Open the app</a>
+  </nav>
+</header>
+
+<main class="ig-page">
+  <div class="ig-strip">
+    <h1>Guitar intervals: <em>see the shapes</em></h1>
+    <p>A root (R) and a second note on the neck. Name the interval, or find it yourself, and hear both notes every time. Free, no signup.</p>
+    <div class="ig-topcta">
+      <span>Seeing the shape is half of it. Fifths trains your ear to hear intervals.</span>
+      <a href="https://app.fifths.io/?utm_source=fifths.io&amp;utm_medium=tool&amp;utm_campaign=guitar-fretboard-intervals&amp;utm_content=top" data-ph-track data-ph-cta="tool-top">Try the app →</a>
+    </div>
+  </div>
+
+  <div id="root">
+    <noscript><p>The interval game needs JavaScript. The shape table below works without it.</p></noscript>
+  </div>
+</main>
+
+<!-- ============= SEO content (visible, crawlable) ============= -->
+<section class="ig-seo">
+  <h2>How to play</h2>
+  <ul>
+    <li><strong>Name the interval:</strong> the dark dot marked R is the root. Tap the interval from the root up to the yellow dot: m3, M3, P5 and so on (or press 1–9).</li>
+    <li><strong>Find the interval:</strong> you get a root and an interval, like "Find the major 6th above the root". Tap any spot with that pitch. Afterwards every spot with that pitch is shown.</li>
+    <li>Every answer plays the root and then the interval, so you hear each shape as well as see it.</li>
+    <li><strong>Practice</strong> is untimed, with hints. <strong>Sprint</strong> gives you 60 seconds with a combo up to ×4. Missed intervals come back more often, and your accuracy for each interval is saved on this device.</li>
+    <li>Levels start with power-chord shapes (4th, 5th, octave) and the 3rds, then the major scale, all 12, and finally roots on any string, where the G–B shift comes in.</li>
+  </ul>
+
+  <h2 id="shapes">Guitar interval shapes</h2>
+  <p>One fret is one half step, and each string is 5 half steps above the one below it, except the B string, which is only 4 above the G string. That gives every interval a fixed shape from the root. Here they are within one hand position (three frets back to four frets up):</p>
+  <div class="ig-table-scroll">
+  <table class="ig-ref">
+    <thead><tr><th>Interval</th><th>Half steps</th><th>Root on low E or A string</th><th>Root on D string</th></tr></thead>
+    <tbody>
+      <tr><td><strong>m2</strong> minor 2nd</td><td>1</td><td>On the same string, 1 fret up</td><td>On the same string, 1 fret up</td></tr>
+      <tr><td><strong>M2</strong> major 2nd</td><td>2</td><td>On the same string, 2 frets up<br>One string up, 3 frets back</td><td>On the same string, 2 frets up<br>One string up, 3 frets back</td></tr>
+      <tr><td><strong>m3</strong> minor 3rd</td><td>3</td><td>On the same string, 3 frets up<br>One string up, 2 frets back</td><td>On the same string, 3 frets up<br>One string up, 2 frets back</td></tr>
+      <tr><td><strong>M3</strong> major 3rd</td><td>4</td><td>On the same string, 4 frets up<br>One string up, 1 fret back</td><td>On the same string, 4 frets up<br>One string up, 1 fret back</td></tr>
+      <tr><td><strong>P4</strong> perfect 4th</td><td>5</td><td>One string up, the same fret</td><td>One string up, the same fret</td></tr>
+      <tr><td><strong>TT</strong> tritone</td><td>6</td><td>One string up, 1 fret up</td><td>One string up, 1 fret up<br>Two strings up, 3 frets back</td></tr>
+      <tr><td><strong>P5</strong> perfect 5th</td><td>7</td><td>One string up, 2 frets up<br>Two strings up, 3 frets back</td><td>One string up, 2 frets up<br>Two strings up, 2 frets back</td></tr>
+      <tr><td><strong>m6</strong> minor 6th</td><td>8</td><td>One string up, 3 frets up<br>Two strings up, 2 frets back</td><td>One string up, 3 frets up<br>Two strings up, 1 fret back</td></tr>
+      <tr><td><strong>M6</strong> major 6th</td><td>9</td><td>One string up, 4 frets up<br>Two strings up, 1 fret back</td><td>One string up, 4 frets up<br>Two strings up, the same fret</td></tr>
+      <tr><td><strong>m7</strong> minor 7th</td><td>10</td><td>Two strings up, the same fret</td><td>Two strings up, 1 fret up</td></tr>
+      <tr><td><strong>M7</strong> major 7th</td><td>11</td><td>Two strings up, 1 fret up</td><td>Two strings up, 2 frets up<br>Three strings up, 3 frets back</td></tr>
+      <tr><td><strong>P8</strong> octave</td><td>12</td><td>Two strings up, 2 frets up<br>Three strings up, 3 frets back</td><td>Two strings up, 3 frets up<br>Three strings up, 2 frets back</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>Compare the two right-hand columns: from the D string, any shape that reaches the B string sits one fret higher. From the G string, every shape that crosses to the B string shifts too, so a major 3rd from the G string is on the B string at the <em>same</em> fret.</p>
+
+  <h2>Which intervals to learn first</h2>
+  <ol>
+    <li><strong>Perfect 5th and octave.</strong> Root, 5th and octave are the power chord, and the octave shape lets you find any note again two strings higher.</li>
+    <li><strong>Major and minor 3rds.</strong> The 3rd decides whether a chord is major or minor. Spot it inside the chord shapes you already know.</li>
+    <li><strong>The rest of the major scale.</strong> 2nd, 4th, 6th and 7th. With these you can build any scale or arpeggio from a root.</li>
+    <li><strong>Minor intervals and the tritone.</strong> The minor 7th makes dominant 7th and minor 7th chords; the tritone is the tension inside every dominant chord.</li>
+  </ol>
+
+  <h2>How to practise</h2>
+  <ol>
+    <li><strong>Say it as you play it.</strong> Play a root, then the interval, and name it out loud: "root, major 3rd".</li>
+    <li><strong>Find chord tones.</strong> Pick a root on the low E string and find its 3rd, 5th and 7th nearby. That's an arpeggio, and it's where interval shapes pay off.</li>
+    <li><strong>Move roots around.</strong> The shapes stay the same from any fret, so practise from roots all over the neck, then on the D and G strings to learn the B-string shift.</li>
+    <li><strong>Listen, don't just look.</strong> Knowing the shape of a major 6th doesn't mean you can hear one. The <a href="/tools/interval-ear-trainer/">interval ear trainer</a> trains that by ear, and the shapes and sounds reinforce each other.</li>
+  </ol>
+  <p>Still learning which note is where? Start with the <a href="/tools/guitar-fretboard-notes/">guitar fretboard notes game</a>. For keys and their sharps and flats, see the <a href="/tools/circle-of-fifths/">interactive circle of fifths</a>.</p>
+
+  <h2>Frequently asked questions</h2>
+  <h3>What is an interval on guitar?</h3>
+  <p>An interval is the distance between two notes, counted in half steps. On guitar one fret is one half step, so every interval has a fixed shape on the neck: a major 3rd is always four half steps above the root, whether that's four frets up the same string or one string up and one fret back.</p>
+  <h3>What are the most important guitar intervals to learn first?</h3>
+  <p>The perfect 5th and octave (the power chord), then the major and minor 3rds, which decide whether a chord is major or minor. After that, learn the rest of the major scale (2nd, 4th, 6th, 7th), then the minor intervals and the tritone.</p>
+  <h3>Why do interval shapes change on the B string?</h3>
+  <p>In standard tuning each string is a perfect 4th (5 half steps) above the one below it, except the B string, which is a major 3rd (4 half steps) above the G string. Any shape that crosses from the G string to the B string moves up one fret to make up the difference.</p>
+  <h3>How do I find a major 3rd on guitar?</h3>
+  <p>From a root on the low E, A or D string, go one string up and one fret back, or four frets up the same string. From a root on the G string, the major 3rd is on the B string at the same fret, because of the shorter G–B gap.</p>
+  <h3>Where is the octave on the guitar?</h3>
+  <p>From a root on the low E or A string, go two strings up and two frets up. From the D or G string, go two strings up and three frets up, because the shape crosses the G–B pair.</p>
+
+  <div class="cta">
+    <p><strong>Seeing the shape is half of it.</strong> Fifths is an ear-training app that teaches you to hear intervals, chords and scale degrees, in short daily sessions that focus on what you miss.</p>
+    <a href="https://app.fifths.io/?utm_source=fifths.io&amp;utm_medium=tool&amp;utm_campaign=guitar-fretboard-intervals&amp;utm_content=bottom" data-ph-track data-ph-cta="seo-bottom">Try Fifths free →</a>
+  </div>
+</section>
+
+<footer class="site-foot">
+  <p><a href="/">Home</a> · <a href="/tools/">All tools</a> · <a href="/tools/guitar-fretboard-notes/">Fretboard notes</a> · <a href="/tools/interval-ear-trainer/">Interval ear trainer</a> · <a href="/blog/">Blog</a> · <a href="/privacy/">Privacy</a> · <a href="/terms/">Terms</a></p>
+  <p class="site-foot-mark">fifths.io · 2026</p>
+</footer>
+
+</body>
+</html>
