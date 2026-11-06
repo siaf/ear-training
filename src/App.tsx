@@ -16,7 +16,7 @@ import {
 import { getDueItems, countDueItems, type DueItem } from './lib/spacedReview';
 import { fadePrimerForMastery } from './lib/primer';
 import { getCrossSegmentRecommendation } from './lib/recommendations';
-import { createRotationState, nextRotatedTimbre, type TimbreRotationState } from './lib/timbreRotation';
+import { createRotationState, nextRotatedTimbre, ROTATION_POOL, type TimbreRotationState } from './lib/timbreRotation';
 import {
   buildInterleaveQueue,
   categoriesInQueue,
@@ -625,7 +625,10 @@ export default function App() {
     const sessionAccuracyPct = stats.totalQuestions > 0 ? (stats.correctAnswers / stats.totalQuestions) * 100 : 0;
     const isLevelCompleted = completedLevels.includes(level.id);
     const rotatedSynth = nextRotatedTimbre(level, isLevelCompleted, stats.totalQuestions, sessionAccuracyPct, timbreRotationRef.current);
-    if (rotatedSynth) audioEngine.setSynthType(rotatedSynth);
+    if (rotatedSynth) {
+      audioEngine.preloadSynths(ROTATION_POOL);
+      audioEngine.setSynthType(rotatedSynth);
+    }
 
     if (level.type === 'scale_degree') {
       const randomDegree = pickItem(level.items);

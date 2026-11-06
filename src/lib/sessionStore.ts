@@ -166,8 +166,9 @@ export function getDailyStats(days = 30, now = Date.now()): DailyStat[] {
   }
   const out: DailyStat[] = [];
   for (let i = days - 1; i >= 0; i--) {
-    const t = now - i * 86_400_000;
-    const k = dayKey(t);
+    const d = new Date(now);
+    d.setDate(d.getDate() - i);
+    const k = dayKey(d.getTime());
     const b = byDay.get(k);
     out.push({
       day: k,
@@ -189,10 +190,12 @@ export function getStreakDays(now = Date.now()): number {
   let streak = 0;
   // If user practiced today, count it; otherwise start checking yesterday.
   const todayKey = dayKey(now);
-  let cursor = days.has(todayKey) ? now : now - 86_400_000;
-  while (days.has(dayKey(cursor))) {
+  // Step by calendar day: days around a clock change aren't 24 hours long.
+  const cursor = new Date(now);
+  if (!days.has(todayKey)) cursor.setDate(cursor.getDate() - 1);
+  while (days.has(dayKey(cursor.getTime()))) {
     streak++;
-    cursor -= 86_400_000;
+    cursor.setDate(cursor.getDate() - 1);
   }
   return streak;
 }
@@ -264,7 +267,8 @@ export function getOverallTotals(opts: { windowMs?: number; now?: number } = {})
   let prev: number | null = null;
   for (const k of days) {
     const t = new Date(k + 'T00:00:00').getTime();
-    if (prev !== null && t - prev === 86_400_000) {
+    // Rounded because days around a clock change are 23 or 25 hours long.
+    if (prev !== null && Math.round((t - prev) / 86_400_000) === 1) {
       run++;
     } else {
       run = 1;

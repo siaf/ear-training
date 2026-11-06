@@ -914,10 +914,9 @@ export default function Practice({
               display: 'flex',
               alignItems: 'center',
               gap: 10,
-              marginBottom: mobile ? 8 : 14,
               flexWrap: 'wrap',
               maxWidth: mobile ? undefined : 860,
-              margin: mobile ? undefined : '0 auto 14px',
+              margin: mobile ? '0 0 8px' : '0 auto 14px',
             }}
           >
             <div

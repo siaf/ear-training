@@ -35,6 +35,7 @@ interface BillingProvider {
 
 let provider: BillingProvider | null = null;
 let initStarted = false;
+let lastUserId: string | undefined;
 let customerInfo: CustomerInfoLike | null = null;
 const listeners = new Set<(info: CustomerInfoLike | null) => void>();
 
@@ -78,6 +79,7 @@ export async function initBilling(userId?: string): Promise<void> {
 }
 
 export async function identifyUser(userId: string): Promise<void> {
+  lastUserId = userId;
   if (!provider) return;
   try { await provider.identifyUser(userId); } catch (err) { reportError('billing', err, { step: 'identify' }); }
 }
@@ -89,6 +91,8 @@ export async function logOutBilling(): Promise<void> {
 
 export async function purchaseProduct(productId: string): Promise<boolean> {
   phCapture('purchase_started', { product_id: productId });
+  // Init can fail on a bad connection at boot (the SDK is a lazy import), so try again.
+  if (!provider) await initBilling(lastUserId);
   if (!provider) {
     reportError('billing', new Error('purchaseProduct called before billing init'), { step: 'purchase', productId });
     phCapture('purchase_failed', { product_id: productId, reason: 'billing_not_ready' });
@@ -108,6 +112,7 @@ export async function purchaseProduct(productId: string): Promise<boolean> {
 }
 
 export async function restorePurchases(): Promise<boolean> {
+  if (!provider) await initBilling(lastUserId);
   if (!provider) return false;
   try { return await provider.restorePurchases(); }
   catch (err) { reportError('billing', err, { step: 'restore' }); return false; }

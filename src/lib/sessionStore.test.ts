@@ -119,6 +119,25 @@ describe('sessionStore', () => {
     expect(t.longestStreak).toBe(3);
   });
 
+  it('streaks survive a clock change', () => {
+    const tz = process.env.TZ;
+    process.env.TZ = 'America/New_York';
+    try {
+      // Clocks went back on Nov 1 2026 (a 25-hour day) and forward on Mar 8 2026 (23 hours).
+      const autumn = [31, 32, 33].map((d) => new Date(2026, 9, d, 23, 30).getTime());
+      autumn.forEach((t) => session(t));
+      expect(getStreakDays(autumn[2])).toBe(3);
+      expect(getOverallTotals().longestStreak).toBe(3);
+      clearAllSessions();
+      const spring = [7, 8, 9].map((d) => new Date(2026, 2, d, 0, 30).getTime());
+      spring.forEach((t) => session(t));
+      expect(getStreakDays(spring[2])).toBe(3);
+      expect(getOverallTotals().longestStreak).toBe(3);
+    } finally {
+      process.env.TZ = tz;
+    }
+  });
+
   it('timeSinceLastSession reflects the most recent record', () => {
     const now = Date.now();
     session(now - 30_000);

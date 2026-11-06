@@ -151,7 +151,9 @@ const SAMPLER_CONFIGS: Partial<Record<SynthType, SamplerConfig>> = {
 };
 
 class AudioEngine {
-  private synth: Tone.PolySynth | Tone.Sampler;
+  private voice: Tone.PolySynth | Tone.Sampler;
+  // Stands in for a sampler until its samples have downloaded.
+  private fallbackVoice: Tone.PolySynth | Tone.Sampler | null = null;
   private initialized: boolean = false;
   private currentSynthType: SynthType = 'sine';
   // Samplers are expensive — cache each one so we don't re-download samples.
@@ -164,9 +166,22 @@ class AudioEngine {
   private feedbackSynth: Tone.PolySynth | null = null;
   private percSynth: Tone.MembraneSynth | null = null;
   private percAccentSynth: Tone.MembraneSynth | null = null;
+  // Tone time when the last scheduled rhythm pattern has fully finished.
+  private percBusyUntil: number = 0;
   // Timestamp (ms, performance.now time base) after which the speakers are quiet again.
   // Used to gate mic detection so sing mode doesn't pick up our own playback.
   private playbackEndsAt: number = 0;
+
+  // What plays right now. A Tone.Sampler throws if triggered before every sample has
+  // downloaded, which left questions silent on slow connections, so use a plain synth
+  // until it's ready.
+  private get synth(): Tone.PolySynth | Tone.Sampler {
+    if (this.voice instanceof Tone.Sampler && !this.voice.loaded) {
+      if (!this.fallbackVoice) this.fallbackVoice = this.createSynth('triangle');
+      return this.fallbackVoice;
+    }
+    return this.voice;
+  }
 
   private markPlayback(durationSec: number) {
     const endsAt = performance.now() + durationSec * 1000 + 200; // + 200ms tail for speaker decay
@@ -183,7 +198,7 @@ class AudioEngine {
     const limiter = new Tone.Limiter(-1);
     Tone.getDestination().chain(limiter);
 
-    this.synth = this.createSynth('sine');
+    this.voice = this.createSynth('sine');
     // Create a separate synth for the drone with a warm pad sound
     this.droneSynth = new Tone.Synth({
       oscillator: {
@@ -272,12 +287,19 @@ class AudioEngine {
     // so samples don't re-download on every toggle.
     const prev = this.currentSynthType;
     const prevIsSampler = this.samplerCache.has(prev);
-    if (!prevIsSampler && this.synth) {
-      this.synth.dispose();
+    if (!prevIsSampler && this.voice) {
+      this.voice.dispose();
     }
-    this.synth = this.createSynth(type);
+    this.voice = this.createSynth(type);
     this.currentSynthType = type;
     console.log(`🎛 synth: ${prev} → ${type}`);
+  }
+
+  // Start downloading samples ahead of time, so an instrument is ready when it's needed.
+  preloadSynths(types: readonly SynthType[]) {
+    types.forEach((type) => {
+      if (SAMPLER_CONFIGS[type]) this.createSynth(type);
+    });
   }
 
   getSynthType(): SynthType {
@@ -300,7 +322,8 @@ class AudioEngine {
 
   // Stop all currently playing sounds
   stopAll() {
-    this.synth.releaseAll();
+    this.voice.releaseAll();
+    this.fallbackVoice?.releaseAll();
     this.isPlaying = false;
     Tone.Transport.cancel(); // Cancel all scheduled events
     console.log('🛑 Stopped all playback');
@@ -1136,9 +1159,17 @@ class AudioEngine {
   ): Promise<{ duration: number; onsetTimesMs: number[]; bpm: number }> {
     await this.initialize();
     const beatSec = 60 / bpm;
+    const now = Tone.now();
+    // These synths are monophonic and throw if a note lands before one already scheduled,
+    // as it does when Replay is pressed mid-pattern. Drop the old pattern and start clean.
+    if (now < this.percBusyUntil) {
+      this.percSynth?.dispose();
+      this.percAccentSynth?.dispose();
+      this.percSynth = null;
+      this.percAccentSynth = null;
+    }
     const synth = this.getPercSynth(false);
     const accentSynth = this.getPercSynth(true);
-    const now = Tone.now();
     // performance.now() at the moment Tone "now" is captured. They share a clock origin
     // but we need the offset to convert audio-time → DOM-time for the grader.
     const startMs = performance.now();
@@ -1155,6 +1186,7 @@ class AudioEngine {
 
     const lastBeat = Math.max(0, ...beats);
     const duration = (lastBeat + 0.5) * beatSec; // tail
+    this.percBusyUntil = now + lastBeat * beatSec + 0.5; // last hit plus its release
     this.markPlayback(duration);
     return { duration, onsetTimesMs, bpm };
   }
