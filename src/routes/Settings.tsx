@@ -26,6 +26,7 @@ export interface SettingsState {
   autoPlay: boolean;
   voiceRange?: VoiceRange; // Optional: only used by sing-mode lessons. Undefined = 'mixed'.
   singDifficulty?: SingDifficulty; // User-level tolerance adjustment. Undefined = 'standard'.
+  skipSinging?: boolean; // Leave singing lessons out of "next lesson". Per device: you might sing at home but not on a train.
   degreeNotation?: DegreeNotation; // How scale-degree answers are labeled. Undefined = 'roman'.
   feedbackTiming?: FeedbackTiming; // Defaults to 'immediate'. Daily Review forces 'delayed_short'.
 }
@@ -498,6 +499,20 @@ export default function Settings({
                       onClick={() => onChange({ ...settings, singDifficulty: d })}
                     >
                       {d}
+                    </Bean>
+                  ))}
+                </div>
+              </Row>
+              <Row label="singing lessons">
+                <div style={{ display: 'flex', gap: 6 }}>
+                  {([['include', false], ['skip', true]] as const).map(([label, skip]) => (
+                    <Bean
+                      key={label}
+                      tone={Boolean(settings.skipSinging) === skip ? 'ink' : 'soft'}
+                      size="sm"
+                      onClick={() => onChange({ ...settings, skipSinging: skip })}
+                    >
+                      {label}
                     </Bean>
                   ))}
                 </div>

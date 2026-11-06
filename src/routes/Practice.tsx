@@ -46,6 +46,7 @@ interface Props {
   establishTonality: boolean;
   singDifficulty?: SingDifficulty;
   degreeNotation?: DegreeNotation;
+  onSkipSinging?: () => void;
   onReplay: () => void;
   onAnswer: (answer: string) => void;
   onPick: (answer: string) => void;
@@ -124,6 +125,7 @@ export default function Practice({
   establishTonality,
   singDifficulty,
   degreeNotation,
+  onSkipSinging,
   onReplay,
   onAnswer,
   onPick,
@@ -698,6 +700,13 @@ export default function Practice({
                   onMatch={() => onAnswer(question.correctAnswer)}
                   onCancel={() => onAnswer('__skip__')}
                 />
+              )}
+              {onSkipSinging && (
+                <div style={{ textAlign: 'center', marginTop: 12 }}>
+                  <Bean tone="ghost" size="sm" onClick={onSkipSinging}>
+                    {"can't sing right now? skip singing lessons"}
+                  </Bean>
+                </div>
               )}
             </div>
           ) : null

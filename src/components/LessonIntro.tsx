@@ -9,6 +9,7 @@ interface Props {
   lessonName: string;
   onContinue: () => void;
   onExit: () => void;
+  onSkipSinging?: () => void;
 }
 
 // Brand-kit palette: Fable=coral, Noir=mint, Major=butter, Pulse=sky.
@@ -19,7 +20,7 @@ const MASCOT_TONE: Record<NonNullable<LessonIntroCopy['mascot']>, { bg: string; 
   pulse: { bg: 'var(--sky-soft)',   ink: 'var(--sky-ink)' },
 };
 
-export default function LessonIntro({ pages, lessonName, onContinue, onExit }: Props) {
+export default function LessonIntro({ pages, lessonName, onContinue, onExit, onSkipSinging }: Props) {
   const bp = useBreakpoint();
   const mobile = bp !== 'desktop';
 
@@ -269,6 +270,13 @@ export default function LessonIntro({ pages, lessonName, onContinue, onExit }: P
             </span>
           )}
         </div>
+        {onSkipSinging && (
+          <div style={{ textAlign: 'center', marginTop: 8 }}>
+            <Bean tone="ghost" size="sm" onClick={onSkipSinging}>
+              {"can't sing right now? skip singing lessons"}
+            </Bean>
+          </div>
+        )}
       </div>
     </div>
   );

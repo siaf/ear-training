@@ -1412,6 +1412,11 @@ export function isProLesson(level: CurriculumLevel): boolean {
   return level.tier === 'pro';
 }
 
+/** The lesson can only be answered by singing into the microphone. */
+export function isSingOnlyLevel(level: CurriculumLevel): boolean {
+  return level.responseModes?.length === 1 && level.responseModes[0] === 'sing';
+}
+
 /** Effective prerequisites for a level — Pro prereqs are skipped for free users
  *  so a free learner is never gated by something they're not allowed to play. */
 function effectivePrereqs(level: CurriculumLevel, isPro: boolean): string[] {
@@ -1424,15 +1429,20 @@ function effectivePrereqs(level: CurriculumLevel, isPro: boolean): string[] {
   });
 }
 
-export function getCurrentLevel(completedLevels: string[], isPro: boolean = true): CurriculumLevel {
+export function getCurrentLevel(
+  completedLevels: string[],
+  isPro: boolean = true,
+  opts: { skipSinging?: boolean } = {},
+): CurriculumLevel {
   const done = new Set(completedLevels);
+  const skipped = (level: CurriculumLevel) => Boolean(opts.skipSinging) && isSingOnlyLevel(level);
   const candidates = CURRICULUM.filter(level => {
-    if (done.has(level.id)) return false;
+    if (done.has(level.id) || skipped(level)) return false;
     if (!isPro && isProLesson(level)) return false; // free user "current lesson" cursor skips Pro lessons
     return isLevelUnlocked(level, completedLevels, { isPro });
   });
   if (candidates.length > 0) return candidates[0];
-  const nextAny = CURRICULUM.find(level => !done.has(level.id) && (isPro || !isProLesson(level)));
+  const nextAny = CURRICULUM.find(level => !done.has(level.id) && !skipped(level) && (isPro || !isProLesson(level)));
   return nextAny || CURRICULUM[CURRICULUM.length - 1];
 }
 

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { audioEngine, INTERVALS, TRIADS, SEVENTH_CHORDS, MODES, SynthType } from './audioEngine';
-import { CURRICULUM, getCurrentLevel, canUnlockNextLevel, getDisplayName, isProLesson } from './curriculum';
+import { CURRICULUM, getCurrentLevel, canUnlockNextLevel, getDisplayName, isProLesson, isSingOnlyLevel } from './curriculum';
 import { AnalyticsEngine } from './analytics';
 import { Answer, Question } from './types';
 import { filterDiatonicItems } from './scaleContext';
@@ -381,10 +381,10 @@ export default function App() {
       : null;
   const queueActiveLevelId = reviewActiveItem?.levelId ?? interleaveActiveItem?.levelId ?? null;
   const currentLevel = queueActiveLevelId
-    ? CURRICULUM.find((l) => l.id === queueActiveLevelId) ?? getCurrentLevel(completedLevels, proActive)
+    ? CURRICULUM.find((l) => l.id === queueActiveLevelId) ?? getCurrentLevel(completedLevels, proActive, { skipSinging: settings.skipSinging })
     : selectedLevelId
-    ? CURRICULUM.find((l) => l.id === selectedLevelId) ?? getCurrentLevel(completedLevels, proActive)
-    : getCurrentLevel(completedLevels, proActive);
+    ? CURRICULUM.find((l) => l.id === selectedLevelId) ?? getCurrentLevel(completedLevels, proActive, { skipSinging: settings.skipSinging })
+    : getCurrentLevel(completedLevels, proActive, { skipSinging: settings.skipSinging });
   const lessonCfg = getLessonConfig(currentLevel);
   const stats = analytics.getSessionStats();
 
@@ -1346,8 +1346,17 @@ export default function App() {
 
   const handleNextLesson = () => {
     const idx = CURRICULUM.findIndex((l) => l.id === currentLevel.id);
-    const next = CURRICULUM[idx + 1];
+    const next = CURRICULUM.slice(idx + 1).find((l) => !(settings.skipSinging && isSingOnlyLevel(l)));
     if (next) startSession(next.id);
+  };
+
+  // For someone who can't or won't sing right now. Nothing else depends on the voice
+  // lessons, so back on the path their next lesson is a listening one.
+  const handleSkipSinging = (source: 'intro' | 'practice') => {
+    phCapture('singing_skipped', { level_id: currentLevel.id, source });
+    setSettings((s) => ({ ...s, skipSinging: true }));
+    setSelectedLevelId(null);
+    setRoute('path');
   };
 
   const handleResetProgress = () => {
@@ -1382,6 +1391,7 @@ export default function App() {
     // Compute category-gate state first — it feeds both the intro copy and the Practice props.
     const queueCategories = interleaveSession ? categoriesInQueue(interleaveSession.queue) : [];
     const interleaveHasGate = queueCategories.length >= 2;
+    const canSkipSinging = !interleaveSession && !reviewSession && isSingOnlyLevel(currentLevel);
     if (!introDismissed) {
       // Queue-driven sessions show a single session-level intro instead of the underlying
       // lesson's per-concept intro — the latter is misleading when questions are sampled
@@ -1416,6 +1426,7 @@ export default function App() {
             phCapture('session_abandoned', { level_id: currentLevel.id, level_type: currentLevel.type, stage: 'intro' });
             setRoute('path');
           }}
+          onSkipSinging={canSkipSinging ? () => handleSkipSinging('intro') : undefined}
         />
       );
     }
@@ -1442,6 +1453,7 @@ export default function App() {
         establishTonality={lessonCfg.establishTonality}
         singDifficulty={settings.singDifficulty}
         degreeNotation={settings.degreeNotation}
+        onSkipSinging={canSkipSinging ? () => handleSkipSinging('practice') : undefined}
         interleaveCorrectCategory={interleaveCorrectCategory}
         interleaveCategoryOptions={interleaveCategoryOptions}
         interleaveCategoryAttempt={interleaveCategoryAttempt}
