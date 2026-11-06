@@ -94,7 +94,7 @@ export default function UpsellCard({ mode, mobile, onClick }: UpsellCardProps) {
             Unlimited history.
           </div>
           <div style={{ fontSize: mobile ? 12 : 12.5, color: 'var(--ink-2)', lineHeight: 1.5, maxWidth: '68%' }}>
-            Cloud sync, full analytics, weak-item auto-drills, Pro lessons.
+            Full analytics, weak-item auto-drills, Pro lessons.
           </div>
           <div style={{ marginTop: 10, fontSize: 12, fontWeight: 700, color: `var(--${tint}-ink)`, letterSpacing: 0.2 }}>
             see plans →

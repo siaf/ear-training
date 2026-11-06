@@ -7,12 +7,15 @@ import {
   subscribeSessions,
 } from './sessionStore';
 import { subscribeMastery } from './itemMastery';
-import { identifyUser, isPro, logOutBilling } from './billing';
+import { identifyUser, logOutBilling } from './billing';
 import { trackAccountSignup } from './attribution';
 import { phCapture } from './posthog';
 import { reportError } from './reportError';
 
 const FLUSH_DEBOUNCE_MS = 2000;
+// Coming back to a tab pulls again, so work from another device shows up. Limited so
+// quick tab switches don't each hit the network.
+const REFRESH_MIN_INTERVAL_MS = 60_000;
 
 export type ProfileSnapshot = {
   email: string | null;
@@ -38,6 +41,10 @@ let pendingFlushId: ReturnType<typeof setTimeout> | null = null;
 let unsubscribeSessions: (() => void) | null = null;
 let unsubscribeMastery: (() => void) | null = null;
 let unsubscribeAuth: (() => void) | null = null;
+let unsubscribeVisibility: (() => void) | null = null;
+let lastSyncAt = 0;
+// Sessions never change once recorded, so each one only needs uploading once.
+const syncedSessionIds = new Set<string>();
 let started = false;
 
 export type SyncState = 'disabled' | 'signed_out' | 'syncing' | 'idle' | 'error';
@@ -83,15 +90,32 @@ export function startSyncEngine(opts: { getProfile: GetProfile; applyProfile: Ap
   // Push on local writes (debounced). Both session writes AND mastery updates trigger.
   unsubscribeSessions = subscribeSessions(() => flushSoon());
   unsubscribeMastery = subscribeMastery(() => flushSoon());
+
+  const onVisibilityChange = () => {
+    if (document.visibilityState === 'hidden') {
+      // Don't wait out the debounce: the page may never come back.
+      if (pendingFlushId) {
+        clearTimeout(pendingFlushId);
+        pendingFlushId = null;
+        void flushNow();
+      }
+    } else if (currentUser && Date.now() - lastSyncAt > REFRESH_MIN_INTERVAL_MS) {
+      void initialSync();
+    }
+  };
+  document.addEventListener('visibilitychange', onVisibilityChange);
+  unsubscribeVisibility = () => document.removeEventListener('visibilitychange', onVisibilityChange);
 }
 
 export function stopSyncEngine() {
   unsubscribeSessions?.();
   unsubscribeMastery?.();
   unsubscribeAuth?.();
+  unsubscribeVisibility?.();
   unsubscribeSessions = null;
   unsubscribeMastery = null;
   unsubscribeAuth = null;
+  unsubscribeVisibility = null;
   if (pendingFlushId) { clearTimeout(pendingFlushId); pendingFlushId = null; }
   started = false;
 }
@@ -103,6 +127,7 @@ function handleSession(session: Session | null) {
   currentUser = user;
 
   if (!isSignedIn) {
+    syncedSessionIds.clear();
     setState('signed_out');
     void logOutBilling();
     return;
@@ -116,6 +141,7 @@ function handleSession(session: Session | null) {
 
 async function initialSync() {
   if (!supabase || !currentUser) return;
+  lastSyncAt = Date.now();
   setState('syncing');
   try {
     await pullProfile();
@@ -180,6 +206,7 @@ async function pullSessions() {
       confusions: row.confusions ?? [],
       unlocked: row.unlocked,
     };
+    syncedSessionIds.add(cloud.id);
     if (!merged.has(cloud.id)) merged.set(cloud.id, cloud);
   }
   const ordered = Array.from(merged.values()).sort((a, b) => a.endedAt - b.endedAt);
@@ -188,7 +215,6 @@ async function pullSessions() {
 
 async function pushProfile() {
   if (!supabase || !currentUser || !getProfile) return;
-  if (!isPro()) return; // cloud sync push is a Pro feature; pull stays free for returning users
 
   const p = getProfile();
   const { error } = await supabase.from('profiles').upsert({
@@ -210,8 +236,7 @@ async function pushProfile() {
 
 async function pushSessions() {
   if (!supabase || !currentUser) return;
-  if (!isPro()) return; // see pushProfile
-  const local = getAllSessions();
+  const local = getAllSessions().filter((s) => !syncedSessionIds.has(s.id));
   if (local.length === 0) return;
   const rows = local.map((s) => ({
     user_id: currentUser!.id,
@@ -235,6 +260,26 @@ async function pushSessions() {
     const slice = rows.slice(i, i + CHUNK);
     const { error } = await supabase.from('sessions').upsert(slice, { onConflict: 'user_id,id' });
     if (error) throw error;
+    slice.forEach((row) => syncedSessionIds.add(row.id));
+  }
+}
+
+/** "Reset progress" has to clear the cloud copy too, or the next pull brings it all back. */
+export async function resetCloudProgress(): Promise<void> {
+  syncedSessionIds.clear();
+  if (!supabase || !currentUser) return;
+  const userId = currentUser.id;
+  try {
+    const { error: sessionsError } = await supabase.from('sessions').delete().eq('user_id', userId);
+    if (sessionsError) throw sessionsError;
+    const { error } = await supabase
+      .from('profiles')
+      .update({ completed_levels: [], mastery: {} })
+      .eq('user_id', userId);
+    if (error) throw error;
+  } catch (e) {
+    reportError('sync', e, { step: 'reset' });
+    setState('error');
   }
 }
 

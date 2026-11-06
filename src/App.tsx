@@ -41,6 +41,8 @@ import Onboarding from './routes/Onboarding';
 import Paywall, { PlanId } from './routes/Paywall';
 import { clearAllSessions, getStreakDays, getTodayMinutes, hasHistory, recordSession, timeSinceLastSession } from './lib/sessionStore';
 import {
+  flushSoon,
+  resetCloudProgress,
   startSyncEngine,
   subscribeSyncState,
   signOut as syncSignOut,
@@ -347,6 +349,9 @@ export default function App() {
   useEffect(() => { completedLevelsRef.current = completedLevels; }, [completedLevels]);
   useEffect(() => { settingsRef.current = settings; }, [settings]);
   useEffect(() => { hasEverPracticedRef.current = hasEverPracticed; }, [hasEverPracticed]);
+  // Each load applies the cloud profile over local settings, so changes have to reach
+  // the cloud or they'd revert.
+  useEffect(() => { flushSoon(); }, [settings, completedLevels]);
   const [sessionStartedAt, setSessionStartedAt] = useState<number>(0);
   const [statsTick, setStatsTick] = useState(0);
   const [masteryLevelId, setMasteryLevelId] = useState<string | null>(null);
@@ -438,7 +443,7 @@ export default function App() {
       mastery: masteryRef.current as unknown as Record<string, unknown>,
     });
     const applyProfile = (p: ProfileSnapshot) => {
-      setSettings((curr) => ({
+      const withCloudSettings = (curr: SettingsState): SettingsState => ({
         ...curr,
         synth: p.synth as SynthType,
         playbackSpeed: p.playbackSpeed,
@@ -446,9 +451,18 @@ export default function App() {
         autoPlay: p.autoPlay,
         voiceRange: (p.voiceRange as SettingsState['voiceRange']) ?? curr.voiceRange,
         singDifficulty: (p.singDifficulty as SettingsState['singDifficulty']) ?? curr.singDifficulty,
-      }));
-      setCompletedLevels((curr) => Array.from(new Set([...curr, ...p.completedLevels])));
-      if (p.hasEverPracticed) setHasEverPracticed(true);
+      });
+      const withCloudLevels = (curr: string[]) => Array.from(new Set([...curr, ...p.completedLevels]));
+      // Update the refs now rather than on the next render: the sync pushes straight
+      // after this, and stale refs would overwrite the cloud with this device's older state.
+      settingsRef.current = withCloudSettings(settingsRef.current);
+      completedLevelsRef.current = withCloudLevels(completedLevelsRef.current);
+      setSettings(withCloudSettings);
+      setCompletedLevels(withCloudLevels);
+      if (p.hasEverPracticed) {
+        hasEverPracticedRef.current = true;
+        setHasEverPracticed(true);
+      }
       // Merge cloud mastery on top of local (cloud wins per key) so cross-device review queues
       // stay consistent. Last-write-wins is fine here — recordAnswer rebuilds on each answer.
       if (p.mastery && typeof p.mastery === 'object') {
@@ -1344,6 +1358,7 @@ export default function App() {
     masteryRef.current = {};
     saveMastery(masteryRef.current);
     setStatsTick((n) => n + 1);
+    void resetCloudProgress();
   };
 
   /* ---------- Render ---------- */

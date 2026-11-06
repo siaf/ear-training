@@ -38,7 +38,7 @@ const PLANS: Plan[] = [
       'Foundations, tonality, scale degrees',
       'Basic intervals (3rds, 4ths, 5ths)',
       'Last 7 days of analytics',
-      'Local progress only',
+      'Progress saved to your account',
     ],
     cta: 'free forever',
   },
@@ -52,7 +52,6 @@ const PLANS: Plan[] = [
     features: [
       'Pro lessons (triads, 7ths, 6ths)',
       'Full analytics history',
-      'Cloud sync across devices',
       'Weak-item auto-drills',
     ],
     highlight: true,
