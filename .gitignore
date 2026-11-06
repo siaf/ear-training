@@ -44,3 +44,7 @@ android/app/src/main/assets/capacitor.config.json
 
 # Claude Code session lock
 .claude/scheduled_tasks.lock
+
+# Playwright output
+test-results/
+playwright-report/
