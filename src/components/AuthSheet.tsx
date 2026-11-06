@@ -29,12 +29,16 @@ export default function AuthSheet({ onClose, reason = 'sync' }: Props) {
       if (e.key === 'Escape') onClose();
     };
     window.addEventListener('keydown', onKey);
-    phCapture('auth_sheet_opened', { reason });
     return () => {
       clearTimeout(t);
       window.removeEventListener('keydown', onKey);
     };
   }, [onClose]);
+
+  // Separate from the effect above: onClose changes on every parent render.
+  useEffect(() => {
+    phCapture('auth_sheet_opened', { reason });
+  }, [reason]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();

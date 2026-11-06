@@ -1493,7 +1493,9 @@ export default function App() {
             onClose={() => setMasteryLevelId(null)}
             onContinue={() => {
               setMasteryLevelId(null);
-              handleNextLesson();
+              // The sign-in ask waits behind this overlay. Moving on here would unmount it
+              // a few ms after it appeared, leaving it armed for the next results screen.
+              if (!showFirstLessonPrompt) handleNextLesson();
             }}
           />
         )}
