@@ -82,7 +82,7 @@ const siteFooter = `<footer class="site-foot">
 </footer>`;
 
 function articlePage(post) {
-  const { title, description, slug, date, author = 'Fifths', tags = [], image } = post.data;
+  const { title, description, slug, date, author = 'Fifths', tags = [], image, top_cta: topCta } = post.data;
   const canonical = `${SITE_URL}/blog/${slug}/`;
   const brandLogo = `${SITE_URL}/brand/logos/logo-stacked-light.png`;
   const ogImage = image
@@ -113,6 +113,15 @@ function articlePage(post) {
   // Strip the leading H1 from rendered HTML — we already render <h1> in the article header.
   const body = post.html.replace(/^\s*<h1[^>]*>[\s\S]*?<\/h1>\s*/i, '');
 
+  // Optional `top_cta` front matter: a button under the header. Markdown can't hold it
+  // because raw HTML is off.
+  const topCtaHtml = topCta
+    ? `<aside class="article-cta article-cta-top">
+      <p>${escape(topCta)}</p>
+      <a href="https://app.fifths.io/?utm_source=fifths.io&utm_medium=blog&utm_campaign=${slug}&utm_content=top" class="btn btn-coral" data-ph-track data-ph-cta="article-top">Start a free lesson →</a>
+    </aside>`
+    : '';
+
   return `${head({ title: `${title} — Fifths`, description, canonical, ogImage, articleDate: ld.datePublished })}
 <script type="application/ld+json">${JSON.stringify(ld)}</script>
 </head>
@@ -126,6 +135,7 @@ ${navHeader}
       ${description ? `<p class="article-lede">${escape(description)}</p>` : ''}
       ${tagsHtml}
     </header>
+    ${topCtaHtml}
     <div class="prose">
 ${body}
     </div>

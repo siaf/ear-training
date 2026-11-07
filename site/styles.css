@@ -894,6 +894,7 @@ footer {
 .prose hr { border: 0; border-top: 1px solid var(--hairline); margin: 2em 0; }
 .prose img { max-width: 100%; border-radius: var(--r-md); }
 .prose table {
+  display: block; max-width: 100%; overflow-x: auto; /* wide tables scroll, not the page */
   width: 100%; border-collapse: collapse; margin: 1.2em 0; font-size: 15px;
 }
 .prose th, .prose td {
@@ -917,6 +918,7 @@ footer {
 }
 .article-cta p { margin: 0 0 14px; color: var(--ink-1); font-size: 16px; line-height: 1.5; }
 .article-cta .btn { display: inline-block; }
+.article-cta-top { margin: 0 0 1.75em; }
 .article-back { margin-top: 2em; font-size: 14px; }
 .article-back a { color: var(--ink-3); }
 .article-back a:hover { color: var(--ink-1); }

@@ -5,13 +5,14 @@ date: 2026-05-05
 author: Fifths
 tags: [ear-training, apps, review, comparison, listicle]
 description: "Most ear-training-app roundups copy each other. This one tries to be useful: nine apps, real strengths and weaknesses, and the one question you should answer before picking any of them."
+top_cta: "Rather test your ear than read about it? Try Fifths, our app: free in your browser, no signup."
 ---
 
 # Best ear training apps in 2026: an honest comparison
 
 Most "best ear training apps" lists are functionally identical: same names, same paragraphs, same lazy ordering. We are obviously not unbiased — we make one of the apps on this list. But Fifths exists because the existing apps each get something right and something wrong, and a learner who picks the wrong one for their goals can spend months drilling without much musical improvement to show for it.
 
-This is a more honest comparison: what each app actually does, where it falls short, and which kind of learner it suits. If you'd rather just try one while you read, [Fifths runs free in your browser](https://app.fifths.io/?utm_source=fifths.io&utm_medium=blog&utm_campaign=best-ear-training-apps), with no signup and your first question one tap away.
+This is a more honest comparison: what each app actually does, where it falls short, and which kind of learner it suits.
 
 ## The one question to answer first
 
