@@ -636,9 +636,11 @@ export default function App() {
     // Timbre rotation (#9) — once the learner is past acquisition on a not-yet-completed
     // lesson, rotate the synth question-to-question to break timbre-specific learning.
     // Restored to the user's chosen synth at endSession.
-    const sessionAccuracyPct = stats.totalQuestions > 0 ? (stats.correctAnswers / stats.totalQuestions) * 100 : 0;
+    // Read fresh: this callback is memoised on level and key, so the render's `stats` is stale.
+    const { totalQuestions, correctAnswers } = analytics.getSessionStats();
+    const sessionAccuracyPct = totalQuestions > 0 ? (correctAnswers / totalQuestions) * 100 : 0;
     const isLevelCompleted = completedLevels.includes(level.id);
-    const rotatedSynth = nextRotatedTimbre(level, isLevelCompleted, stats.totalQuestions, sessionAccuracyPct, timbreRotationRef.current);
+    const rotatedSynth = nextRotatedTimbre(level, isLevelCompleted, totalQuestions, sessionAccuracyPct, timbreRotationRef.current);
     if (rotatedSynth) {
       audioEngine.preloadSynths(ROTATION_POOL);
       audioEngine.setSynthType(rotatedSynth);

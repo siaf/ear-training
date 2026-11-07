@@ -24,7 +24,7 @@ test('a link from the site opens a free lesson', async ({ page }) => {
 });
 
 // The silent-question bug: an instrument that hadn't downloaded yet played nothing at
-// all. When rotation starts varies, so audio.spec.ts covers guitar, violin and cello.
+// all. audio.spec.ts covers guitar, violin and cello directly.
 test('every question in a lesson plays, even with no samples downloaded', async ({ page }) => {
   test.setTimeout(180_000);
   const degrees: string[] = [];
@@ -55,6 +55,39 @@ test('every question in a lesson plays, even with no samples downloaded', async 
   }
 
   await expect(page).toHaveURL(/results/);
+});
+
+// Rotation read stale stats, so it only began after a key change, if at all.
+test('instruments start rotating once the first answers are right', async ({ page }) => {
+  test.setTimeout(120_000);
+  const degrees: string[] = [];
+  const switches: string[] = [];
+  page.on('console', (m) => {
+    const degree = /Playing scale degree (\d)/.exec(m.text());
+    if (degree) degrees.push(degree[1]);
+    if (m.text().includes('synth: piano')) switches.push(m.text());
+  });
+
+  await holdSamples(page);
+  await openApp(page, '/?start=scale_degree_major_1');
+  await pastIntro(page);
+
+  // Rotation starts on question 4 with piano, which is already playing, so the first
+  // switch comes on question 5.
+  const roman: Record<string, string> = { '1': 'I', '3': 'iii', '5': 'V' };
+  for (let question = 1; question <= 4; question++) {
+    await expect(page.getByRole('button', { name: 'I', exact: true })).toBeEnabled({ timeout: 20_000 });
+    expect(switches).toEqual([]);
+    const logged = degrees.length;
+    await page.getByLabel('Replay').dispatchEvent('click'); // not click(): it pulses while audio plays
+    await expect.poll(() => degrees.length).toBeGreaterThan(logged);
+    await page.getByRole('button', { name: roman[degrees[degrees.length - 1]], exact: true }).click();
+    await page.keyboard.press('Enter');
+    await expect(page.getByText(`${question}/12`)).toBeVisible();
+    await page.keyboard.press('Enter');
+  }
+
+  await expect.poll(() => switches, { timeout: 20_000 }).toEqual([expect.stringContaining('piano → sine')]);
 });
 
 test('pressing Replay during a rhythm does not break it', async ({ page }) => {
