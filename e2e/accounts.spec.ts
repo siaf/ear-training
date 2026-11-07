@@ -19,6 +19,18 @@ async function passFirstLesson(page: import('@playwright/test').Page) {
   await expect(page).toHaveURL(/results/);
 }
 
+test('the path offers sign-in next to continue when signed out', async ({ page }) => {
+  await openApp(page, `${ACCOUNTS_APP}/path`);
+  await page.getByRole('button', { name: 'sign in', exact: true }).click();
+  await expect(page.getByRole('dialog', { name: /sign in/i })).toBeVisible();
+});
+
+test('the path has no sign-in button when accounts are off', async ({ page }) => {
+  await openApp(page, '/path');
+  await expect(page.getByRole('button', { name: /continue/i }).first()).toBeVisible();
+  await expect(page.getByRole('button', { name: 'sign in', exact: true })).toBeHidden();
+});
+
 test('the sign-in ask stays up after continuing from a passed lesson', async ({ page }) => {
   test.setTimeout(120_000);
   await passFirstLesson(page);

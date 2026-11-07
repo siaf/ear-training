@@ -104,6 +104,30 @@ describe('syncEngine', () => {
     vi.doMock('./reportError', () => ({ reportError: () => {} }));
   });
 
+  it('never reports signed out for someone with a saved session', async () => {
+    const fake = fakeSupabase({});
+    vi.doMock('./supabase', () => ({ supabase: fake.client, supabaseEnabled: () => true }));
+    const engine = await import('./syncEngine');
+    const states: string[] = [];
+    engine.subscribeSyncState((s) => states.push(s));
+
+    engine.startSyncEngine({ getProfile: () => LOCAL_PROFILE, applyProfile: () => {} });
+    await vi.waitFor(() => expect(engine.getSyncState()).toBe('idle'));
+
+    expect(states).not.toContain('signed_out');
+  });
+
+  it('reports signed out once the check finds no session', async () => {
+    const fake = fakeSupabase({});
+    fake.client.auth.getSession = (async () => ({ data: { session: null } })) as never;
+    vi.doMock('./supabase', () => ({ supabase: fake.client, supabaseEnabled: () => true }));
+    const engine = await import('./syncEngine');
+
+    engine.startSyncEngine({ getProfile: () => LOCAL_PROFILE, applyProfile: () => {} });
+
+    await vi.waitFor(() => expect(engine.getSyncState()).toBe('signed_out'));
+  });
+
   it('backs up a free account on sign-in', async () => {
     localStorage.setItem('fifths.sessions.v1', JSON.stringify([localSession('s_1')]));
     const { upserts } = await startSignedIn({});

@@ -1617,6 +1617,7 @@ export default function App() {
         onNavigate={(r) => setRoute(r)}
         onOpenPaywall={() => setRoute('paywall')}
         onOpenAuth={() => setShowAuth(true)}
+        showSignIn={syncState === 'signed_out'}
         streakDays={streakDays}
         todayMinutes={getTodayMinutes()}
         bottomPadding={isMobile ? 88 : 0}

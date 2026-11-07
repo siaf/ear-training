@@ -74,8 +74,6 @@ export function startSyncEngine(opts: { getProfile: GetProfile; applyProfile: Ap
     return;
   }
 
-  setState('signed_out');
-
   // React to auth changes (incl. magic link landing redirect).
   const sub = supabase.auth.onAuthStateChange((_event, session) => {
     handleSession(session);
@@ -84,8 +82,11 @@ export function startSyncEngine(opts: { getProfile: GetProfile; applyProfile: Ap
 
   reportAuthRedirectError();
 
-  // Initial session check (page reload after magic link, etc.).
-  void supabase.auth.getSession().then(({ data }) => handleSession(data.session));
+  // Initial session check (page reload after magic link, etc.). Don't report signed_out
+  // before this finishes, or signed-in people see a sign-in button flash up on load.
+  void supabase.auth.getSession()
+    .then(({ data }) => handleSession(data.session))
+    .catch(() => setState('signed_out'));
 
   // Push on local writes (debounced). Both session writes AND mastery updates trigger.
   unsubscribeSessions = subscribeSessions(() => flushSoon());

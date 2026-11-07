@@ -11,6 +11,7 @@ import { CHECKPOINTS, type Checkpoint } from '../lib/checkpoints';
 import { Flag, Flame, Lock as LockIcon } from 'lucide-react';
 import { getLessonIconRender, getSegmentIcon, type LessonIconRender } from '../lib/lessonIcons';
 import { mascotForColor, segmentColor } from '../lib/segmentColors';
+import { phCapture } from '../lib/posthog';
 
 type NodeState = 'done' | 'current' | 'locked';
 
@@ -22,6 +23,7 @@ interface Props {
   onNavigate: (route: 'settings' | 'stats') => void;
   onOpenPaywall?: () => void;
   onOpenAuth?: () => void;
+  showSignIn?: boolean; // Only once we know they're signed out, and accounts are available.
   streakDays?: number;
   todayMinutes?: number;
   bottomPadding?: number;
@@ -685,6 +687,7 @@ export default function Path({
   onNavigate,
   onOpenPaywall,
   onOpenAuth,
+  showSignIn = false,
   streakDays = 0,
   todayMinutes = 0,
   bottomPadding = 0,
@@ -708,6 +711,18 @@ export default function Path({
   };
   const bp = useBreakpoint();
   const mobile = bp !== 'desktop';
+  const signInButton = showSignIn && onOpenAuth && (
+    <Bean
+      tone="mint"
+      size={mobile ? 'sm' : 'md'}
+      onClick={() => {
+        phCapture('path_sign_in_clicked');
+        onOpenAuth();
+      }}
+    >
+      sign in
+    </Bean>
+  );
 
   const completed = useMemo(() => new Set(completedLevels), [completedLevels]);
   const segments = useMemo(() => CURRICULUM_SEGMENTS.filter((s) => s.levels.length > 0), []);
@@ -793,9 +808,12 @@ export default function Path({
                   {completedLevels.length} of {totalLevels} cleared
                 </p>
               </div>
-              <Bean tone="coral" size="sm" onClick={() => onStart(currentLevelId)}>
-                ▶ continue
-              </Bean>
+              <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+                {signInButton}
+                <Bean tone="coral" size="sm" onClick={() => onStart(currentLevelId)}>
+                  ▶ continue
+                </Bean>
+              </div>
             </div>
           </>
         ) : null}
@@ -835,9 +853,12 @@ export default function Path({
                 >
                   Your <span style={{ fontStyle: 'italic', color: segPalette.ink }}>path</span>
                 </h1>
-                <Bean tone="coral" size="md" onClick={() => onStart(currentLevelId)}>
-                  ▶ Continue
-                </Bean>
+                <div style={{ display: 'flex', gap: 10, flexShrink: 0 }}>
+                  {signInButton}
+                  <Bean tone="coral" size="md" onClick={() => onStart(currentLevelId)}>
+                    ▶ Continue
+                  </Bean>
+                </div>
               </div>
               <p style={{ fontSize: 13, color: 'var(--ink-2)', margin: '6px 0 0' }}>
                 {completedLevels.length} of {totalLevels} cleared
