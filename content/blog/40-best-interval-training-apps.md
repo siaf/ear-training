@@ -67,7 +67,7 @@ Fifths is a browser-based ear training app built around short lessons and per-it
 
 **Pros:** a clear harmonic-then-melodic path; accuracy broken down per interval and direction; also trains scale degrees and chords in the same app; runs in any browser with no signup for the first lessons; no ads.
 **Cons:** no compound intervals (9ths and up) yet; you follow its groupings rather than choosing any set of intervals yourself; newer and smaller than most apps here; iOS and Android apps aren't in the stores yet, so on a phone you use the browser.
-**Pricing:** the free tier includes the 4ths/5ths and 3rds lessons along with the foundations, tonality and scale-degree sections. Pro is $4.99/month or $39.99/year and unlocks the 6ths lessons, advanced chords, progressions and jazz harmony, plus full stats history and cloud sync.
+**Pricing:** the free tier includes the 4ths/5ths and 3rds lessons along with the foundations, tonality and scale-degree sections. Pro is $4.99/month or $39.99/year and unlocks the 6ths lessons, advanced chords, progressions and jazz harmony, plus full stats history.
 **Best for:** learners who want a guided route through intervals and want to see exactly which ones they miss.
 
 [Try the first interval lesson →](https://app.fifths.io/?start=int_harmonic_4ths_5ths&utm_source=fifths.io&utm_medium=blog&utm_campaign=best-interval-training-apps)

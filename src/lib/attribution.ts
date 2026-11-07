@@ -104,19 +104,11 @@ export function trackAccountSignup(userId: string, email?: string | null): void 
   const attribution = getStoredAttribution();
   phIdentify(userId, { email: email ?? undefined, ...attribution });
   if (alreadyFired) return;
-  if (email) {
-    const fn = gtag();
-    if (fn) try { fn('set', 'user_data', { email }); } catch {}
-  }
   fireConversion('fifths_signup', LABEL_SIGNUP);
   phCapture('fifths_signup', { ...attribution });
 }
 
-export function trackPurchase(opts: { value: number; currency?: string; transactionId?: string; email?: string | null }): void {
-  if (opts.email) {
-    const fn = gtag();
-    if (fn) try { fn('set', 'user_data', { email: opts.email }); } catch {}
-  }
+export function trackPurchase(opts: { value: number; currency?: string; transactionId?: string }): void {
   const currency = opts.currency ?? 'USD';
   fireConversion('fifths_purchase', LABEL_PURCHASE, {
     value: opts.value,

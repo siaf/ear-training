@@ -173,8 +173,7 @@ async function initWeb(userId?: string): Promise<BillingProvider | null> {
       setCustomerInfo(result.customerInfo);
       const granted = Boolean(result.customerInfo.entitlements.active[PRO_ENTITLEMENT]);
       if (granted) {
-        const email = (result.customerInfo as { email?: string | null }).email ?? null;
-        trackPurchase({ value: PRODUCT_VALUE_USD[productId] ?? 0, transactionId: productId, email });
+        trackPurchase({ value: PRODUCT_VALUE_USD[productId] ?? 0, transactionId: productId });
       }
       return granted;
     },

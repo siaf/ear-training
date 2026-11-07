@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Privacy Policy — Fifths</title>
-  <meta name="description" content="How Fifths handles your data. Short version: practice data stays on your device; we collect emails on the waitlist and basic privacy-respecting analytics.">
+  <meta name="description" content="How Fifths handles your data: what stays on your device, what we store when you sign in, and the analytics and ad measurement tools we use.">
   <meta name="robots" content="index,follow">
   <link rel="canonical" href="https://fifths.io/privacy">
   <link rel="icon" type="image/png" sizes="32x32" href="/brand/favicons/favicon-32.png">
@@ -105,10 +105,10 @@
 
 <main class="legal">
   <h1>Privacy policy</h1>
-  <p class="meta">Last updated: May 16, 2026</p>
+  <p class="meta">Last updated: November 7, 2026</p>
 
   <div class="tldr">
-    <p><strong>Short version.</strong> Your practice data stays on your device. We only collect what we need to email the waitlist and understand which pages people visit. No ad networks. No selling data. Email us at <a href="mailto:hello@fifths.io">hello@fifths.io</a> to delete anything we have on you.</p>
+    <p><strong>Short version.</strong> Your progress is saved on your device. If you sign in, we back it up to your account so it follows you between devices. We use analytics, session replay and Google's ad measurement tools to see what works and whether our ads do. We don't sell your data, and we don't give your email to ad networks. Email us at <a href="mailto:hello@fifths.io">hello@fifths.io</a> to delete anything we have on you.</p>
   </div>
 
   <h2>Who we are</h2>
@@ -116,40 +116,47 @@
 
   <h2>What we collect, and why</h2>
 
-  <h3>1. Waitlist email signups</h3>
-  <p>If you reserve a $99 lifetime seat (or join any list on the marketing site), we store your email address along with the page you signed up from and the marketing source that brought you (UTM tags, referrer, country derived from your IP — we do not store the IP itself). We use this only to follow up with you about the lifetime offer and to understand which channels work. You can ask us to delete your record any time at <a href="mailto:hello@fifths.io">hello@fifths.io</a>.</p>
+  <h3>1. Email list signups</h3>
+  <p>If you join a list on the marketing site, we store your email address along with the page you signed up from and the marketing source that brought you (UTM tags, referrer, country derived from your IP — we do not store the IP itself). We use this only to follow up with you about Fifths and to understand which channels work. You can ask us to delete your record any time at <a href="mailto:hello@fifths.io">hello@fifths.io</a>.</p>
 
-  <h3>2. Optional waitlist survey</h3>
+  <h3>2. Optional signup survey</h3>
   <p>If you fill in the two-question survey after signing up, we store your answers next to your email row. The questions are about your use case and your biggest frustration with current ear training tools. The answers shape what we build first.</p>
 
-  <h3>3. Practice data inside the app</h3>
-  <p>Your practice sessions, scores, confusion matrix, and progress are stored <strong>locally on your device</strong> by default. If you choose to sign in (magic link, Google, or Apple), they also sync to our Supabase database so your progress follows you between devices. Cloud sync is opt-in: without signing in, nothing leaves your device. Signed-in data is scoped to your account by row-level security — no one else, including us, accesses it casually.</p>
+  <h3>3. Your account and practice data</h3>
+  <p>Your practice sessions, scores, confusion matrix, and progress are stored <strong>locally on your device</strong>. If you sign in (magic link or Google), we store your email address and back up your progress, settings, and session history to our Supabase database so they follow you between devices. Without an account, none of that is backed up, though the analytics described below still record how the app is used. Signed-in data is scoped to your account by row-level security — no one else, including us, accesses it casually.</p>
+  <p>When you create an account, your email address, account ID, and basic profile details from your sign-in provider, such as your name, also go to <a href="https://loops.so/" rel="nofollow">Loops</a>, which we use to send emails about Fifths.</p>
 
-  <h3>4. Privacy-respecting analytics</h3>
+  <h3>4. Analytics and session replay</h3>
   <p>The marketing site uses <a href="https://umami.is/" rel="nofollow">Umami</a>, a cookieless analytics tool that does not track users across sites. It records aggregate page views, referring sites, and rough country-level location. No personal identifiers, no cross-site profiles, no ads.</p>
-  <p>Both the marketing site and the app use <a href="https://posthog.com/" rel="nofollow">PostHog</a> for product analytics — to understand which pages convert and which features people use. On the marketing site, PostHog records pageviews and form submissions tagged with the campaign that referred you (if any). In the app, it records which lessons you start, finish, or get stuck on. In both places, PostHog is configured without IP tracking, without session replay of input fields, and is anonymized at the device level until you explicitly sign in. You can opt out from inside the app's settings.</p>
+  <p>Both the marketing site and the app use <a href="https://posthog.com/" rel="nofollow">PostHog</a> for product analytics — to understand which pages convert and which features people use. On the marketing site, PostHog records pageviews and form submissions tagged with the campaign that referred you (if any). In the app, it records which lessons you start, finish, or get stuck on, and your scores. This happens whether or not you have an account. Until you sign in, this activity is tied to a random ID on your device. Once you sign in, it is linked to your account and email address. PostHog is configured not to store your IP address.</p>
+  <p>PostHog also records sessions on the site and in the app: your clicks, scrolling, and what is on the screen. We watch these recordings to find problems. Anything you type into a form field is masked. You can opt out of PostHog analytics and session recording from inside the app's settings.</p>
 
-  <h3>5. Crash and error reports</h3>
-  <p>If the app crashes, we receive a stack trace and the version of the app you were running. We do not receive your practice data with crash reports.</p>
+  <h3>5. Ad measurement</h3>
+  <p>The marketing site and the web app use Google Analytics and Google Ads tags. They tell us how people find Fifths and whether our ads lead to signups and purchases. These tags can set cookies and send Google details of your visit, such as the pages you view, your device, and the ad you came from. Google handles that data under <a href="https://policies.google.com/privacy" rel="nofollow">its own privacy policy</a>. We do not send Google your email address.</p>
 
-  <h3>6. In-app purchases</h3>
+  <h3>6. Crash and error reports</h3>
+  <p>If something goes wrong in the app, <a href="https://sentry.io/" rel="nofollow">Sentry</a> receives the error, the app version, your browser and device, your IP address, and a short recording of the session around the error. That recording can show what was on your screen, including lesson content and scores. Anything you type into a form field is masked.</p>
+
+  <h3>7. In-app purchases</h3>
   <p>When you buy Fifths Pro, your purchase is processed by Apple (App Store) on iOS, Google (Play Billing) on Android, or Stripe on the web. We use <a href="https://www.revenuecat.com/" rel="nofollow">RevenueCat</a> to manage subscriptions and entitlements across these stores; RevenueCat receives your purchase receipt and a user identifier (anonymous until you sign in, then linked to your account). Your card details are handled by the payment processor and never reach our servers. To cancel a subscription, use the App Store or Play Store account screen on mobile, or the billing portal linked from Settings on the web.</p>
 
   <h2>What we do not do</h2>
   <ul>
     <li>We do not sell your data, ever.</li>
     <li>We do not share your email with advertising networks.</li>
-    <li>We do not run third-party ad trackers on the marketing site or in the app.</li>
+    <li>We do not show ads on the marketing site or in the app.</li>
     <li>We do not transcribe, store, or transmit microphone audio. The sing-back feature analyzes pitch on your device in real time and discards the audio immediately.</li>
   </ul>
 
   <h2>Where data is stored</h2>
-  <p>The waitlist database runs on Cloudflare D1 (Cloudflare's edge database). The marketing site is served from Cloudflare's CDN. Umami runs on Umami Cloud (EU-hosted). PostHog runs on PostHog Cloud (US or EU region). Cloud sync (account, practice progress, session history when you sign in) runs on Supabase. Crash reports go to Sentry.</p>
+  <p>The waitlist database runs on Cloudflare D1 (Cloudflare's edge database). The marketing site is served from Cloudflare's CDN. Umami runs on Umami Cloud (EU-hosted). PostHog runs on PostHog Cloud in the US. Accounts, practice progress, and session history run on Supabase. Emails are sent through Loops. Crash reports go to Sentry. Ad measurement data goes to Google.</p>
 
   <h2>How long we keep things</h2>
   <ul>
-    <li>Waitlist rows: until you ask us to delete them, or until 24 months after launch — whichever comes first.</li>
+    <li>Email list rows: until you ask us to delete them, or until 24 months after launch — whichever comes first.</li>
+    <li>Account and practice data: for as long as your account exists. We do not delete inactive accounts automatically. To delete your account and its data, email us. Resetting your progress in the app removes your practice history from your account too.</li>
     <li>Analytics: aggregate data is retained per the analytics provider's defaults (Umami: 12 months; PostHog: 12 months).</li>
+    <li>Session recordings in PostHog: 30 days.</li>
     <li>Crash reports: 90 days.</li>
   </ul>
 
@@ -167,7 +174,7 @@
   <p>Fifths is not directed at children under 13. If you believe a child has signed up, email us and we will remove the record.</p>
 
   <h2>Changes to this policy</h2>
-  <p>If we change anything material — for example, when cloud sync goes live or when in-app purchases are added — we will update the "last updated" date at the top and notify waitlist subscribers by email.</p>
+  <p>If we change anything material, we will update the "last updated" date at the top and email people who have an account.</p>
 
   <h2>Contact</h2>
   <p>Questions, deletion requests, or anything else: <a href="mailto:hello@fifths.io">hello@fifths.io</a>.</p>

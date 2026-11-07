@@ -357,7 +357,7 @@ Subscription value isn't truly known for 30+ days because of cancellations and r
 | First-touch capture | gclid + utm_* | [site/app.js](../site/app.js) on landing, persisted to `localStorage['fifths.attribution.v1']` with 90d TTL; outbound `app.fifths.io` links auto-rewritten to forward |
 | First-touch capture (app side) | same | [src/lib/attribution.ts](../src/lib/attribution.ts) `captureAttribution()`, called from [src/main.tsx](../src/main.tsx) |
 | Conversion firing | gtag events | [src/lib/attribution.ts](../src/lib/attribution.ts) — env-var-driven labels, silent no-op when missing |
-| Enhanced Conversions | hashed email | `gtag('set', 'user_data', { email })` called before `account_signup` and `purchase` events |
+| Enhanced Conversions | off | Removed in November 2026 so the privacy policy can say we don't share emails with ad networks. Don't re-add `user_data` without changing the policy. |
 | Server-side recovery (future) | OCI | Cloudflare Worker on RevCat webhook (deferred) |
 
 **Env-var contract** (`.env.local`):
