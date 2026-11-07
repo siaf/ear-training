@@ -60,7 +60,7 @@ function readFlag(key: string): boolean {
 function writeFlag(key: string): void {
   try { localStorage.setItem(key, '1'); } catch { /* private mode */ }
 }
-import { PRODUCT_IDS, isPro, purchaseProduct, subscribeBilling } from './lib/billing';
+import { PRODUCT_IDS, checkoutIsOpen, isPro, purchaseProduct, reportSandboxCheckoutAttempt, subscribeBilling } from './lib/billing';
 import { trackEngagedAnon } from './lib/attribution';
 import { phCapture } from './lib/posthog';
 import LessonIntro from './components/LessonIntro';
@@ -253,6 +253,9 @@ function readStartParam(): string | null {
     return null;
   }
 }
+
+const CHECKOUT_CLOSED_MESSAGE =
+  "Paid plans aren't open yet, so you haven't been charged. We'll email you as soon as they are.";
 
 export default function App() {
   const initial = loadPersisted();
@@ -486,7 +489,8 @@ export default function App() {
         const id = pendingPurchaseRef.current;
         pendingPurchaseRef.current = null;
         setShowAuth(false);
-        void purchaseProduct(id);
+        if (checkoutIsOpen()) void purchaseProduct(id);
+        else alert(CHECKOUT_CLOSED_MESSAGE);
       }
     });
     return () => unsub();
@@ -1559,6 +1563,7 @@ export default function App() {
           onSelect={async (plan) => {
             const productId = planToProductId[plan];
             if (!productId) { setRoute('path'); return; }
+            reportSandboxCheckoutAttempt(productId, isSignedIn);
             // Anonymous users must sign in before purchase so the entitlement attaches
             // to their email (not a localStorage anon ID that can be wiped).
             if (!isSignedIn) {
@@ -1566,6 +1571,7 @@ export default function App() {
               setShowAuth(true);
               return;
             }
+            if (!checkoutIsOpen()) { alert(CHECKOUT_CLOSED_MESSAGE); return; }
             try {
               const ok = await purchaseProduct(productId);
               if (ok) setRoute('path');

@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/react';
 import { isNative, platform } from './native';
 import { trackPurchase } from './attribution';
 import { phCapture } from './posthog';
@@ -89,6 +90,29 @@ export async function logOutBilling(): Promise<void> {
   try { await provider.logOut(); } catch (err) { console.warn('[billing] logOut failed', err); }
 }
 
+/**
+ * False while the web key is RevenueCat's sandbox key: its checkout can't take real money,
+ * so buyers get a message instead. Opens by itself once the live key is in.
+ */
+export function checkoutIsOpen(): boolean {
+  const key = import.meta.env.VITE_REVENUECAT_WEB_KEY as string | undefined;
+  return isNative() || !key?.startsWith('rcb_sb_');
+}
+
+/**
+ * Tells us the moment someone tries to buy while checkout is closed. Error level and one
+ * fingerprint on purpose: the first attempt opens a new high-priority issue, which is what
+ * emails us. Later attempts add to its count.
+ */
+export function reportSandboxCheckoutAttempt(productId: string, signedIn: boolean): void {
+  if (checkoutIsOpen()) return;
+  Sentry.captureMessage('Someone tried to buy, but checkout is still in sandbox mode', {
+    level: 'error',
+    fingerprint: ['sandbox-checkout-attempt'],
+    tags: { area: 'billing', product: productId, signed_in: String(signedIn) },
+  });
+}
+
 export async function purchaseProduct(productId: string): Promise<boolean> {
   phCapture('purchase_started', { product_id: productId });
   // Init can fail on a bad connection at boot (the SDK is a lazy import), so try again.
@@ -100,8 +124,9 @@ export async function purchaseProduct(productId: string): Promise<boolean> {
   }
   try { return await provider.purchaseProduct(productId); }
   catch (err) {
-    const code = (err as { code?: string }).code;
-    if (code === 'PURCHASE_CANCELLED') {
+    const { code, errorCode } = err as { code?: string; errorCode?: number };
+    // Native reports a cancel as a code string, the web SDK as ErrorCode.UserCancelledError (1).
+    if (code === 'PURCHASE_CANCELLED' || errorCode === 1) {
       phCapture('purchase_cancelled', { product_id: productId });
     } else {
       reportError('billing', err, { step: 'purchase', productId });
@@ -166,7 +191,7 @@ async function initWeb(userId?: string): Promise<BillingProvider | null> {
         (p) => p.webBillingProduct?.identifier === productId,
       );
       if (!pkg) {
-        console.warn('[billing] no web package for', productId);
+        reportError('billing', new Error(`No web package for ${productId}`), { step: 'purchase', productId });
         return false;
       }
       const result = await inst.purchase({ rcPackage: pkg });
@@ -218,7 +243,7 @@ async function initNative(userId?: string): Promise<BillingProvider | null> {
       const { current } = await Purchases.getOfferings();
       const pkg = current?.availablePackages.find((p) => p.product.identifier === productId);
       if (!pkg) {
-        console.warn('[billing] no native package for', productId);
+        reportError('billing', new Error(`No native package for ${productId}`), { step: 'purchase', productId });
         return false;
       }
       const { customerInfo: info } = await Purchases.purchasePackage({ aPackage: pkg });
