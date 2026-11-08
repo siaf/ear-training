@@ -31,6 +31,15 @@ test('the path has no sign-in button when accounts are off', async ({ page }) =>
   await expect(page.getByRole('button', { name: 'sign in', exact: true })).toBeHidden();
 });
 
+test('the Google tag gets the sign-in return address without its tokens', async ({ page }) => {
+  await openApp(page, '/path#access_token=eyJSECRET.part&expires_in=3600&provider_token=ya29SECRET&refresh_token=rtSECRET&token_type=bearer');
+  const configs = await page.evaluate(() =>
+    JSON.stringify(((window as unknown as { dataLayer: unknown[] }).dataLayer ?? []).map((args) => Array.from(args as ArrayLike<unknown>))),
+  );
+  expect(configs).toContain('access_token=redacted');
+  expect(configs).not.toContain('SECRET');
+});
+
 test('the sign-in ask stays up after continuing from a passed lesson', async ({ page }) => {
   test.setTimeout(120_000);
   await passFirstLesson(page);

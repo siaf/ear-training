@@ -41,8 +41,12 @@
         window.dataLayer = window.dataLayer || [];
         window.gtag = function () { window.dataLayer.push(arguments); };
         window.gtag('js', new Date());
-        window.gtag('config', 'G-LJYKXFDR9L');
-        window.gtag('config', 'AW-17007845333');
+        // Sign-in returns with tokens in the address (see src/lib/redactAuth.ts); report the
+        // page without them.
+        var tokens = /\b(access_token|refresh_token|provider_token|provider_refresh_token)=[^&#\s"'\\]*/g;
+        var page = location.href.indexOf('_token=') === -1 ? {} : { page_location: location.href.replace(tokens, '$1=redacted') };
+        window.gtag('config', 'G-LJYKXFDR9L', page);
+        window.gtag('config', 'AW-17007845333', page);
       })();
     </script>
   </head>

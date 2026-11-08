@@ -1,5 +1,6 @@
 import posthog from 'posthog-js'
 import { isNative, platform } from './native'
+import { redactAuthDeep } from './redactAuth'
 
 const OPT_OUT_KEY = 'fifths.posthog.optOut'
 
@@ -31,6 +32,8 @@ export function initPostHog(): void {
     autocapture: {
       css_selector_allowlist: ['[data-ph-track]'],
     },
+    // Sign-in returns with tokens in the address. Runs on every event, recordings included.
+    before_send: (event) => (event ? redactAuthDeep(event) : event),
     loaded: (ph) => {
       const release = import.meta.env.VITE_RELEASE_SHA as string | undefined
       ph.register({
