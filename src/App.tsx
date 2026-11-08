@@ -1554,6 +1554,7 @@ export default function App() {
       free: null,
       pro: PRODUCT_IDS.proMonthly,
       studio: PRODUCT_IDS.proAnnual,
+      lifetime: PRODUCT_IDS.lifetime,
     };
     return (
       <>

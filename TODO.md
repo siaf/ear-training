@@ -78,7 +78,7 @@ All mascots (4 × 6 expressions = 24 files) + logo variants re-exported from Fig
 Web (Stripe) is already shipped. To add native platforms once dev accounts are approved:
 - [ ] In RevenueCat: add iOS app, connect App Store Connect (API key).
 - [ ] In RevenueCat: add Android app, connect Play Console (service account JSON).
-- [ ] App Store Connect: create `fifths_pro_monthly` ($4.99/mo), `fifths_pro_annual` ($39.99/yr), `fifths_lifetime` ($99 one-time, capped at first 100 — track cap server-side).
+- [ ] App Store Connect: create `fifths_pro_monthly` ($4.99/mo), `fifths_pro_annual` ($39.99/yr), `fifths_lifetime` ($9.99 for the first 100 sales, then $19.99; web only for now, so add it to the iOS and Android paywalls when this exists).
 - [ ] Play Console: same three products.
 - [ ] Map StoreKit/Play products to RevenueCat (RC dashboard).
 - [ ] Drop iOS + Android API keys into [`.env.local`](./.env.local) (`VITE_REVENUECAT_IOS_KEY`, `VITE_REVENUECAT_ANDROID_KEY`).

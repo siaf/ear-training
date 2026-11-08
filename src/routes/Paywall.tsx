@@ -2,10 +2,11 @@ import { useEffect } from 'react';
 import { Check } from 'lucide-react';
 import { useBreakpoint } from '../lib/useBreakpoint';
 import { Bean, Brand, ColorPill } from '../components/primitives';
+import { isNative } from '../lib/native';
 import { phCapture } from '../lib/posthog';
 
 export type PaywallTrigger = 'session-ceiling' | 'advanced-segment' | 'manual';
-export type PlanId = 'free' | 'pro' | 'studio';
+export type PlanId = 'free' | 'pro' | 'studio' | 'lifetime';
 
 interface Props {
   trigger: PaywallTrigger;
@@ -23,6 +24,7 @@ interface Plan {
   ink: string;
   features: string[];
   highlight?: boolean;
+  badge?: string;
   cta: string;
 }
 
@@ -72,6 +74,23 @@ const PLANS: Plan[] = [
     ],
     cta: 'subscribe',
   },
+  {
+    // The offer has to be real: at 100 sales, raise fifths_lifetime to $19.99 in
+    // RevenueCat and update this card, PRODUCT_VALUE_USD and the site copy.
+    id: 'lifetime',
+    name: 'Lifetime',
+    price: '$9.99',
+    priceNote: 'one-time',
+    color: 'var(--mint-soft)',
+    ink: 'var(--mint-ink)',
+    features: [
+      'Everything in Pro, forever',
+      'One payment, no subscription',
+      'First 100 buyers, then $19.99',
+    ],
+    badge: 'launch offer',
+    cta: 'buy once',
+  },
 ];
 
 function triggerCopy(trigger: PaywallTrigger): { title: string; sub: string } {
@@ -98,6 +117,8 @@ export default function Paywall({ trigger, currentPlan, onSelect, onDismiss }: P
   const mobile = useBreakpoint() !== 'desktop';
 
   const copy = triggerCopy(trigger);
+  // Lifetime is sold on the web only, and not to anyone who already has Pro.
+  const plans = PLANS.filter((p) => p.id !== 'lifetime' || (currentPlan === 'free' && !isNative()));
 
   useEffect(() => {
     phCapture('paywall_viewed', { trigger, current_plan: currentPlan });
@@ -161,11 +182,11 @@ export default function Paywall({ trigger, currentPlan, onSelect, onDismiss }: P
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: mobile ? '1fr' : 'repeat(3, 1fr)',
+            gridTemplateColumns: mobile ? '1fr' : `repeat(${plans.length}, 1fr)`,
             gap: mobile ? 12 : 18,
           }}
         >
-          {PLANS.map((p) => {
+          {plans.map((p) => {
             const isCurrent = currentPlan === p.id;
             return (
               <div
@@ -181,7 +202,7 @@ export default function Paywall({ trigger, currentPlan, onSelect, onDismiss }: P
                     : 'var(--sh-sm)',
                 }}
               >
-                {p.highlight && (
+                {(p.highlight || p.badge) && (
                   <div
                     style={{
                       position: 'absolute',
@@ -197,9 +218,10 @@ export default function Paywall({ trigger, currentPlan, onSelect, onDismiss }: P
                       textTransform: 'uppercase',
                       borderRadius: 999,
                       fontFamily: 'var(--ui)',
+                      whiteSpace: 'nowrap',
                     }}
                   >
-                    most popular
+                    {p.badge ?? 'most popular'}
                   </div>
                 )}
                 <div
@@ -213,7 +235,7 @@ export default function Paywall({ trigger, currentPlan, onSelect, onDismiss }: P
                 >
                   {p.name}
                 </div>
-                <div style={{ marginTop: 6, display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                <div style={{ marginTop: 6, display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', columnGap: 8 }}>
                   <span
                     style={{
                       fontFamily: 'var(--disp)',
@@ -225,7 +247,7 @@ export default function Paywall({ trigger, currentPlan, onSelect, onDismiss }: P
                   >
                     {p.price}
                   </span>
-                  <span style={{ fontSize: 12, color: p.highlight ? 'var(--ink-1)' : 'var(--ink-3)' }}>
+                  <span style={{ fontSize: 12, whiteSpace: 'nowrap', color: p.highlight ? 'var(--ink-1)' : 'var(--ink-3)' }}>
                     {p.priceNote}
                   </span>
                 </div>

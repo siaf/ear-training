@@ -34,6 +34,15 @@ test('the paywall shows the plans and can be closed', async ({ page }) => {
   await expect(page).toHaveURL(/path/);
 });
 
+test('the paywall sells lifetime at the launch price, after signing in', async ({ page }) => {
+  await openApp(page, '/paywall');
+  await expect(page.getByText('$9.99', { exact: true })).toBeVisible();
+  await expect(page.getByText('First 100 buyers, then $19.99')).toBeVisible();
+  await page.getByRole('button', { name: 'buy once' }).click();
+  await expect(page.getByRole('dialog')).toBeVisible();
+  await expect(page).toHaveURL(/paywall/);
+});
+
 test('a link cannot start a Pro lesson', async ({ page }) => {
   await openApp(page, '/?start=rhy_meter');
   await expect(page).toHaveURL(/path/);

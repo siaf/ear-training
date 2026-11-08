@@ -23,7 +23,8 @@ type CustomerInfoLike = {
 const PRODUCT_VALUE_USD: Record<string, number> = {
   [PRODUCT_IDS.proMonthly]: 4.99,
   [PRODUCT_IDS.proAnnual]: 39.99,
-  [PRODUCT_IDS.lifetime]: 99.0,
+  // $9.99 for the first 100 sales, then $19.99. Update with the Paywall card and site copy.
+  [PRODUCT_IDS.lifetime]: 9.99,
 };
 
 interface BillingProvider {
