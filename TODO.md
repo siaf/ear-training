@@ -69,6 +69,15 @@ All mascots (4 × 6 expressions = 24 files) + logo variants re-exported from Fig
 
 ## Tier 1 — shipping blockers (still open)
 
+### Sign-in tokens stored in PostHog (USER, found 2026-11-08)
+Google and magic-link sign-in returned to the app with the session tokens in the address (`#access_token=…&refresh_token=…&provider_token=…`), and PostHog recorded the full address on the first pageview. Fixed for new sign-ins in `ffee80a` (`src/lib/redactAuth.ts` blanks the tokens in PostHog, Sentry and the Google tag). Sentry has no stored copies.
+- 17 PostHog pageviews (15 from Nov 1–8, 2 from May) still contain tokens, in the events and in those sessions' recordings. PostHog can't delete single events.
+- Access tokens in them expired after an hour. **Refresh tokens don't expire**: Supabase sessions here have no end date. As of Nov 8, 13 sessions belonging to 9 learners still had their leaked refresh token live, because those people never came back to refresh it. Anyone with PostHog access could use one to sign in as that learner.
+- [ ] Decide and act. Options: end all 13 sessions (`delete from auth.sessions where id in (…)`; people sign in again once, nothing is lost), end only the sessions of learners who haven't returned, or set an inactivity timeout / session time-box under Supabase → Authentication → Sessions (applies to everyone; stored tokens keep working until it passes). Find the sessions by matching each PostHog pageview whose URL has `refresh_token=` to the first `auth.refresh_tokens` row created up to 20 s before it, with `revoked = false`. Don't read the token values themselves.
+- The two May sessions (more than 2 weeks old) are unused since May and their leaked tokens were already replaced, so ending them doesn't help.
+- Optional: delete the affected session recordings in PostHog once the tokens are dead, or leave them, since dead tokens are harmless.
+- Not done on purpose: switching Supabase to the PKCE flow. It would keep tokens out of the address entirely, but magic links would then only work in the browser that asked for them.
+
 ### Apple Developer + Google Play enrollment
 **Hard blocker for everything else.** Without these, no IAP products, no TestFlight/Play tracks, no real RevenueCat testing.
 - [ ] Apple Developer Program ($99/yr) — enrollment takes 1–2 days.
