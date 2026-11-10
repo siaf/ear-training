@@ -82,6 +82,15 @@ const REFERER_RULES = [
   { pattern: /(^|\.)linkedin\.com$/i,       source: 'linkedin',       medium: 'organic-social' },
   { pattern: /(^|\.)facebook\.com$/i,       source: 'facebook',       medium: 'organic-social' },
   { pattern: /(^|\.)instagram\.com$/i,      source: 'instagram',      medium: 'organic-social' },
+  // AI assistants. ChatGPT usually adds utm_source=chatgpt.com itself (which wins);
+  // these catch the visits that arrive with only a referrer. Gemini sits above the
+  // google.* rule so it isn't counted as Google search.
+  { pattern: /(^|\.)chatgpt\.com$/i,        source: 'chatgpt.com',    medium: 'ai-assistant' },
+  { pattern: /(^|\.)chat\.openai\.com$/i,   source: 'chatgpt.com',    medium: 'ai-assistant' },
+  { pattern: /(^|\.)perplexity\.ai$/i,      source: 'perplexity',     medium: 'ai-assistant' },
+  { pattern: /(^|\.)gemini\.google\.com$/i, source: 'gemini',         medium: 'ai-assistant' },
+  { pattern: /(^|\.)copilot\.microsoft\.com$/i, source: 'copilot',    medium: 'ai-assistant' },
+  { pattern: /(^|\.)claude\.ai$/i,          source: 'claude',         medium: 'ai-assistant' },
   { pattern: /(^|\.)bing\.com$/i,           source: 'bing',           medium: 'organic-search' },
   { pattern: /(^|\.)duckduckgo\.com$/i,     source: 'duckduckgo',     medium: 'organic-search' },
   { pattern: /(^|\.)google\.[a-z.]+$/i,     source: 'google',         medium: 'organic-search' },

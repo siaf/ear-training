@@ -2,6 +2,7 @@
 title: "The circle of fifths, explained: keys, chords, and what musicians actually use it for"
 slug: circle-of-fifths-explained
 date: 2026-05-05
+updated: 2026-10-31
 author: Fifths
 tags: [circle-of-fifths, keys, harmony, glossary, beginner]
 image: /brand/screenshots/circle-of-fifths-tool.png

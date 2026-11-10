@@ -28,10 +28,18 @@ const escape = (s = '') =>
 
 const fmtDate = (d) => {
   const date = new Date(d);
-  return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  // Dates are calendar days stored as UTC midnight; format them in UTC so they don't
+  // show a day early in American time zones.
+  return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' });
 };
 
-const head = ({ title, description, canonical, ogImage, articleDate }) => `<!DOCTYPE html>
+const isoDate = (d) => (typeof d === 'string' ? d : new Date(d).toISOString().slice(0, 10));
+
+// `updated:` in front matter marks a substantive revision. It feeds dateModified, the
+// visible "Updated" date and the sitemap, so only set it when the content really changed.
+const lastModified = (data) => (data.updated ? isoDate(data.updated) : isoDate(data.date));
+
+const head = ({ title, description, canonical, ogImage, articleDate, modifiedDate }) => `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -45,6 +53,7 @@ const head = ({ title, description, canonical, ogImage, articleDate }) => `<!DOC
 <meta property="og:url" content="${canonical}">
 <meta property="og:image" content="${ogImage}">
 ${articleDate ? `<meta property="article:published_time" content="${articleDate}">` : ''}
+${modifiedDate ? `<meta property="article:modified_time" content="${modifiedDate}">` : ''}
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="${ogImage}">
 <link rel="icon" type="image/png" sizes="32x32" href="/brand/favicons/favicon-32.png">
@@ -82,7 +91,7 @@ const siteFooter = `<footer class="site-foot">
 </footer>`;
 
 function articlePage(post) {
-  const { title, description, slug, date, author = 'Fifths', tags = [], image, top_cta: topCta } = post.data;
+  const { title, description, slug, date, author = 'Fifths', tags = [], image, top_cta: topCta, top_quiz: topQuiz } = post.data;
   const canonical = `${SITE_URL}/blog/${slug}/`;
   const brandLogo = `${SITE_URL}/brand/logos/logo-stacked-light.png`;
   const ogImage = image
@@ -94,7 +103,8 @@ function articlePage(post) {
     '@type': 'Article',
     headline: title,
     description,
-    datePublished: typeof date === 'string' ? date : new Date(date).toISOString().slice(0, 10),
+    datePublished: isoDate(date),
+    dateModified: lastModified(post.data),
     author: { '@type': 'Organization', name: author },
     publisher: {
       '@type': 'Organization',
@@ -111,18 +121,39 @@ function articlePage(post) {
     : '';
 
   // Strip the leading H1 from rendered HTML — we already render <h1> in the article header.
-  const body = post.html.replace(/^\s*<h1[^>]*>[\s\S]*?<\/h1>\s*/i, '');
+  // A paragraph holding only {{lesson-cta}} becomes a lesson button mid-post.
+  const lessonCtaHtml = `<aside class="article-cta article-cta-mid">
+      <p>Want to hear the difference for yourself? Fifths is free in your browser, with no signup.</p>
+      <a href="https://app.fifths.io/?utm_source=fifths.io&utm_medium=blog&utm_campaign=${slug}&utm_content=mid" class="btn btn-coral" data-ph-track data-ph-cta="article-mid">Start a free lesson →</a>
+    </aside>`;
+  const body = post.html
+    .replace(/^\s*<h1[^>]*>[\s\S]*?<\/h1>\s*/i, '')
+    .replace(/<p>\{\{lesson-cta\}\}<\/p>/g, lessonCtaHtml);
 
   // Optional `top_cta` front matter: a button under the header. Markdown can't hold it
   // because raw HTML is off.
-  const topCtaHtml = topCta
+  // With `top_quiz: true` the box holds the three-question ear test (site/ear-quiz.js),
+  // which ends with its own lesson link.
+  const topCtaHtml = topCta && topQuiz
+    ? `<aside class="article-cta article-cta-top">
+      <div class="ear-quiz" data-ear-quiz data-campaign="${escape(slug)}">
+        <p>${escape(topCta)}</p>
+        <a href="https://app.fifths.io/?utm_source=fifths.io&utm_medium=blog&utm_campaign=${slug}&utm_content=top" class="btn btn-coral" data-ph-track data-ph-cta="article-top">Start a free lesson →</a>
+      </div>
+    </aside>
+    <script defer src="/ear-quiz.js"></script>`
+    : topCta
     ? `<aside class="article-cta article-cta-top">
       <p>${escape(topCta)}</p>
       <a href="https://app.fifths.io/?utm_source=fifths.io&utm_medium=blog&utm_campaign=${slug}&utm_content=top" class="btn btn-coral" data-ph-track data-ph-cta="article-top">Start a free lesson →</a>
     </aside>`
     : '';
 
-  return `${head({ title: `${title} — Fifths`, description, canonical, ogImage, articleDate: ld.datePublished })}
+  const updatedHtml = ld.dateModified !== ld.datePublished
+    ? ` · Updated <time datetime="${ld.dateModified}">${fmtDate(ld.dateModified)}</time>`
+    : '';
+
+  return `${head({ title: `${title} — Fifths`, description, canonical, ogImage, articleDate: ld.datePublished, modifiedDate: ld.dateModified })}
 <script type="application/ld+json">${JSON.stringify(ld)}</script>
 </head>
 <body>
@@ -130,7 +161,7 @@ ${navHeader}
 <main class="wrap article-wrap">
   <article class="article">
     <header class="article-head">
-      <p class="article-meta"><a href="/blog/">Science blog</a> · <time datetime="${ld.datePublished}">${fmtDate(ld.datePublished)}</time></p>
+      <p class="article-meta"><a href="/blog/">Science blog</a> · <time datetime="${ld.datePublished}">${fmtDate(ld.datePublished)}</time>${updatedHtml}</p>
       <h1>${escape(title)}</h1>
       ${description ? `<p class="article-lede">${escape(description)}</p>` : ''}
       ${tagsHtml}
@@ -228,7 +259,7 @@ const STATIC_PAGES = [
 function sitemap(posts) {
   const today = new Date().toISOString().slice(0, 10);
   const sorted = [...posts].sort((a, b) => (a.data.date < b.data.date ? 1 : -1));
-  const latestPost = sorted[0]?.data.date || today;
+  const latestPost = posts.map((p) => lastModified(p.data)).sort().pop() || today;
 
   const staticEntries = STATIC_PAGES.map((p) => {
     const lastmod = p.url === '/blog/' ? latestPost : today;
@@ -244,7 +275,7 @@ function sitemap(posts) {
     .map(
       (p) => `  <url>
     <loc>${SITE_URL}/blog/${p.data.slug}/</loc>
-    <lastmod>${p.data.date}</lastmod>
+    <lastmod>${lastModified(p.data)}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>`,

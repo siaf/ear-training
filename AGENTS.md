@@ -68,6 +68,7 @@ Run all three before deploying. Nothing runs them for you: there's no CI for tes
 | `billing.spec.ts` | RevenueCat recovering after a failed load, using the signed-in account |
 | `accounts.spec.ts` | Sign-in prompts, on a third app server with a fake Supabase address |
 | `tools.spec.ts` | Every free tool loads, and sample files arrive |
+| `blog.spec.ts` | The best-apps post's updated date and lesson buttons, and the three-question ear test (`site/ear-quiz.js`) |
 
 Useful forms: `npx playwright test e2e/audio.spec.ts --project=webkit`, `npx playwright test -g "paywall"`, `npx playwright show-trace test-results/<folder>/trace.zip`.
 

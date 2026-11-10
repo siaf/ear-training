@@ -2,10 +2,12 @@
 title: "Best ear training apps in 2026: an honest comparison"
 slug: best-ear-training-apps
 date: 2026-05-05
+updated: 2026-11-09
 author: Fifths
 tags: [ear-training, apps, review, comparison, listicle]
 description: "Most ear-training-app roundups copy each other. This one tries to be useful: nine apps, real strengths and weaknesses, and the one question you should answer before picking any of them."
 top_cta: "Rather test your ear than read about it? Try Fifths, our app: free in your browser, no signup."
+top_quiz: true
 ---
 
 # Best ear training apps in 2026: an honest comparison
@@ -13,6 +15,17 @@ top_cta: "Rather test your ear than read about it? Try Fifths, our app: free in 
 Most "best ear training apps" lists are functionally identical: same names, same paragraphs, same lazy ordering. We are obviously not unbiased — we make one of the apps on this list. But Fifths exists because the existing apps each get something right and something wrong, and a learner who picks the wrong one for their goals can spend months drilling without much musical improvement to show for it.
 
 This is a more honest comparison: what each app actually does, where it falls short, and which kind of learner it suits.
+
+## The short answer
+
+- **Most complete curriculum:** EarMaster.
+- **Best free drill for hearing notes in a key:** Functional Ear Trainer.
+- **Best free all-rounder on Android:** Perfect Ear.
+- **Best one-time purchase on iPhone:** Tenuto.
+- **Best free interval and chord drills in a browser:** musictheory.net.
+- **Best for streaks and gamified daily practice:** Tonegym.
+- **Best for mixing and production (not pitch):** SoundGym.
+- **Best for learning to hear songs by key, in a browser, with feedback on your weak spots:** Fifths. That's ours, so weigh it accordingly; the trade-offs are below.
 
 ## The one question to answer first
 
@@ -129,10 +142,12 @@ A browser-based app (iOS and Android versions are on the way) that prioritizes f
 | SoundGym | Web | $$$ subscription | N/A (engineering) | Production / mixing |
 | Fifths | Web (iOS/Android coming) | Free tier; $4.99/mo or $39.99/yr | **Yes (default)** | Functional + analytics + jazz |
 
+{{lesson-cta}}
+
 ## How to actually choose
 
 Pick the app whose **default mode** matches the skill you're trying to build. If you want to learn to follow songs by ear, you want functional/scale-degree training; the apps that lead with that (Functional Ear Trainer, Fifths) will get you there fastest. If you want to drill interval recognition for a music-theory exam, an interval-default app (Tenuto, musictheory.net) is fine.
 
 The other rule: **the best ear training app is the one you actually use for ten minutes a day**. Spaced, daily practice beats two-hour weekend sessions by a wide margin (this is one of the more replicated findings in skill-acquisition research; see [Spaced repetition for musicians](/blog/spaced-repetition-for-musicians/)). A free app you open every day is worth more than a perfect app you open twice a month.
 
-If you want to read more on the underlying pedagogy, the [Fifths science blog](/blog/) has 35 articles citing the primary research behind every claim above.
+If you want to read more on the underlying pedagogy, the [Fifths science blog](/blog/) has more than 40 articles citing the primary research behind every claim above.
