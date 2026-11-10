@@ -92,18 +92,43 @@ function fireConversion(eventName: string, label: string | undefined, params: Re
   }
 }
 
-export function trackAccountSignup(userId: string, email?: string | null): void {
+// Supabase sets the confirmation time and the last sign-in time together on an
+// account's first sign-in (Google, or the first emailed link). Every later sign-in,
+// on any device, moves last_sign_in_at forward. So the two being close means this
+// sign-in created the account, and a returning learner on a new device doesn't
+// count as a new signup.
+const FIRST_SIGN_IN_TOLERANCE_MS = 10 * 60 * 1000;
+
+export type SignupUser = {
+  id: string;
+  email?: string | null;
+  created_at?: string;
+  confirmed_at?: string;
+  email_confirmed_at?: string;
+  last_sign_in_at?: string;
+};
+
+export function isFirstSignIn(user: SignupUser): boolean {
+  const confirmed = Date.parse(user.email_confirmed_at ?? user.confirmed_at ?? '');
+  const lastSignIn = Date.parse(user.last_sign_in_at ?? '');
+  if (Number.isNaN(confirmed) || Number.isNaN(lastSignIn)) return false;
+  return Math.abs(lastSignIn - confirmed) <= FIRST_SIGN_IN_TOLERANCE_MS;
+}
+
+export function trackAccountSignup(user: SignupUser): void {
   let alreadyFired = false;
   try {
-    const key = `${SIGNUP_FIRED_KEY}.${userId}`;
+    const key = `${SIGNUP_FIRED_KEY}.${user.id}`;
     if (localStorage.getItem(key)) alreadyFired = true;
     else localStorage.setItem(key, '1');
   } catch {}
   // Identify in PostHog regardless of de-dup so the distinct_id stitches
   // even on later sessions where the conversion already fired.
   const attribution = getStoredAttribution();
-  phIdentify(userId, { email: email ?? undefined, ...attribution });
-  if (alreadyFired) return;
+  phIdentify(user.id, { email: user.email ?? undefined, ...attribution });
+  // The device check stops reloads counting again; the first-sign-in check stops
+  // a sign-in on a second device counting again.
+  if (alreadyFired || !isFirstSignIn(user)) return;
   fireConversion('fifths_signup', LABEL_SIGNUP);
   phCapture('fifths_signup', { ...attribution });
 }

@@ -135,7 +135,7 @@ function handleSession(session: Session | null) {
   }
   if (!wasSignedIn) {
     void identifyUser(user.id);
-    trackAccountSignup(user.id, user.email ?? null);
+    trackAccountSignup(user);
     void initialSync();
   }
 }
