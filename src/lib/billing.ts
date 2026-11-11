@@ -5,26 +5,25 @@ import { phCapture } from './posthog';
 import { reportError } from './reportError';
 
 // Entitlement identifier configured in RevenueCat dashboard.
-// All paid tiers (monthly, annual, lifetime) grant this same entitlement.
+// Pro is one monthly subscription, and it grants this entitlement.
 export const PRO_ENTITLEMENT = 'pro';
 
 // IAP product IDs — these must match exactly in App Store Connect, Play
 // Console, and RevenueCat Web Billing (Stripe). See [TODO.md](../../TODO.md).
 export const PRODUCT_IDS = {
   proMonthly: 'fifths_pro_monthly',
-  proAnnual:  'fifths_pro_annual',
-  lifetime:   'fifths_lifetime',
 } as const;
+// fifths_pro_annual and fifths_lifetime still exist in RevenueCat and the stores but are
+// no longer sold. Pro is monthly only.
 
 type CustomerInfoLike = {
   entitlements?: { active?: Record<string, unknown> };
 };
 
 const PRODUCT_VALUE_USD: Record<string, number> = {
+  // What a subscriber pays: the $4.99 launch discount on the $9.99 list price. Change it here,
+  // on the Paywall card and on fifths.io together.
   [PRODUCT_IDS.proMonthly]: 4.99,
-  [PRODUCT_IDS.proAnnual]: 39.99,
-  // $9.99 for the first 100 sales, then $19.99. Update with the Paywall card and site copy.
-  [PRODUCT_IDS.lifetime]: 9.99,
 };
 
 interface BillingProvider {
@@ -114,26 +113,29 @@ export function reportSandboxCheckoutAttempt(productId: string, signedIn: boolea
   });
 }
 
-export async function purchaseProduct(productId: string): Promise<boolean> {
+/** How a checkout ended. A cancel is the buyer's choice, so the app shows no error for it. */
+export type PurchaseResult = 'purchased' | 'cancelled' | 'failed';
+
+export async function purchaseProduct(productId: string): Promise<PurchaseResult> {
   phCapture('purchase_started', { product_id: productId });
   // Init can fail on a bad connection at boot (the SDK is a lazy import), so try again.
   if (!provider) await initBilling(lastUserId);
   if (!provider) {
     reportError('billing', new Error('purchaseProduct called before billing init'), { step: 'purchase', productId });
     phCapture('purchase_failed', { product_id: productId, reason: 'billing_not_ready' });
-    return false;
+    return 'failed';
   }
-  try { return await provider.purchaseProduct(productId); }
+  try { return (await provider.purchaseProduct(productId)) ? 'purchased' : 'failed'; }
   catch (err) {
     const { code, errorCode } = err as { code?: string; errorCode?: number };
     // Native reports a cancel as a code string, the web SDK as ErrorCode.UserCancelledError (1).
     if (code === 'PURCHASE_CANCELLED' || errorCode === 1) {
       phCapture('purchase_cancelled', { product_id: productId });
-    } else {
-      reportError('billing', err, { step: 'purchase', productId });
-      phCapture('purchase_failed', { product_id: productId, reason: code ?? 'error' });
+      return 'cancelled';
     }
-    return false;
+    reportError('billing', err, { step: 'purchase', productId });
+    phCapture('purchase_failed', { product_id: productId, reason: code ?? 'error' });
+    return 'failed';
   }
 }
 

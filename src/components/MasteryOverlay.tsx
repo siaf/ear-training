@@ -8,6 +8,8 @@ interface Props {
   level: CurriculumLevel;
   onClose: () => void;
   onContinue: () => void;
+  /** The learner's next lesson in teaching order, if there is one. */
+  next?: CurriculumLevel | null;
 }
 
 const PARTICLE_COUNT = 60;
@@ -99,7 +101,7 @@ function Medallion({ color, inkColor, label }: { color: string; inkColor: string
   );
 }
 
-export default function MasteryOverlay({ level, onClose, onContinue }: Props) {
+export default function MasteryOverlay({ level, onClose, onContinue, next = null }: Props) {
   const [mounted, setMounted] = useState(false);
   const ref = useRef<HTMLDivElement | null>(null);
   const reduced = prefersReducedMotion();
@@ -114,7 +116,6 @@ export default function MasteryOverlay({ level, onClose, onContinue }: Props) {
   }, [onClose]);
 
   const idx = CURRICULUM.findIndex((l) => l.id === level.id);
-  const next = CURRICULUM[idx + 1];
   const palette = segmentColor(level.segmentId ?? 'purple', idx);
 
   return (

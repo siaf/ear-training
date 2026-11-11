@@ -119,7 +119,7 @@ A browser-based app (iOS and Android versions are on the way) that prioritizes f
 **Strengths:** functional-first curriculum (informed by tonal-hierarchy research and the Berklee/Banacos jazz-pedagogy literature); per-item spaced-repetition surfaces weaknesses without you having to track them yourself; runs in any modern browser, desktop or phone; no ads, ever.
 **Weaknesses:** newer (so less battle-tested than EarMaster); no App Store or Play Store app yet; the app deliberately does not gamify with streaks-or-die mechanics, which some learners do prefer.
 **Best for:** adult learners who want measurable progress on functional hearing, jazz musicians who want serious harmony coverage, and the learners who tried interval-only apps and bounced off them.
-**Pricing:** [free to try](https://app.fifths.io/?utm_source=fifths.io&utm_medium=blog&utm_campaign=best-ear-training-apps) (no signup); Pro is $4.99/mo or $39.99/yr.
+**Pricing:** [free to try](https://app.fifths.io/?utm_source=fifths.io&utm_medium=blog&utm_campaign=best-ear-training-apps) (no signup); Pro is $4.99/mo.
 
 ### Honourable mentions
 
@@ -140,7 +140,7 @@ A browser-based app (iOS and Android versions are on the way) that prioritizes f
 | Musictheory.net | Web | Free | No | Free interval/chord drills |
 | Teoria | Web | Free | Limited | Free, school-aligned |
 | SoundGym | Web | $$$ subscription | N/A (engineering) | Production / mixing |
-| Fifths | Web (iOS/Android coming) | Free tier; $4.99/mo or $39.99/yr | **Yes (default)** | Functional + analytics + jazz |
+| Fifths | Web (iOS/Android coming) | Free tier; $4.99/mo | **Yes (default)** | Functional + analytics + jazz |
 
 {{lesson-cta}}
 

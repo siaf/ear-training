@@ -2,7 +2,9 @@ import { Answer, ConfusionPair, SessionStats } from '../types';
 import { CURRICULUM } from '../curriculum';
 
 const STORAGE_KEY = 'fifths.sessions.v1';
-const MAX_SESSIONS = 500;
+// Pro shows stats for all time, so keep a long history: about 1 KB a session, so
+// 2,000 sessions (years of daily practice) stays well under the localStorage limit.
+const MAX_SESSIONS = 2000;
 
 export interface PersistedSession {
   id: string;
@@ -177,6 +179,37 @@ export function getDailyStats(days = 30, now = Date.now()): DailyStat[] {
       correct: b?.c ?? 0,
       accuracy: b && b.q ? (b.c / b.q) * 100 : 0,
       minutesEstimate: b ? b.ms / 60_000 : 0,
+    });
+  }
+  return out;
+}
+
+/** Days from the first saved session to today, counting both ends. 0 with no sessions. */
+export function getHistoryDays(now = Date.now()): number {
+  const sessions = load();
+  if (sessions.length === 0) return 0;
+  const first = new Date(Math.min(...sessions.map((s) => s.endedAt)));
+  const today = new Date(now);
+  const startOf = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  return Math.round((startOf(today) - startOf(first)) / 86_400_000) + 1;
+}
+
+/** Merges consecutive days into buckets of `size` days, so a long range stays readable. */
+export function bucketDays(days: DailyStat[], size: number): DailyStat[] {
+  if (size <= 1) return days;
+  const out: DailyStat[] = [];
+  // Bucket from the end, so the newest bucket always ends today.
+  for (let end = days.length; end > 0; end -= size) {
+    const chunk = days.slice(Math.max(0, end - size), end);
+    const q = chunk.reduce((n, d) => n + d.totalQuestions, 0);
+    const c = chunk.reduce((n, d) => n + d.correct, 0);
+    out.unshift({
+      day: chunk[0].day,
+      sessions: chunk.reduce((n, d) => n + d.sessions, 0),
+      totalQuestions: q,
+      correct: c,
+      accuracy: q ? (c / q) * 100 : 0,
+      minutesEstimate: chunk.reduce((n, d) => n + d.minutesEstimate, 0),
     });
   }
   return out;

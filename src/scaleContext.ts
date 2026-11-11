@@ -36,6 +36,7 @@ export function getDiatonicIntervals(): string[] {
     'major_3rd',   // 1-3, 4-6, 5-7
     'perfect_4th', // 1-4, 2-5, 3-6, 5-8, 6-9
     'perfect_5th', // 1-5, 2-6, 3-7, 4-8
+    'tritone',     // 4-7, 7-11. Without it the tritone lessons never play one.
     'major_6th',   // 1-6, 2-7, 4-9
     'minor_6th',   // 3-8, 6-11
     'major_7th',   // 1-7, 4-11

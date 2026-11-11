@@ -23,7 +23,7 @@ Prices are **as of October 2026**, from official sites and the US App Store.
 |---|---|---|---|---|
 | [Erol Singer's Studio](https://apps.apple.com/us/app/id502780186) | iPhone, iPad, Mac | Yes | Free beginner lessons; All Access in-app purchase | A structured singing course on Apple devices |
 | [Singing Carrots](https://singingcarrots.com) | Web, iPhone, Android | Yes | Free tests; membership from $119.99/yr | Free pitch and range tests, then AI coaching |
-| [Fifths](https://app.fifths.io/?start=voice_match_pitch&utm_source=fifths.io&utm_medium=blog&utm_campaign=apps-to-sing-in-tune) | Web | Yes | Free tier; Pro $4.99/mo or $39.99/yr | Pitch matching tied to ear training, in a browser |
+| [Fifths](https://app.fifths.io/?start=voice_match_pitch&utm_source=fifths.io&utm_medium=blog&utm_campaign=apps-to-sing-in-tune) | Web | Yes | Free tier; Pro $4.99/mo | Pitch matching tied to ear training, in a browser |
 | [Sing Sharp](https://apps.apple.com/us/app/id772052329) | iOS, Android | Yes | Free with ads; membership from $19.99/mo | Many vocal programs in one app |
 | [Simply Sing](https://apps.apple.com/us/app/-/id1592900217) | iOS, Android | Feedback while singing songs | Subscription | Learning by singing pop songs |
 | [Yousician](https://yousician.com/singing) | iOS, Android, Mac, PC | Yes | From $19.99/mo or $119.99/yr | People also learning an instrument |
@@ -74,7 +74,7 @@ Because Fifths is also an ear trainer, you can work on the hearing side too: ton
 
 **Pros:** free in any browser with no install or signup for the first lessons; small steps from one note to a full scale; ear training and singing in the same app; no ads.
 **Cons:** no song library, coaching on technique (breath, tone, registers) or video lessons; this is pitch accuracy, not a full voice course. iOS and Android apps aren't in the stores yet, so you use a phone's browser. Browser pitch detection works best with a quiet room and headphones.
-**Pricing:** most Voice lessons are in the free tier. Pro is $4.99/month or $39.99/year.
+**Pricing:** most Voice lessons are in the free tier. Pro is $4.99/month.
 **Best for:** people who want to fix pitch accuracy specifically, and singers who want to train their ear at the same time.
 
 [Try Match the Pitch →](https://app.fifths.io/?start=voice_match_pitch&utm_source=fifths.io&utm_medium=blog&utm_campaign=apps-to-sing-in-tune)

@@ -71,7 +71,7 @@ describe('purchaseProduct on the web', () => {
     purchases.getOfferings.mockResolvedValue(offering('fifths_pro_monthly'));
     purchases.purchase.mockRejectedValue({ errorCode: 1 });
 
-    expect(await purchaseProduct('fifths_pro_monthly')).toBe(false);
+    expect(await purchaseProduct('fifths_pro_monthly')).toBe('cancelled');
     expect(phCapture).toHaveBeenCalledWith('purchase_cancelled', { product_id: 'fifths_pro_monthly' });
     expect(reportError).not.toHaveBeenCalled();
   });
@@ -81,7 +81,7 @@ describe('purchaseProduct on the web', () => {
     await initBilling('user');
     purchases.getOfferings.mockResolvedValue(offering('something_else'));
 
-    expect(await purchaseProduct('fifths_pro_monthly')).toBe(false);
+    expect(await purchaseProduct('fifths_pro_monthly')).toBe('failed');
     expect(reportError).toHaveBeenCalledTimes(1);
   });
 });

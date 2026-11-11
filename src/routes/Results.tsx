@@ -3,7 +3,7 @@ import { Check } from 'lucide-react';
 import { useBreakpoint } from '../lib/useBreakpoint';
 import { Bean, Brand, ColorPill, ProgressBar } from '../components/primitives';
 import { CurriculumLevel, SessionStats } from '../types';
-import { CURRICULUM, getDisplayName } from '../curriculum';
+import { getDisplayName } from '../curriculum';
 import DesktopSidebar, { SidebarTab } from '../components/DesktopSidebar';
 
 interface Props {
@@ -15,6 +15,10 @@ interface Props {
   onPracticeAgain: () => void;
   onNextLesson: () => void;
   onNavigate?: (tab: SidebarTab) => void;
+  /** Set for review, mixed and custom sessions, which practise across lessons and unlock nothing. */
+  sessionLabel?: string;
+  /** The learner's next lesson in teaching order. Null when there isn't one. */
+  nextLevel?: CurriculumLevel | null;
 }
 
 function Scorecard({
@@ -60,6 +64,8 @@ export default function Results({
   onPracticeAgain,
   onNextLesson,
   onNavigate,
+  sessionLabel,
+  nextLevel = null,
 }: Props) {
   const mobile = useBreakpoint() !== 'desktop';
 
@@ -68,8 +74,6 @@ export default function Results({
   const weakestInterval = stats.intervalWeaknesses?.[stats.intervalWeaknesses.length - 1];
   const weakestDegree = stats.scaleDegreeWeaknesses?.[stats.scaleDegreeWeaknesses.length - 1];
 
-  const nextLevelIdx = CURRICULUM.findIndex((l) => l.id === level.id) + 1;
-  const nextLevel = CURRICULUM[nextLevelIdx];
 
   const shortfall = Math.max(0, level.unlockRequirement - stats.accuracy);
   void weakestInterval;
@@ -133,7 +137,7 @@ export default function Results({
             : stats.accuracy >= 50
             ? 'Coming together.'
             : 'Good effort.'}{' '}
-          <span style={{ fontStyle: 'italic', color: 'var(--coral-ink)' }}>{level.name}</span>
+          <span style={{ fontStyle: 'italic', color: 'var(--coral-ink)' }}>{sessionLabel ?? level.name}</span>
           {stats.accuracy >= 75 ? ' is starting to click.' : '.'}
         </h1>
 
@@ -141,7 +145,11 @@ export default function Results({
         <div style={{ display: 'grid', gap: mobile ? 10 : 14, gridTemplateColumns: mobile ? '1fr 1fr' : 'repeat(4, 1fr)', marginBottom: mobile ? 14 : 24 }}>
           <Scorecard label="Accuracy" value={`${stats.accuracy.toFixed(0)}%`} sub={`${stats.correctAnswers}/${stats.totalQuestions}`} bg="var(--mint)" />
           <Scorecard label="Questions" value={`${stats.totalQuestions}`} sub="answered" bg="var(--butter)" />
-          <Scorecard label="Target" value={`${level.unlockRequirement}%`} sub={canUnlock ? 'passed' : `−${shortfall.toFixed(0)}%`} bg="var(--coral)" />
+          {sessionLabel ? (
+            <Scorecard label="Type" value="Practice" sub="unlocks nothing" bg="var(--coral)" />
+          ) : (
+            <Scorecard label="Target" value={`${level.unlockRequirement}%`} sub={canUnlock ? 'passed' : `−${shortfall.toFixed(0)}%`} bg="var(--coral)" />
+          )}
           <Scorecard
             label="Session"
             value={avgResponse ? <Check size={28} strokeWidth={3} color="var(--lav-ink)" /> : '—'}
@@ -250,7 +258,11 @@ export default function Results({
                 marginBottom: 12,
               }}
             >
-              {canUnlock ? (
+              {sessionLabel ? (
+                <>
+                  <span style={{ fontStyle: 'italic' }}>{sessionLabel}</span> done.
+                </>
+              ) : canUnlock ? (
                 <>
                   <span style={{ fontStyle: 'italic' }}>Level unlocked.</span> Next: {nextLevel?.name ?? 'done!'}
                 </>
@@ -260,9 +272,11 @@ export default function Results({
                 </>
               )}
             </div>
-            <ProgressBar pct={stats.accuracy} target={level.unlockRequirement} color="var(--lav-ink)" />
+            {!sessionLabel && <ProgressBar pct={stats.accuracy} target={level.unlockRequirement} color="var(--lav-ink)" />}
             <div style={{ fontSize: 12, color: 'var(--lav-ink)', marginTop: 14 }}>
-              {canUnlock
+              {sessionLabel
+                ? 'Practice sessions don’t unlock lessons. Every answer still counts toward your stats and reviews.'
+                : canUnlock
                 ? 'Keep the rhythm — your ear is tuning.'
                 : `One more clean session (target ${level.unlockRequirement}%) and you're in.`}
             </div>

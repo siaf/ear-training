@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { audioEngine, INTERVALS, TRIADS, SEVENTH_CHORDS, MODES, SynthType } from './audioEngine';
 import { CURRICULUM, getCurrentLevel, canUnlockNextLevel, getDisplayName, isProLesson, isSingOnlyLevel } from './curriculum';
 import { AnalyticsEngine } from './analytics';
@@ -6,6 +6,7 @@ import { Answer, Question } from './types';
 import { filterDiatonicItems } from './scaleContext';
 import { realizeDiatonicSequence, sequenceStartDegreeForQuestion } from './lib/diatonic';
 import { pickTapPattern, pickDictationPattern, gridToOnsets, encodeGrid } from './lib/rhythmPatterns';
+import { degreeOf, encodeMelody, makeMelody } from './lib/melody';
 import {
   loadMastery,
   saveMastery,
@@ -38,7 +39,10 @@ import Settings, {
 } from './routes/Settings';
 import Stats from './routes/Stats';
 import Onboarding from './routes/Onboarding';
-import Paywall, { PlanId } from './routes/Paywall';
+import Paywall, { PlanId, PaywallNotice } from './routes/Paywall';
+import { registerProInterest } from './lib/proInterest';
+import CustomPractice from './routes/CustomPractice';
+import { buildCustomQueue, type CustomSelection } from './lib/customPractice';
 import { clearAllSessions, getStreakDays, getTodayMinutes, hasHistory, recordSession, timeSinceLastSession } from './lib/sessionStore';
 import {
   flushSoon,
@@ -70,7 +74,7 @@ import AuthSheet from './components/AuthSheet';
 import BottomTabs, { BottomTabRoute } from './components/BottomTabs';
 import { haptics } from './lib/haptics';
 import { cancelStreakReminder, requestNotificationPermission, scheduleStreakReminder } from './lib/notifications';
-import { getCheckpointIntro, getDailyReviewIntro, getLessonIntro, getMixedPracticeIntro } from './lib/lessonIntro';
+import { getCheckpointIntro, getCustomPracticeIntro, getDailyReviewIntro, getLessonIntro, getMixedPracticeIntro } from './lib/lessonIntro';
 import { parseRouteFromUrl, syncUrl, usePopStateRoute } from './lib/routing';
 import { ThemePreference, loadThemePreference, useTheme } from './lib/theme';
 
@@ -91,7 +95,7 @@ const NON_TONAL_ACOUSTIC_KINDS: AcousticKind[] = [
 // (cadence/progression always plays a key-anchored chord sequence; inversion / chord_extension /
 // borrowed_chord / voicing run through buildDegreeChord which carries its own key context).
 // These don't need a separate scale-reference preamble.
-const SELF_KEYED_TYPES = new Set(['cadence', 'progression', 'chord_extension', 'borrowed_chord', 'voicing', 'inversion']);
+const SELF_KEYED_TYPES = new Set(['cadence', 'progression', 'chord_extension', 'borrowed_chord', 'voicing', 'inversion', 'melodic_dictation']);
 
 // Rhythm levels are non-tonal — no scale reference, no key label.
 const NON_TONAL_TYPES = new Set(['rhythm']);
@@ -254,8 +258,26 @@ function readStartParam(): string | null {
   }
 }
 
-const CHECKOUT_CLOSED_MESSAGE =
-  "Paid plans aren't open yet, so you haven't been charged. We'll email you as soon as they are.";
+// Shown on the Pro card while checkout is closed (RevenueCat's sandbox key). Only signed-in
+// learners reach it, and registerProInterest puts them on the Loops wantsPro list, so the
+// email this promises does get sent. See functions/api/wants-pro.js.
+function checkoutClosedNotice(email: string): PaywallNotice {
+  return {
+    plan: 'pro',
+    tone: 'info',
+    title: 'Pro opens soon.',
+    body: `We'll email you at ${email} the moment it does. You haven't been charged.`,
+  };
+}
+
+function checkoutFailedNotice(): PaywallNotice {
+  return {
+    plan: 'pro',
+    tone: 'error',
+    title: "Checkout didn't open.",
+    body: "You haven't been charged. Check your connection and try again in a moment.",
+  };
+}
 
 export default function App() {
   const initial = loadPersisted();
@@ -307,6 +329,7 @@ export default function App() {
   const [syncState, setSyncState] = useState<SyncState>('disabled');
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [showAuth, setShowAuth] = useState(false);
+  const [paywallNotice, setPaywallNotice] = useState<PaywallNotice | null>(null);
   const [showFirstLessonPrompt, setShowFirstLessonPrompt] = useState(false);
   const [proActive, setProActive] = useState<boolean>(isPro());
   useEffect(() => subscribeBilling(() => setProActive(isPro())), []);
@@ -339,6 +362,8 @@ export default function App() {
   const [interleaveSession, setInterleaveSession] = useState<
     | { queue: InterleaveItem[]; cursor: number; kind: 'global'; label: null }
     | { queue: InterleaveItem[]; cursor: number; kind: 'checkpoint'; label: string }
+    // Custom practice: the learner chose the items, so answer buttons show only those.
+    | { queue: InterleaveItem[]; cursor: number; kind: 'custom'; label: string; items: string[] }
     | null
   >(null);
   const interleaveSessionRef = useRef(interleaveSession);
@@ -383,7 +408,19 @@ export default function App() {
       ? interleaveSession.queue[interleaveSession.cursor]
       : null;
   const queueActiveLevelId = reviewActiveItem?.levelId ?? interleaveActiveItem?.levelId ?? null;
-  const currentLevel = queueActiveLevelId
+  // Custom practice narrows the source lesson's answers to the items the learner picked.
+  // Memoised so the lesson object, which question generation depends on, stays stable.
+  const customItemsKey = interleaveSession?.kind === 'custom' ? interleaveSession.items.join(',') : '';
+  const customLevel = useMemo(() => {
+    if (!customItemsKey || !queueActiveLevelId) return null;
+    const source = CURRICULUM.find((l) => l.id === queueActiveLevelId);
+    if (!source) return null;
+    const picked = customItemsKey.split(',');
+    return { ...source, items: source.items.filter((i) => picked.includes(i)) };
+  }, [customItemsKey, queueActiveLevelId]);
+  const currentLevel = customLevel
+    ? customLevel
+    : queueActiveLevelId
     ? CURRICULUM.find((l) => l.id === queueActiveLevelId) ?? getCurrentLevel(completedLevels, proActive, { skipSinging: settings.skipSinging })
     : selectedLevelId
     ? CURRICULUM.find((l) => l.id === selectedLevelId) ?? getCurrentLevel(completedLevels, proActive, { skipSinging: settings.skipSinging })
@@ -490,7 +527,10 @@ export default function App() {
         pendingPurchaseRef.current = null;
         setShowAuth(false);
         if (checkoutIsOpen()) void purchaseProduct(id);
-        else alert(CHECKOUT_CLOSED_MESSAGE);
+        else {
+          setPaywallNotice(checkoutClosedNotice(email));
+          void registerProInterest(id);
+        }
       }
     });
     return () => unsub();
@@ -539,6 +579,12 @@ export default function App() {
   // Wrap startSession to enforce the anonymous lesson cap.
   const guardedStartSession = useCallback(
     (levelId: string) => {
+      // Pro lessons open the plans on the free plan, whichever button asked for them.
+      const level = CURRICULUM.find((l) => l.id === levelId);
+      if (level && isProLesson(level) && !proActive) {
+        setRoute('paywall');
+        return;
+      }
       if (!isSignedIn && completedLevels.length >= ANON_LESSON_LIMIT) {
         pendingStartRef.current = levelId;
         setShowAuth(true);
@@ -546,7 +592,7 @@ export default function App() {
       }
       void startSession(levelId);
     },
-    [isSignedIn, completedLevels.length, startSession],
+    [isSignedIn, completedLevels.length, startSession, proActive],
   );
 
   useEffect(() => {
@@ -604,6 +650,23 @@ export default function App() {
     [startSession],
   );
 
+  // What the last finished session was, so the results screen can describe it and
+  // "keep going" can repeat a custom session rather than its source lesson.
+  const [lastSessionKind, setLastSessionKind] = useState<'lesson' | 'review' | 'global' | 'checkpoint' | 'custom'>('lesson');
+  const lastCustomSelRef = useRef<CustomSelection | null>(null);
+  const startCustomSession = useCallback(
+    async (sel: CustomSelection) => {
+      lastCustomSelRef.current = sel;
+      const queue = buildCustomQueue(sel);
+      if (queue.length < 2) return;
+      setInterleaveSession({ queue, cursor: 0, kind: 'custom', label: 'Custom practice', items: sel.items });
+      setInterleaveCategoryPicked(false);
+      setInterleaveCategoryAttempt(null);
+      void startSession(queue[0].levelId);
+    },
+    [startSession],
+  );
+
   const generateQuestion = useCallback(async () => {
     const level = currentLevel;
     let playedNotes: string[] = [];
@@ -613,6 +676,7 @@ export default function App() {
     let acousticSemis: number | undefined;
     let pendingRhythmOnsets: number[] | undefined;
     let pendingRhythmGrid: boolean[] | undefined;
+    let melodySteps: number[] | undefined;
 
     // Review / interleave mode override: when a queue-driven session is active, the queue
     // carries (levelId, item) tuples picked by the scheduler / sampler. We force the item
@@ -764,6 +828,18 @@ export default function App() {
           pick as 'closed' | 'drop2' | 'quartal' | 'upper_structure',
         );
       } catch (err) { console.error('playVoicing error:', err); }
+    } else if (level.type === 'melodic_dictation') {
+      // A fresh melody in a fresh key each time; the tonic chord before it sets the key.
+      // The item is the lesson itself ('melody'), so mastery and review track the skill,
+      // not each of the hundreds of possible melodies.
+      rootNote = audioEngine.getRandomRootNote();
+      const rules = level.melodyRules ?? { length: 3, range: [0, 4] as [number, number], maxLeap: 1, startDegrees: [1, 3, 5], endDegrees: [1, 3, 5] };
+      melodySteps = makeMelody(rules);
+      itemType = 'melody';
+      correctAnswer = encodeMelody(melodySteps.map(degreeOf));
+      try {
+        playedNotes = await audioEngine.playMelody(rootNote, melodySteps, level.melodyScale ?? 'major');
+      } catch (err) { console.error('playMelody error:', err); }
     } else if (level.type === 'rhythm') {
       const bpm = level.rhythmBpm ?? 100;
       rootNote = currentScaleRoot;
@@ -875,6 +951,7 @@ export default function App() {
       const k = level.rhythmKind ?? 'same_diff';
       responseMode = k === 'tap_back' ? 'tap' : k === 'dictation' ? 'grid' : 'select';
     }
+    if (level.type === 'melodic_dictation') responseMode = 'sequence';
 
     const singTargets =
       responseMode === 'sing'
@@ -914,6 +991,7 @@ export default function App() {
       responseMode,
       targetNotes: singTargets,
       ...rhythmExtras,
+      ...(melodySteps ? { melodySteps, melodyScale: level.melodyScale ?? 'major' } : {}),
     });
     setSelectedAnswer(null);
     setShowFeedback(false);
@@ -931,6 +1009,8 @@ export default function App() {
     // already-completed lessons.
     const inReview = reviewSessionRef.current !== null;
     const inInterleave = interleaveSessionRef.current !== null;
+    const sessionKind = inReview ? 'review' : interleaveSessionRef.current?.kind ?? 'lesson';
+    setLastSessionKind(sessionKind);
     const inQueueSession = inReview || inInterleave;
     if (inReview) setReviewSession(null);
     if (inInterleave) setInterleaveSession(null);
@@ -962,6 +1042,7 @@ export default function App() {
       }
       setHasEverPracticed(true);
       phCapture('session_completed', {
+        session_kind: sessionKind,
         level_id: currentLevel.id,
         level_type: currentLevel.type,
         accuracy: finalStats.accuracy,
@@ -1109,6 +1190,9 @@ export default function App() {
     if (!currentQuestion) return;
     try {
       switch (currentQuestion.type) {
+        case 'melodic_dictation':
+          await audioEngine.playMelody(currentQuestion.rootNote, currentQuestion.melodySteps ?? [], currentQuestion.melodyScale ?? 'major');
+          break;
         case 'scale_degree':
           await audioEngine.playScaleDegree(currentQuestion.rootNote, parseInt(currentQuestion.itemType) - 1, currentQuestion.context!);
           break;
@@ -1262,7 +1346,7 @@ export default function App() {
     // varies across the scale. For type=scale_degree (degree IS the answer), mode (no per-question root),
     // and the new self-keyed types (cadence/progression/etc., where rootNote == currentScaleRoot by construction),
     // computing it would always yield 0 — meaningless.
-    const NO_DEGREE_TYPES = new Set(['scale_degree', 'mode', 'cadence', 'progression', 'chord_extension', 'borrowed_chord', 'voicing', 'inversion', 'rhythm']);
+    const NO_DEGREE_TYPES = new Set(['scale_degree', 'mode', 'cadence', 'progression', 'chord_extension', 'borrowed_chord', 'voicing', 'inversion', 'rhythm', 'melodic_dictation']);
     if (!NO_DEGREE_TYPES.has(currentQuestion.type)) {
       const chromatic = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
       const rootIdx = chromatic.indexOf(currentQuestion.rootNote);
@@ -1346,14 +1430,22 @@ export default function App() {
   };
 
   const handlePracticeAgain = () => {
+    if (lastSessionKind === 'custom' && lastCustomSelRef.current) { void startCustomSession(lastCustomSelRef.current); return; }
     if (selectedLevelId) startSession(selectedLevelId);
     else startSession(currentLevel.id);
   };
 
+  // The learner's next lesson in teaching order (TEACHING_ORDER), skipping Pro lessons on
+  // the free plan. Null once there's nothing new left for them.
+  const nextLessonForLearner = (() => {
+    const next = getCurrentLevel(completedLevels, proActive, { skipSinging: settings.skipSinging });
+    if (completedLevels.includes(next.id) || (!proActive && isProLesson(next))) return null;
+    return next;
+  })();
+
   const handleNextLesson = () => {
-    const idx = CURRICULUM.findIndex((l) => l.id === currentLevel.id);
-    const next = CURRICULUM.slice(idx + 1).find((l) => !(settings.skipSinging && isSingOnlyLevel(l)));
-    if (next) startSession(next.id);
+    if (nextLessonForLearner) startSession(nextLessonForLearner.id);
+    else setRoute('path');
   };
 
   // For someone who can't or won't sing right now. Nothing else depends on the voice
@@ -1396,7 +1488,8 @@ export default function App() {
   if (route === 'practice') {
     // Compute category-gate state first — it feeds both the intro copy and the Practice props.
     const queueCategories = interleaveSession ? categoriesInQueue(interleaveSession.queue) : [];
-    const interleaveHasGate = queueCategories.length >= 2;
+    // The learner chose a custom session's items, so there's no category to name first.
+    const interleaveHasGate = interleaveSession?.kind !== 'custom' && queueCategories.length >= 2;
     const canSkipSinging = !interleaveSession && !reviewSession && isSingOnlyLevel(currentLevel);
     if (!introDismissed) {
       // Queue-driven sessions show a single session-level intro instead of the underlying
@@ -1407,13 +1500,15 @@ export default function App() {
       const introPages =
         interleaveSession?.kind === 'checkpoint'
           ? getCheckpointIntro(interleaveSession.label, interleaveHasGate)
+          : interleaveSession?.kind === 'custom'
+          ? getCustomPracticeIntro(interleaveSession.queue.length)
           : interleaveSession
           ? getMixedPracticeIntro()
           : reviewSession
           ? getDailyReviewIntro()
           : getLessonIntro(currentLevel);
       const introTitle =
-        interleaveSession?.kind === 'checkpoint'
+        interleaveSession?.kind === 'checkpoint' || interleaveSession?.kind === 'custom'
           ? interleaveSession.label
           : interleaveSession
           ? 'Mixed Practice'
@@ -1454,7 +1549,8 @@ export default function App() {
         isPlayingScale={isPlayingScale}
         droneEnabled={settings.drone}
         playbackSpeed={settings.playbackSpeed}
-        maxQuestions={lessonCfg.maxQuestions}
+        // Review, mixed and custom sessions run for their queue, not the source lesson's length.
+        maxQuestions={reviewSession?.queue.length ?? interleaveSession?.queue.length ?? lessonCfg.maxQuestions}
         questionsPerKey={lessonCfg.questionsPerKey}
         establishTonality={lessonCfg.establishTonality}
         singDifficulty={settings.singDifficulty}
@@ -1496,10 +1592,17 @@ export default function App() {
           level={currentLevel}
           stats={stats}
           insights={analytics.getInsights()}
-          canUnlock={canUnlockNextLevel(currentLevel.id, stats.accuracy)}
+          canUnlock={lastSessionKind === 'lesson' && canUnlockNextLevel(currentLevel.id, stats.accuracy)}
+          sessionLabel={
+            lastSessionKind === 'custom' ? 'Custom practice'
+            : lastSessionKind === 'review' ? "Today's review"
+            : lastSessionKind === 'lesson' ? undefined
+            : 'Mixed practice'
+          }
           onBackToPath={() => setRoute('path')}
           onPracticeAgain={handlePracticeAgain}
           onNextLesson={handleNextLesson}
+          nextLevel={nextLessonForLearner}
           onNavigate={(tab) => setRoute(tab)}
         />
         {showFirstLessonPrompt && !masteryLevel && (
@@ -1508,6 +1611,7 @@ export default function App() {
         {masteryLevel && (
           <MasteryOverlay
             level={masteryLevel}
+            next={nextLessonForLearner}
             onClose={() => setMasteryLevelId(null)}
             onContinue={() => {
               setMasteryLevelId(null);
@@ -1553,8 +1657,6 @@ export default function App() {
     const planToProductId: Record<PlanId, string | null> = {
       free: null,
       pro: PRODUCT_IDS.proMonthly,
-      studio: PRODUCT_IDS.proAnnual,
-      lifetime: PRODUCT_IDS.lifetime,
     };
     return (
       <>
@@ -1572,20 +1674,37 @@ export default function App() {
               setShowAuth(true);
               return;
             }
-            if (!checkoutIsOpen()) { alert(CHECKOUT_CLOSED_MESSAGE); return; }
+            if (!checkoutIsOpen()) {
+              setPaywallNotice(checkoutClosedNotice(userEmail ?? 'your account email'));
+              void registerProInterest(productId);
+              return;
+            }
+            setPaywallNotice(null);
             try {
-              const ok = await purchaseProduct(productId);
-              if (ok) setRoute('path');
-              else alert(`Couldn't start checkout for ${productId}. Check the console.`);
+              const result = await purchaseProduct(productId);
+              if (result === 'purchased') setRoute('path');
+              else if (result === 'failed') setPaywallNotice(checkoutFailedNotice());
             } catch (err) {
               console.error('[paywall] purchase error', err);
-              alert(`Purchase failed: ${err instanceof Error ? err.message : 'unknown error'}`);
+              setPaywallNotice(checkoutFailedNotice());
             }
           }}
-          onDismiss={() => setRoute('path')}
+          notice={paywallNotice}
+          onDismiss={() => { setPaywallNotice(null); setRoute('path'); }}
         />
         {showAuth && <AuthSheet onClose={() => setShowAuth(false)} />}
       </>
+    );
+  }
+
+  if (route === 'custom') {
+    return (
+      <CustomPractice
+        isPro={proActive}
+        onStart={(sel) => { void startCustomSession(sel); }}
+        onOpenPaywall={() => setRoute('paywall')}
+        onExit={() => setRoute('path')}
+      />
     );
   }
 
@@ -1633,6 +1752,7 @@ export default function App() {
         dueCount={countDueItems(masteryRef.current, completedLevels)}
         onStartReview={() => { void startReviewSession(); }}
         onStartInterleave={() => { void startInterleaveSession(); }}
+        onOpenCustom={() => setRoute('custom')}
         recommendation={getCrossSegmentRecommendation(completedLevels, currentLevel.id, proActive)}
         onStartCheckpoint={(cp) => { void startCheckpointSession(cp); }}
       />

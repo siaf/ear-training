@@ -22,7 +22,8 @@ export type InterleaveCategory =
   | 'progression'
   | 'mode'
   | 'rhythm'
-  | 'acoustic';
+  | 'acoustic'
+  | 'melody';
 
 const TYPE_TO_CATEGORY: Record<QuestionType, InterleaveCategory> = {
   interval: 'interval',
@@ -38,6 +39,7 @@ const TYPE_TO_CATEGORY: Record<QuestionType, InterleaveCategory> = {
   mode: 'mode',
   rhythm: 'rhythm',
   acoustic: 'acoustic',
+  melodic_dictation: 'melody',
 };
 
 export const INTERLEAVE_CATEGORY_LABELS: Record<InterleaveCategory, string> = {
@@ -49,6 +51,7 @@ export const INTERLEAVE_CATEGORY_LABELS: Record<InterleaveCategory, string> = {
   mode: 'mode',
   rhythm: 'rhythm',
   acoustic: 'acoustic',
+  melody: 'melody',
 };
 
 export function categoryForLevel(level: CurriculumLevel): InterleaveCategory {

@@ -9,6 +9,8 @@ import SingPrompt from '../components/SingPrompt';
 import SingSequence from '../components/SingSequence';
 import RhythmTapPad from '../components/RhythmTapPad';
 import RhythmGrid from '../components/RhythmGrid';
+import MelodyInput from '../components/MelodyInput';
+import { decodeMelody, gradeMelody } from '../lib/melody';
 import { gradeGrid } from '../lib/rhythmGrader';
 import { encodeGrid } from '../lib/rhythmPatterns';
 import { SingDifficulty, effectiveSingTolerance } from './Settings';
@@ -188,6 +190,8 @@ export default function Practice({
       if (showSettings) return;
 
       if (!question) return;
+      // Melodic dictation takes number keys as notes; MelodyInput handles its own keys.
+      if (question.responseMode === 'sequence' && !showFeedback) return;
 
       if (e.key === ' ' || e.key === 'Enter') {
         if (showFeedback) {
@@ -726,6 +730,20 @@ export default function Practice({
               />
             </div>
           ) : null
+        ) : question?.responseMode === 'sequence' ? (
+          /* Melodic dictation — tap the degrees in order, then check. All notes must match. */
+          !showFeedback ? (
+            <div style={{ marginTop: mobile ? 14 : 28, width: '100%', maxWidth: 560, zIndex: 2, position: 'relative' }}>
+              <MelodyInput
+                key={question.id}
+                length={decodeMelody(question.correctAnswer).length}
+                degrees={level.items}
+                mobile={mobile}
+                onReplay={onReplay}
+                onSubmit={(answer) => onAnswer(answer)}
+              />
+            </div>
+          ) : null
         ) : question?.responseMode === 'grid' ? (
           /* Rhythm dictation — 16-cell grid input. Strict equality grade. */
           !showFeedback ? (
@@ -971,6 +989,35 @@ export default function Practice({
                       <span style={{ display: 'inline-flex', alignItems: 'center' }}>
                         {!hadResult ? '·' : ok ? <Check size={mobile ? 12 : 14} strokeWidth={3} /> : <XIcon size={mobile ? 12 : 14} strokeWidth={3} />}
                       </span>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : question.responseMode === 'sequence' ? (
+              <div aria-label="The melody" style={{ display: 'flex', gap: mobile ? 6 : 8, flexWrap: 'wrap', alignItems: 'center' }}>
+                {decodeMelody(question.correctAnswer).map((d, i) => {
+                  const ok = gradeMelody(selectedAnswer ?? '', question.correctAnswer)[i];
+                  const yours = decodeMelody(selectedAnswer ?? '')[i];
+                  return (
+                    <div
+                      key={i}
+                      title={ok ? undefined : `you wrote ${yours ?? 'nothing'}`}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 4,
+                        padding: '4px 10px',
+                        borderRadius: 999,
+                        background: ok ? 'var(--mint)' : 'var(--coral-soft)',
+                        border: `1.5px solid ${ok ? 'var(--mint-ink)' : 'var(--coral-ink)'}`,
+                        color: ok ? 'var(--mint-ink)' : 'var(--coral-ink)',
+                        fontFamily: 'var(--disp)',
+                        fontWeight: 700,
+                        fontSize: mobile ? 14 : 16,
+                      }}
+                    >
+                      {d}
+                      {!ok && yours && <span style={{ fontWeight: 400, fontSize: 12 }}>not {yours}</span>}
                     </div>
                   );
                 })}

@@ -107,6 +107,17 @@ export function getCheckpointIntro(name: string, hasCategoryGate: boolean): Less
   ];
 }
 
+export function getCustomPracticeIntro(count: number): LessonIntroCopy[] {
+  return [
+    {
+      idea: `${count} questions on exactly what you picked.`,
+      purpose: 'Drilling the few things you confuse, side by side, is the fastest way to tell them apart.',
+      expectation: 'Answer like a normal lesson. Your results count toward your stats and reviews.',
+      mascot: 'major',
+    },
+  ];
+}
+
 export function getDailyReviewIntro(): LessonIntroCopy[] {
   return [
     {

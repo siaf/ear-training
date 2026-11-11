@@ -471,7 +471,7 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
         unlockRequirement: 75,
         description: 'Hear a four-chord progression — V→I (authentic) or IV→I (plagal)?',
         segmentId: 'tonality',
-        prerequisites: ['ton_major_minor_key'],
+        prerequisites: ['ton_major_minor_key', 'level_4'],
         intro: [
           {
             idea: 'A cadence is the way a phrase ends — the harmonic punctuation.',
@@ -553,37 +553,68 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
         prerequisites: ['scale_degree_major_full', 'ton_major_minor_key'],
       },
       {
+        // Modes are taught by brightness, one changed note at a time: start from major and
+        // step one notch brighter (Lydian, raised 4) or darker (Mixolydian, lowered 7), then
+        // do the same around minor (Dorian, raised 6; Phrygian, lowered 2), and only then mix
+        // all seven. Items are listed bright to dark so the answer buttons read as a scale.
         id: 'level_9',
         tier: 'pro',
-        name: 'Major vs Minor Modes',
+        name: 'Modes: Brighter or Darker Than Major',
         type: 'mode',
-        items: ['ionian', 'lydian', 'mixolydian', 'aeolian', 'dorian'],
-        unlockRequirement: 70,
-        description: 'Distinguish between major and minor modes',
+        items: ['lydian', 'ionian', 'mixolydian'],
+        unlockRequirement: 75,
+        description: 'Major, then one note brighter (Lydian) or one note darker (Mixolydian)',
         segmentId: 'pitch',
-        prerequisites: ['scale_degree_minor', 'ton_major_minor_key'],
+        prerequisites: ['scale_degree_minor', 'level_6', 'int_all_harmonic'],
         establishTonality: false,
         maxQuestions: 12,
         intro: [
           {
-            idea: 'A mode is a scale with a different starting foot.',
-            purpose: "Same seven notes, different tonal center — and the emotional color flips completely. Ionian is sunlight; aeolian is shadow.",
-            expectation: "You'll hear a scale played ascending. Tap which mode it is.",
+            idea: 'A mode is a scale with one note moved.',
+            purpose: "Start from major. Raise the 4th and it gets brighter, almost floating: that's Lydian. Lower the 7th and it gets earthier, like rock and folk: that's Mixolydian.",
+            expectation: "You'll hear a low home note, then a scale up and back down. Is it brighter than major, major, or darker?",
+          },
+        ],
+      },
+      {
+        id: 'modes_minor_family',
+        tier: 'pro',
+        name: 'Modes: Brighter or Darker Than Minor',
+        type: 'mode',
+        items: ['dorian', 'aeolian', 'phrygian'],
+        unlockRequirement: 75,
+        description: 'Minor, then one note brighter (Dorian) or one note darker (Phrygian)',
+        segmentId: 'pitch',
+        prerequisites: ['level_9'],
+        establishTonality: false,
+        maxQuestions: 12,
+        intro: [
+          {
+            idea: 'Minor has neighbours too.',
+            purpose: "Raise the 6th of natural minor and it lifts a little: that's Dorian, the sound of a lot of funk and jazz. Lower the 2nd and it darkens: that's Phrygian, with its Spanish edge.",
+            expectation: "You'll hear the scale over a low home note. Is it brighter than minor, minor, or darker?",
           },
         ],
       },
       {
         id: 'level_10',
         tier: 'pro',
-        name: 'All Modes',
+        name: 'All Seven Modes, Bright to Dark',
         type: 'mode',
-        items: ['ionian', 'dorian', 'phrygian', 'lydian', 'mixolydian', 'aeolian', 'locrian'],
+        items: ['lydian', 'ionian', 'mixolydian', 'dorian', 'aeolian', 'phrygian', 'locrian'],
         unlockRequirement: 70,
-        description: 'Master all seven modes',
+        description: 'Place every mode on the scale from brightest to darkest',
         segmentId: 'pitch',
-        prerequisites: ['level_9'],
+        prerequisites: ['modes_minor_family'],
         establishTonality: false,
         maxQuestions: 14,
+        intro: [
+          {
+            idea: 'All seven modes sit on one line, from bright to dark.',
+            purpose: 'Lydian, Ionian, Mixolydian, Dorian, Aeolian, Phrygian, Locrian: each one lowers one more note. Locrian, the darkest, even loses its 5th, so it never feels settled.',
+            expectation: 'Hear the scale and place it on the line.',
+          },
+        ],
       },
     ],
   },
@@ -598,48 +629,48 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
     levels: [
       {
         id: 'int_harmonic_4ths_5ths',
-        name: 'Harmonic: Fourths and Fifths',
+        name: 'Harmonic: Fourths, Fifths and Octaves',
         type: 'interval',
-        items: ['perfect_4th', 'perfect_5th'],
+        items: ['perfect_4th', 'perfect_5th', 'octave'],
         intervalPresentation: 'harmonic',
         unlockRequirement: 75,
-        description: 'Recognize perfect 4ths and 5ths played together',
+        description: 'Recognize perfect 4ths, 5ths and octaves played together',
         segmentId: 'intervals',
         prerequisites: ['found_consonance'],
         intro: [
           {
             idea: 'An interval is the distance between two pitches.',
             purpose: "Intervals are the alphabet of all melody and harmony. Once you can name them by ear, chord qualities and melodic shapes start reading like plain text.",
-            expectation: "We'll start with two of the stablest intervals: the perfect 4th and perfect 5th.",
+            expectation: "We'll start with the three most stable intervals, the perfect ones: the 4th, the 5th and the octave.",
           },
           {
             idea: 'Harmonic means both notes sound at once.',
-            purpose: "Training harmonic recognition before melodic is kinder to a new ear — you hear the blend, not the gesture, and the 4th vs 5th contrast is wide and unmistakable.",
+            purpose: "Training harmonic recognition before melodic is kinder to a new ear — you hear the blend, not the gesture, and the 4th, 5th and octave sound clearly different.",
             expectation: 'Listen, then tap which interval you heard.',
           },
         ],
       },
       {
         id: 'int_melodic_4ths_5ths_asc',
-        name: 'Melodic: Fourths and Fifths (Ascending)',
+        name: 'Melodic: Fourths, Fifths and Octaves (Ascending)',
         type: 'interval',
-        items: ['perfect_4th', 'perfect_5th'],
+        items: ['perfect_4th', 'perfect_5th', 'octave'],
         intervalPresentation: 'melodic',
         intervalDirection: 'ascending',
         unlockRequirement: 75,
-        description: 'Identify ascending perfect 4ths and 5ths',
+        description: 'Identify ascending perfect 4ths, 5ths and octaves',
         segmentId: 'intervals',
         prerequisites: ['int_harmonic_4ths_5ths', 'found_higher_lower'],
       },
       {
         id: 'int_melodic_4ths_5ths_desc',
-        name: 'Melodic: Fourths and Fifths (Descending)',
+        name: 'Melodic: Fourths, Fifths and Octaves (Descending)',
         type: 'interval',
-        items: ['perfect_4th', 'perfect_5th'],
+        items: ['perfect_4th', 'perfect_5th', 'octave'],
         intervalPresentation: 'melodic',
         intervalDirection: 'descending',
         unlockRequirement: 75,
-        description: 'Identify descending perfect 4ths and 5ths',
+        description: 'Identify descending perfect 4ths, 5ths and octaves',
         segmentId: 'intervals',
         prerequisites: ['int_melodic_4ths_5ths_asc'],
       },
@@ -680,7 +711,6 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
       },
       {
         id: 'int_harmonic_6ths',
-        tier: 'pro',
         name: 'Harmonic: Sixths',
         type: 'interval',
         items: ['minor_6th', 'major_6th'],
@@ -692,7 +722,6 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
       },
       {
         id: 'int_melodic_6ths_asc',
-        tier: 'pro',
         name: 'Melodic: Sixths (Ascending)',
         type: 'interval',
         items: ['minor_6th', 'major_6th'],
@@ -705,7 +734,6 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
       },
       {
         id: 'int_melodic_6ths_desc',
-        tier: 'pro',
         name: 'Melodic: Sixths (Descending)',
         type: 'interval',
         items: ['minor_6th', 'major_6th'],
@@ -901,7 +929,6 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
       },
       {
         id: 'level_4',
-        tier: 'pro',
         name: 'Tonic Triads (I and vi)',
         type: 'triad',
         items: ['major', 'minor'],
@@ -909,7 +936,7 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
         unlockRequirement: 80,
         description: 'Learn the tonic major chord and its relative minor',
         segmentId: 'chords',
-        prerequisites: ['level_1'],
+        prerequisites: ['level_1', 'int_harmonic_3rds', 'int_harmonic_4ths_5ths'],
         intro: [
           {
             idea: 'A triad stacks three notes: root, third, fifth.',
@@ -924,16 +951,27 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
         ],
       },
       {
+        // Was "Dominant Triads (V)", a triad lesson whose only answer was "major". Now the
+        // first chord-function lesson: which of the three primary chords is it? Same id, so
+        // saved progress carries over; reviews drop the old 'major' item (isStillAskable).
         id: 'level_5',
         tier: 'pro',
-        name: 'Dominant Triads (V)',
-        type: 'triad',
-        items: ['major'],
-        scaleDegrees: [4],
-        unlockRequirement: 85,
-        description: 'Master the dominant chord',
+        name: 'Primary Chords: I, IV or V?',
+        type: 'scale_degree',
+        items: ['1', '4', '5'],
+        context: 'major_triads',
+        unlockRequirement: 80,
+        description: 'Hear a chord in the key and name it: home (I), four (IV) or five (V)',
         segmentId: 'chords',
-        prerequisites: ['level_4'],
+        prerequisites: ['level_4', 'ton_cadence_basic'],
+        primerKind: 'cadence',
+        intro: [
+          {
+            idea: 'Three chords carry most songs: I, IV and V.',
+            purpose: "I is home. IV leans away and feels open. V pulls hard back to I. Hearing which one is playing is how you work out a song's chords by ear.",
+            expectation: "You'll hear the key, then one chord. Is it I, IV or V?",
+          },
+        ],
       },
       {
         id: 'level_6',
@@ -1374,14 +1412,92 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
     ],
   },
 
-  // 10. MELODIC DICTATION — empty stub. Batch 5 will populate (sequence input → free dictation).
+  // 10. MELODIC DICTATION — hear a short melody in a key, write it down as scale degrees.
+  // Grows the way the interval and scale-degree sections do: steps within 1 to 5, then
+  // skips, then the whole scale across the tonic (so 7 can resolve up to 1), then minor.
+  // Every melody starts and ends on a stable note (1, 3 or 5), like real tunes do.
   {
     id: 'melodic_dictation',
     name: 'Melodic Dictation',
     description: 'Listen, then reconstruct what you heard',
     icon: '✍️',
     color: 'teal',
-    levels: [],
+    levels: [
+      {
+        id: 'md_steps_3',
+        tier: 'pro',
+        name: 'Three Notes, Step by Step',
+        type: 'melodic_dictation',
+        items: ['1', '2', '3', '4', '5'],
+        melodyRules: { length: 3, range: [0, 4], maxLeap: 1, startDegrees: [1, 3, 5], endDegrees: [1, 3, 5] },
+        melodyScale: 'major',
+        unlockRequirement: 75,
+        description: 'Write down a three-note melody that moves by step',
+        segmentId: 'melodic_dictation',
+        prerequisites: ['scale_degree_major_2'],
+        establishTonality: false,
+        maxQuestions: 10,
+        intro: [
+          {
+            idea: 'Dictation is scale degrees, one after another.',
+            purpose: "You already hear where a single note sits in the key. A melody is just several of those in a row, and writing them down is how you learn songs by ear.",
+            expectation: "You'll hear the home chord, then three notes that move by step. Tap their numbers in order, then check.",
+          },
+        ],
+      },
+      {
+        id: 'md_skips_4',
+        tier: 'pro',
+        name: 'Four Notes, Steps and Skips',
+        type: 'melodic_dictation',
+        items: ['1', '2', '3', '4', '5'],
+        melodyRules: { length: 4, range: [0, 4], maxLeap: 2, startDegrees: [1, 3, 5], endDegrees: [1, 3, 5] },
+        melodyScale: 'major',
+        unlockRequirement: 70,
+        description: 'Four notes within 1 to 5, now with skips of a third',
+        segmentId: 'melodic_dictation',
+        prerequisites: ['md_steps_3'],
+        establishTonality: false,
+        maxQuestions: 10,
+      },
+      {
+        id: 'md_full_5',
+        tier: 'pro',
+        name: 'Five Notes, the Whole Scale',
+        type: 'melodic_dictation',
+        items: ['1', '2', '3', '4', '5', '6', '7'],
+        melodyRules: { length: 5, range: [-2, 7], maxLeap: 4, startDegrees: [1, 3, 5], endDegrees: [1, 3, 5] },
+        melodyScale: 'major',
+        unlockRequirement: 70,
+        description: 'Five notes across the whole scale, leaps up to a fifth',
+        segmentId: 'melodic_dictation',
+        prerequisites: ['md_skips_4', 'scale_degree_major_full'],
+        establishTonality: false,
+        maxQuestions: 10,
+        intro: [
+          {
+            idea: 'Now the melody can cross home.',
+            purpose: 'Tunes dip below the tonic and climb past it. 7 pulling up to 1 is the strongest pull in music, so listen for it.',
+            expectation: 'Five notes, any degree. A note can be above or below home; write its number either way.',
+          },
+        ],
+      },
+      {
+        id: 'md_minor_4',
+        tier: 'pro',
+        name: 'Minor-Key Melodies',
+        type: 'melodic_dictation',
+        items: ['1', '2', '3', '4', '5'],
+        melodyRules: { length: 4, range: [0, 4], maxLeap: 2, startDegrees: [1, 3, 5], endDegrees: [1, 3, 5] },
+        melodyScale: 'natural_minor',
+        unlockRequirement: 70,
+        description: 'Four notes in a minor key, steps and skips',
+        segmentId: 'melodic_dictation',
+        prerequisites: ['md_skips_4', 'scale_degree_minor'],
+        establishTonality: false,
+        maxQuestions: 10,
+      },
+    ],
   },
 
   // 11. SIGHT SINGING — empty stub. Batch 6 will populate (sing-from-degrees, sing-from-notation).
@@ -1407,6 +1523,52 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
 
 // Flatten all levels from segments for backwards compatibility
 export const CURRICULUM: CurriculumLevel[] = CURRICULUM_SEGMENTS.flatMap(segment => segment.levels);
+
+/**
+ * The order lessons are taught in, across sections. The path still shows lessons by
+ * section; this decides what "continue" and "next lesson" offer. Each skill comes when
+ * what it builds on is in place: major and minor chords right after 3rds and 5ths (a
+ * triad is a third and a fifth), cadences once chords are known, the tritone and 7ths
+ * late, and modes only after the full scale, the triads and every interval. Rhythm and
+ * singing are spread through rather than left to the end.
+ *
+ * Every lesson must appear exactly once, after all of its prerequisites
+ * (curriculum.test.ts checks both). Lesson ids are permanent: progress, mastery and
+ * reviews are stored by id, so never rename or reuse one.
+ */
+export const TEACHING_ORDER: string[] = [
+  'found_higher_lower', 'found_same_diff', 'rhy_same_diff', 'found_beating', 'found_consonance',
+  'voice_match_pitch', 'voice_resting_tone',
+  'ton_stable_unstable', 'ton_is_tonic', 'ton_major_minor_key',
+  'scale_degree_major_1', 'voice_step_up', 'voice_step_down',
+  'int_harmonic_4ths_5ths', 'int_melodic_4ths_5ths_asc', 'int_melodic_4ths_5ths_desc',
+  'int_harmonic_3rds', 'int_melodic_3rds_asc', 'int_melodic_3rds_desc',
+  'voice_skip_third', 'voice_skip_fifth',
+  'level_1', 'level_4',
+  'ton_cadence_basic', 'rhy_tap_back',
+  'voice_pivot_tonic', 'voice_pivot_inverted', 'voice_arpeggio_triad',
+  'scale_degree_major_2', 'md_steps_3', 'scale_degree_major_full',
+  'int_harmonic_6ths', 'int_melodic_6ths_asc', 'int_melodic_6ths_desc',
+  'int_harmonic_2nds', 'int_melodic_2nds_asc', 'int_melodic_2nds_desc',
+  'level_2', 'level_5', 'inv_triad_basic',
+  'scale_degree_minor', 'voice_pentachord_major', 'voice_pentachord_minor', 'voice_scale_major', 'voice_scale_minor',
+  'md_skips_4',
+  'level_3', 'level_6', 'scale_degree_major_triads', 'scale_degree_minor_triads', 'inv_triad_full', 'md_minor_4',
+  'rhy_subdivisions', 'rhy_meter', 'rhy_dictation',
+  'int_harmonic_7ths', 'int_melodic_7ths_asc', 'int_melodic_7ths_desc',
+  'int_harmonic_tritone_maj7', 'int_melodic_tritone_maj7_asc', 'int_melodic_tritone_maj7_desc',
+  'int_all_harmonic', 'int_all_melodic_asc', 'int_all_melodic_desc',
+  'level_9', 'modes_minor_family', 'level_10', 'md_full_5',
+  'level_7', 'level_8', 'inv_seventh', 'scale_degree_major_7ths', 'scale_degree_minor_7ths',
+  'cad_full', 'prog_pop_diatonic', 'prog_jazz_cadence', 'prog_secondary_dominants', 'prog_modulation_pivot',
+  'jazz_dom_extensions', 'jazz_altered_dominants', 'jazz_modal_interchange', 'jazz_voicings',
+];
+
+/** Lessons in teaching order. Any lesson missing from TEACHING_ORDER goes at the end. */
+export const TAUGHT: CurriculumLevel[] = [
+  ...TEACHING_ORDER.map((id) => CURRICULUM.find((l) => l.id === id)).filter((l): l is CurriculumLevel => !!l),
+  ...CURRICULUM.filter((l) => !TEACHING_ORDER.includes(l.id)),
+];
 
 export function isProLesson(level: CurriculumLevel): boolean {
   return level.tier === 'pro';
@@ -1436,14 +1598,18 @@ export function getCurrentLevel(
 ): CurriculumLevel {
   const done = new Set(completedLevels);
   const skipped = (level: CurriculumLevel) => Boolean(opts.skipSinging) && isSingOnlyLevel(level);
-  const candidates = CURRICULUM.filter(level => {
+  const candidates = TAUGHT.filter(level => {
     if (done.has(level.id) || skipped(level)) return false;
     if (!isPro && isProLesson(level)) return false; // free user "current lesson" cursor skips Pro lessons
     return isLevelUnlocked(level, completedLevels, { isPro });
   });
   if (candidates.length > 0) return candidates[0];
-  const nextAny = CURRICULUM.find(level => !done.has(level.id) && !skipped(level) && (isPro || !isProLesson(level)));
-  return nextAny || CURRICULUM[CURRICULUM.length - 1];
+  const nextAny = TAUGHT.find(level => !done.has(level.id) && !skipped(level) && (isPro || !isProLesson(level)));
+  if (nextAny) return nextAny;
+  // Everything available is done. On the free plan, stay on the last free lesson rather
+  // than pointing at a Pro one.
+  const lastAvailable = [...TAUGHT].reverse().find(level => isPro || !isProLesson(level));
+  return lastAvailable ?? TAUGHT[TAUGHT.length - 1];
 }
 
 export function canUnlockNextLevel(currentLevelId: string, accuracy: number): boolean {

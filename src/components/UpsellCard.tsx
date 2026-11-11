@@ -91,10 +91,10 @@ export default function UpsellCard({ mode, mobile, onClick }: UpsellCardProps) {
               maxWidth: '70%',
             }}
           >
-            Unlimited history.
+            Modes, dictation, sevenths.
           </div>
           <div style={{ fontSize: mobile ? 12 : 12.5, color: 'var(--ink-2)', lineHeight: 1.5, maxWidth: '68%' }}>
-            Full analytics, weak-item auto-drills, Pro lessons.
+            Half price at launch: $4.99/mo.
           </div>
           <div style={{ marginTop: 10, fontSize: 12, fontWeight: 700, color: `var(--${tint}-ink)`, letterSpacing: 0.2 }}>
             see plans →

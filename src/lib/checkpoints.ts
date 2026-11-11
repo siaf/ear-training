@@ -70,8 +70,8 @@ export const CHECKPOINTS: Checkpoint[] = [
   // the consonant-mix once enough are done.
   {
     id: 'int_4ths_5ths_mix',
-    name: 'Fourths & Fifths Mix',
-    description: 'Harmonic plus both melodic directions — perfect 4ths and 5ths.',
+    name: 'Fourths, Fifths & Octaves Mix',
+    description: 'Harmonic plus both melodic directions — perfect 4ths, 5ths and octaves.',
     segmentId: 'intervals',
     levelIds: [
       'int_harmonic_4ths_5ths',

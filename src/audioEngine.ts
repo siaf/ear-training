@@ -527,30 +527,56 @@ class AudioEngine {
 
   async playMode(rootNote: string, modeType: keyof typeof MODES) {
     await this.initialize();
-    
-    const scale = MODES[modeType];
+
+    // A mode is only heard against its home note, so a low tonic sounds under the whole
+    // scale. The scale goes up to the octave and back down, so the ear hears it resolve
+    // instead of stopping on the 7th.
     const octave = 4;
-    
-    // Build scale with proper octave handling
-    const notes = scale.map(semitones => {
+    const rootIndex = NOTES.indexOf(rootNote);
+    const up = [...MODES[modeType], 12].map((semitones) => {
       const noteName = this.getNoteFromSemitones(rootNote, semitones);
-      const noteIndex = NOTES.indexOf(noteName);
-      const rootIndex = NOTES.indexOf(rootNote);
-      
-      // If we've wrapped around (e.g., from B to C), we're in the next octave
-      const currentOctave = noteIndex < rootIndex ? octave + 1 : octave;
-      return `${noteName}${currentOctave}`;
+      const wraps = semitones === 12 || NOTES.indexOf(noteName) < rootIndex;
+      return `${noteName}${wraps ? octave + 1 : octave}`;
     });
-    
-    console.log(`🎼 Playing ${modeType} mode from ${rootNote}:`, notes);
-    
-    // Play scale ascending
+    const notes = [...up, ...up.slice(0, -1).reverse()];
+
     const now = Tone.now();
-    const noteDelay = this.getAdjustedTime(0.3);
+    const noteDelay = this.getAdjustedTime(0.28);
+    const total = notes.length * noteDelay;
+    this.synth.triggerAttackRelease(`${rootNote}${octave - 1}`, total + 0.4, now, 0.45);
     notes.forEach((note, index) => {
       this.synth.triggerAttackRelease(note, '8n', now + index * noteDelay);
     });
-    
+
+    return notes;
+  }
+
+  /**
+   * Melodic dictation: the tonic chord sets the key, then the melody plays one note at a
+   * time. `steps` are scale steps from the tonic (src/lib/melody.ts), so 7 below the
+   * tonic is -1 and the octave is 7.
+   */
+  async playMelody(rootNote: string, steps: number[], scale: 'major' | 'natural_minor'): Promise<string[]> {
+    await this.initialize();
+    const modeSteps = scale === 'natural_minor' ? MODES.aeolian : MODES.ionian;
+    // Keep the tonic between C4 and F#4 so a melody reaching down to 6 or up to 1 stays in a comfortable range.
+    const rootIndex = NOTES.indexOf(rootNote);
+    const tonicMidi = (rootIndex <= 6 ? 60 : 48) + rootIndex;
+    const noteFor = (midi: number) => `${NOTES[((midi % 12) + 12) % 12]}${Math.floor(midi / 12) - 1}`;
+    const semisFor = (step: number) => modeSteps[((step % 7) + 7) % 7] + 12 * Math.floor(step / 7);
+
+    const now = Tone.now();
+    const chordLen = this.getAdjustedTime(0.9);
+    const chord = [0, 2, 4].map((s) => noteFor(tonicMidi - 12 + semisFor(s)));
+    this.synth.triggerAttackRelease(chord, chordLen, now, 0.6);
+
+    const start = now + chordLen + this.getAdjustedTime(0.45);
+    const gap = this.getAdjustedTime(0.62);
+    const notes = steps.map((s) => noteFor(tonicMidi + semisFor(s)));
+    notes.forEach((note, i) => {
+      this.synth.triggerAttackRelease(note, gap * 0.9, start + i * gap);
+    });
+    this.markPlayback(start - now + notes.length * gap);
     return notes;
   }
 

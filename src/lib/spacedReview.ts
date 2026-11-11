@@ -27,6 +27,22 @@ export interface DueItem {
  * `completedLevels` is the user's completed-lesson set. Items from incomplete lessons are
  * skipped — review is for material the user has already worked through, not new content.
  */
+// Lesson types whose answers are exactly their `items`. For these, a saved item that a
+// lesson no longer offers (because the curriculum changed) can't be asked again, so it
+// would stay due forever and keep Today's Review from ever clearing. Other types record
+// generated items (a rhythm pattern id, 'melody', a sung sequence) and are always kept.
+const ANSWER_IS_ITEM = new Set([
+  'interval', 'triad', 'seventh_chord', 'mode', 'scale_degree', 'cadence', 'progression',
+  'inversion', 'chord_extension', 'borrowed_chord', 'voicing',
+]);
+
+/** Whether a saved (lesson, item) pair can still be asked by the current curriculum. */
+export function isStillAskable(levelId: string, item: string): boolean {
+  const level = CURRICULUM.find((l) => l.id === levelId);
+  if (!level) return false;
+  return !ANSWER_IS_ITEM.has(level.type) || level.items.includes(item);
+}
+
 export function getDueItems(
   map: MasteryMap,
   completedLevels: string[],
@@ -41,6 +57,7 @@ export function getDueItems(
     const levelId = k.slice(0, sep);
     const item = k.slice(sep + 2);
     if (!completed.has(levelId)) continue;
+    if (!isStillAskable(levelId, item)) continue;
     if (now < m.nextDueAt) continue;
     out.push({ levelId, item, overdueMs: now - m.nextDueAt, box: m.box });
   }

@@ -1,18 +1,26 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Check } from 'lucide-react';
 import { useBreakpoint } from '../lib/useBreakpoint';
 import { Bean, Brand, ColorPill } from '../components/primitives';
-import { isNative } from '../lib/native';
 import { phCapture } from '../lib/posthog';
 
-export type PaywallTrigger = 'session-ceiling' | 'advanced-segment' | 'manual';
-export type PlanId = 'free' | 'pro' | 'studio' | 'lifetime';
+export type PaywallTrigger = 'advanced-segment' | 'manual';
+export type PlanId = 'free' | 'pro';
+
+/** A message shown under a plan's button, in place of a browser pop-up. */
+export interface PaywallNotice {
+  plan: PlanId;
+  tone: 'info' | 'error';
+  title: string;
+  body: string;
+}
 
 interface Props {
   trigger: PaywallTrigger;
   currentPlan: PlanId;
   onSelect: (plan: PlanId) => void;
   onDismiss: () => void;
+  notice?: PaywallNotice | null;
 }
 
 interface Plan {
@@ -25,9 +33,14 @@ interface Plan {
   features: string[];
   highlight?: boolean;
   badge?: string;
+  /** The full price, shown crossed out beside a discounted `price`. */
+  listPrice?: string;
   cta: string;
 }
 
+// What each plan includes. Keep this, the Settings and Stats upsells, UpsellCard, and the
+// fifths.io pricing copy (site/index.html, blog posts) in step whenever a lesson or
+// feature moves between free and Pro. See "Free and Pro copy" in AGENTS.md.
 const PLANS: Plan[] = [
   {
     id: 'free',
@@ -37,88 +50,69 @@ const PLANS: Plan[] = [
     color: 'var(--page-2)',
     ink: 'var(--ink-1)',
     features: [
-      'Foundations, tonality, scale degrees',
-      'Basic intervals (3rds, 4ths, 5ths)',
-      'Last 7 days of analytics',
+      'Foundations, singing, tonality and scale degrees',
+      'Every interval, harmonic and melodic',
+      'Major and minor chords',
+      'Rhythm basics',
+      'Reviews of the items you miss',
+      'Last 7 days of stats',
       'Progress saved to your account',
     ],
     cta: 'free forever',
   },
   {
+    // One plan: monthly, cancel any time. The list price is $9.99, shown crossed out
+    // beside the $4.99 launch discount (the user's call, 2026-11-10). For the crossed-out
+    // price to be a real one, Pro should be set up at $9.99 in RevenueCat with $4.99 as
+    // the discount. See "Free and Pro copy" in AGENTS.md.
     id: 'pro',
     name: 'Pro',
     price: '$4.99',
-    priceNote: 'per month',
+    priceNote: 'per month · cancel any time',
     color: 'var(--coral)',
     ink: 'var(--coral-ink)',
     features: [
-      'Pro lessons (triads, 7ths, 6ths)',
-      'Full analytics history',
-      'Weak-item auto-drills',
+      'Everything in Free',
+      'More chords: diminished, inversions and sevenths',
+      'Cadences, progressions and jazz harmony',
+      'All seven modes, bright to dark',
+      'Melodic dictation',
+      'Custom practice: pick exactly what to drill',
+      'Advanced rhythm: subdivisions, meter, dictation',
+      'Your full stats history',
     ],
+    listPrice: '$9.99',
     highlight: true,
+    badge: 'launch discount',
     cta: 'subscribe',
-  },
-  {
-    id: 'studio',
-    name: 'Pro Annual',
-    price: '$39.99',
-    priceNote: 'per year · save 33%',
-    color: 'var(--lav)',
-    ink: 'var(--lav-ink)',
-    features: [
-      'Everything in Pro',
-      'Two months free',
-      'Locked-in price for the year',
-      'Best value if you stick with it',
-    ],
-    cta: 'subscribe',
-  },
-  {
-    // The offer has to be real: at 100 sales, raise fifths_lifetime to $19.99 in
-    // RevenueCat and update this card, PRODUCT_VALUE_USD and the site copy.
-    id: 'lifetime',
-    name: 'Lifetime',
-    price: '$9.99',
-    priceNote: 'one-time',
-    color: 'var(--mint-soft)',
-    ink: 'var(--mint-ink)',
-    features: [
-      'Everything in Pro, forever',
-      'One payment, no subscription',
-      'First 100 buyers, then $19.99',
-    ],
-    badge: 'launch offer',
-    cta: 'buy once',
   },
 ];
 
 function triggerCopy(trigger: PaywallTrigger): { title: string; sub: string } {
   switch (trigger) {
-    case 'session-ceiling':
-      return {
-        title: 'Hit your weekly free sessions.',
-        sub: 'You\'ve been putting in work. Go unlimited — your ear is just getting going.',
-      };
     case 'advanced-segment':
       return {
-        title: 'This segment is in the Pro tier.',
-        sub: 'Triads and beyond unlock with Pro. Everything you\'ve done carries over.',
+        title: 'This lesson is in Pro.',
+        sub: 'Seventh chords, progressions, modes and dictation unlock with Pro. Everything you\'ve done carries over.',
       };
     default:
       return {
-        title: 'Pick the plan that fits.',
-        sub: 'Free forever or go unlimited from $4.99/mo.',
+        title: 'Free, or Pro.',
+        sub: 'Free trains your ear for notes, intervals, keys and major and minor chords. Pro adds seventh chords, progressions, modes, dictation and custom practice, now half price at launch.',
       };
   }
 }
 
-export default function Paywall({ trigger, currentPlan, onSelect, onDismiss }: Props) {
+export default function Paywall({ trigger, currentPlan, onSelect, onDismiss, notice }: Props) {
   const mobile = useBreakpoint() !== 'desktop';
+  const noticeRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (notice) noticeRef.current?.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' });
+  }, [notice]);
 
   const copy = triggerCopy(trigger);
-  // Lifetime is sold on the web only, and not to anyone who already has Pro.
-  const plans = PLANS.filter((p) => p.id !== 'lifetime' || (currentPlan === 'free' && !isNative()));
+  const plans = PLANS;
 
   useEffect(() => {
     phCapture('paywall_viewed', { trigger, current_plan: currentPlan });
@@ -236,6 +230,14 @@ export default function Paywall({ trigger, currentPlan, onSelect, onDismiss }: P
                   {p.name}
                 </div>
                 <div style={{ marginTop: 6, display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', columnGap: 8 }}>
+                  {p.listPrice && (
+                    <s
+                      aria-label={`was ${p.listPrice}`}
+                      style={{ fontFamily: 'var(--disp)', fontSize: 26, fontWeight: 600, color: 'var(--ink-1)', opacity: 0.55 }}
+                    >
+                      {p.listPrice}
+                    </s>
+                  )}
                   <span
                     style={{
                       fontFamily: 'var(--disp)',
@@ -287,6 +289,25 @@ export default function Paywall({ trigger, currentPlan, onSelect, onDismiss }: P
                 >
                   {isCurrent ? 'current plan' : p.cta}
                 </Bean>
+                {notice?.plan === p.id && (
+                  <div
+                    ref={noticeRef}
+                    role={notice.tone === 'error' ? 'alert' : 'status'}
+                    style={{
+                      marginTop: 14,
+                      padding: '14px 16px',
+                      background: 'var(--card)',
+                      border: `2px solid ${notice.tone === 'error' ? 'var(--coral-ink)' : 'var(--ink-1)'}`,
+                      borderRadius: 18,
+                      color: 'var(--ink-1)',
+                      fontSize: 13,
+                      lineHeight: 1.45,
+                    }}
+                  >
+                    <div style={{ fontWeight: 700, marginBottom: 4 }}>{notice.title}</div>
+                    <div style={{ color: 'var(--ink-2)', overflowWrap: 'anywhere' }}>{notice.body}</div>
+                  </div>
+                )}
               </div>
             );
           })}

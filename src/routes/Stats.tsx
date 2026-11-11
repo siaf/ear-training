@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Flame } from 'lucide-react';
 import { useBreakpoint } from '../lib/useBreakpoint';
 import { Bean, Blob, Brand, ColorPill } from '../components/primitives';
@@ -8,6 +8,8 @@ import {
   DailyStat,
   MasteryCell,
   getDailyStats,
+  getHistoryDays,
+  bucketDays,
   getHourlyRhythm,
   getMasteryCells,
   getOverallTotals,
@@ -682,11 +684,18 @@ export default function Stats({
 }: Props) {
   const mobile = useBreakpoint() !== 'desktop';
 
-  // Free tier: 7-day window. Pro: full history.
+  // Free: the last 7 days. Pro: all time, with the chart switchable between 30 days,
+  // 90 days and everything since the first session.
   const FREE_WINDOW_MS = 7 * 86_400_000;
   const windowOpts = isPro ? {} : { windowMs: FREE_WINDOW_MS };
-  const dailyDays = isPro ? 30 : 7;
+  const [range, setRange] = useState<'30' | '90' | 'all'>('30');
+  const historyDays = useMemo(() => (hasHistory ? getHistoryDays() : 0), [hasHistory]);
+  const dailyDays = !isPro ? 7 : range === 'all' ? Math.max(30, historyDays) : Number(range);
   const days = useMemo(() => (hasHistory ? getDailyStats(dailyDays) : []), [hasHistory, dailyDays]);
+  // Past about four months, one point a day is too dense to read, so show weeks.
+  const byWeek = days.length > 120;
+  const chartDays = useMemo(() => bucketDays(days, byWeek ? 7 : 1), [days, byWeek]);
+  const rangeLabel = !isPro ? 'last 7 days' : range === 'all' ? (byWeek ? 'all time, by week' : 'all time') : `last ${range} days`;
   const mastery = useMemo(() => (hasHistory ? getMasteryCells(windowOpts) : []), [hasHistory, isPro]);
   const hours = useMemo(() => (hasHistory ? getHourlyRhythm() : []), [hasHistory]);
   const totals = useMemo(() => (hasHistory ? getOverallTotals(windowOpts) : null), [hasHistory, isPro]);
@@ -778,7 +787,7 @@ export default function Stats({
             margin: '0 0 20px',
           }}
         >
-          Stats — <span style={{ fontStyle: 'italic', color: 'var(--coral-ink)' }}>{isPro ? '30-day rhythm' : '7-day window'}</span>
+          Stats — <span style={{ fontStyle: 'italic', color: 'var(--coral-ink)' }}>{isPro ? 'all time' : '7-day window'}</span>
         </h1>
 
         {!isPro && onOpenPaywall && (
@@ -802,7 +811,7 @@ export default function Stats({
               gap: 12,
             }}
           >
-            <span>Showing the last 7 days. Pro shows your full history + auto-drills your weak items.</span>
+            <span>Showing the last 7 days. Pro shows your whole history.</span>
             <span style={{ fontWeight: 700, whiteSpace: 'nowrap' }}>see plans →</span>
           </button>
         )}
@@ -820,7 +829,16 @@ export default function Stats({
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 12 }}>
             <div>
               <div style={{ fontFamily: 'var(--disp)', fontSize: 20, fontWeight: 600, fontStyle: 'italic' }}>daily accuracy</div>
-              <div style={{ fontSize: 12, color: 'var(--ink-3)' }}>last 30 days</div>
+              <div style={{ fontSize: 12, color: 'var(--ink-3)' }}>{rangeLabel}</div>
+              {isPro && (
+                <div role="group" aria-label="Chart range" style={{ display: 'flex', gap: 6, marginTop: 8 }}>
+                  {(['30', '90', 'all'] as const).map((r) => (
+                    <Bean key={r} size="sm" tone={range === r ? 'ink' : 'soft'} onClick={() => setRange(r)}>
+                      {r === 'all' ? 'all time' : `${r} days`}
+                    </Bean>
+                  ))}
+                </div>
+              )}
             </div>
             <div
               className="mono"
@@ -832,7 +850,7 @@ export default function Stats({
               </span>
             </div>
           </div>
-          <WaveChart data={days} width={chartWidth} height={chartHeight} />
+          <WaveChart data={chartDays} width={chartWidth} height={chartHeight} />
         </div>
 
         {/* Stat tiles */}

@@ -41,11 +41,12 @@ export default defineConfig({
       reuseExistingServer: false,
     },
     {
-      // Sign-in prompts only appear when Supabase is configured. This address is never
-      // reached: a signed-out visitor makes no Supabase calls.
+      // Sign-in prompts only appear when Supabase is configured. Nothing listens on this
+      // address: a signed-out visitor makes no Supabase calls, and tests that fake a
+      // signed-in learner answer it with page.route. Not a port WebKit refuses (like 9).
       command: `npx vite --port ${ACCOUNTS_PORT} --strictPort`,
       url: `http://localhost:${ACCOUNTS_PORT}`,
-      env: { ...offlineEnv, VITE_SUPABASE_URL: 'http://localhost:9', VITE_SUPABASE_PUBLISHABLE_KEY: 'e2e' },
+      env: { ...offlineEnv, VITE_SUPABASE_URL: 'http://localhost:5199', VITE_SUPABASE_PUBLISHABLE_KEY: 'e2e' },
       reuseExistingServer: false,
     },
     {

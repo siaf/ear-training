@@ -35,6 +35,8 @@ interface Props {
   onStartReview?: () => void;
   /** Called when the user taps the Mixed Practice tile. Hidden if user has fewer than 2 completed lessons. */
   onStartInterleave?: () => void;
+  /** Opens the custom practice builder (Pro). */
+  onOpenCustom?: () => void;
   /** Cross-segment recommendation surfaced when one segment lags the others. Null = hide tile. */
   recommendation?: Recommendation | null;
   /** Called when the user taps a checkpoint node on the path itself. */
@@ -51,6 +53,8 @@ function PathRightRail({
   onStartLevel,
   onStartReview,
   onStartInterleave,
+  onOpenCustom,
+  isPro,
   upsell,
   onUpsellClick,
 }: {
@@ -62,6 +66,8 @@ function PathRightRail({
   onStartLevel: (id: string) => void;
   onStartReview?: () => void;
   onStartInterleave?: () => void;
+  onOpenCustom?: () => void;
+  isPro: boolean;
   upsell: UpsellMode;
   onUpsellClick?: () => void;
 }) {
@@ -77,6 +83,8 @@ function PathRightRail({
         onStartLevel={onStartLevel}
         onStartReview={onStartReview}
         onStartInterleave={onStartInterleave}
+        onOpenCustom={onOpenCustom}
+        isPro={isPro}
       />
       {onUpsellClick && <UpsellCard mode={upsell} mobile={false} onClick={onUpsellClick} />}
     </aside>
@@ -696,6 +704,7 @@ export default function Path({
   dueCount = 0,
   onStartReview,
   onStartInterleave,
+  onOpenCustom,
   recommendation = null,
   onStartCheckpoint,
 }: Props) {
@@ -894,6 +903,8 @@ export default function Path({
                       onStartLevel={onStart}
                       onStartReview={onStartReview}
                       onStartInterleave={onStartInterleave}
+                      onOpenCustom={onOpenCustom}
+                      isPro={isPro}
                     />
                     {onUpsellClick && (
                       <UpsellCard mode={upsellMode} mobile onClick={onUpsellClick} />
@@ -925,6 +936,8 @@ export default function Path({
                 onStartLevel={onStart}
                 onStartReview={onStartReview}
                 onStartInterleave={onStartInterleave}
+                onOpenCustom={onOpenCustom}
+                isPro={isPro}
                 upsell={upsellMode}
                 onUpsellClick={onUpsellClick}
               />

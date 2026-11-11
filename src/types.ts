@@ -31,7 +31,8 @@ export type QuestionType =
   | 'interval' | 'triad' | 'seventh_chord' | 'mode' | 'scale_degree' | 'acoustic'
   | 'cadence' | 'inversion' | 'progression'
   | 'chord_extension' | 'borrowed_chord' | 'voicing'
-  | 'rhythm';
+  | 'rhythm'
+  | 'melodic_dictation';
 
 // Rhythm sub-kinds. Each maps to a different audio playback shape + answer space + UI input mode.
 export type RhythmKind = 'same_diff' | 'tap_back' | 'subdivision' | 'meter' | 'dictation';
@@ -64,7 +65,7 @@ export type DiatonicScale = 'major' | 'natural_minor';
 export type IntervalDirection = 'ascending' | 'descending';
 export type IntervalPresentation = 'harmonic' | 'melodic';
 
-export type ResponseMode = 'select' | 'sing' | 'tap' | 'grid';
+export type ResponseMode = 'select' | 'sing' | 'tap' | 'grid' | 'sequence';
 
 export interface Question {
   id: string;
@@ -86,6 +87,9 @@ export interface Question {
   rhythmBpm?: number; // BPM the pattern was played at (also used for tap-back grading).
   targetOnsets?: number[]; // For tap_back: expected beat-position onsets in fractional beats (0..N). User taps timed against these.
   targetGrid?: boolean[]; // For dictation: 16-cell on/off pattern (1 bar of 16th notes).
+  // --- Melodic dictation ---
+  melodySteps?: number[]; // Scale steps from the tonic (see src/lib/melody.ts), kept so Replay plays the same melody.
+  melodyScale?: DiatonicScale;
 }
 
 export interface Answer {
@@ -196,6 +200,15 @@ export interface CurriculumLevel {
   extensionTarget?: 'I' | 'IV' | 'V' | 'ii'; // For type='chord_extension' — which diatonic chord receives the extension. Defaults to 'V'.
   // --- Rhythm levels ---
   rhythmKind?: RhythmKind; // Sub-kind for type='rhythm'.
+  // Melodic dictation: how melodies are made, and in which scale. See src/lib/melody.ts.
+  melodyRules?: {
+    length: number;
+    range: [number, number];
+    maxLeap: number;
+    startDegrees: number[];
+    endDegrees: number[];
+  };
+  melodyScale?: DiatonicScale;
   rhythmBpm?: number; // Default BPM. Defaults to 100.
   rhythmTapToleranceMs?: number; // ± ms a tap can fall around a target onset. Defaults to 130 ms (forgiving for first lessons).
   rhythmPassScore?: number; // 0..1 grader threshold to count as correct. Defaults to 0.7 (tap), 1.0 (grid).

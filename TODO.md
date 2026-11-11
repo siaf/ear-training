@@ -87,7 +87,7 @@ Google and magic-link sign-in returned to the app with the session tokens in the
 Web (Stripe) is already shipped. To add native platforms once dev accounts are approved:
 - [ ] In RevenueCat: add iOS app, connect App Store Connect (API key).
 - [ ] In RevenueCat: add Android app, connect Play Console (service account JSON).
-- [ ] App Store Connect: create `fifths_pro_monthly` ($4.99/mo), `fifths_pro_annual` ($39.99/yr), `fifths_lifetime` ($9.99 for the first 100 sales, then $19.99; web only for now, so add it to the iOS and Android paywalls when this exists).
+- [ ] App Store Connect: create `fifths_pro_monthly` ($4.99/mo launch price). Pro is monthly only since 2026-11-10; `fifths_pro_annual` and `fifths_lifetime` aren't sold any more, so don't create them.
 - [ ] Play Console: same three products.
 - [ ] Map StoreKit/Play products to RevenueCat (RC dashboard).
 - [ ] Drop iOS + Android API keys into [`.env.local`](./.env.local) (`VITE_REVENUECAT_IOS_KEY`, `VITE_REVENUECAT_ANDROID_KEY`).
@@ -96,6 +96,8 @@ Web (Stripe) is already shipped. To add native platforms once dev accounts are a
 
 ### Stripe live mode — FINAL STEP before launch (do AFTER Phase 3 UX testing passes)
 **Stripe is already verified, in live mode, and bank-connected at the Ketabian LLC account level** (from prior apps). The orphan Stripe accounts that were created for Fifths have been deleted. No business-verification paperwork needed.
+
+**When checkout opens, email the people who were waiting.** While the web key is RevenueCat's sandbox key, a signed-in learner who taps subscribe is told "Pro opens soon. We'll email you at …" and `functions/api/wants-pro.js` sets `wantsPro = true` on their Loops contact. On launch day, send a Loops campaign to contacts where `wantsPro` is true. PostHog's `pro_interest_registered` event lists them too, in case a Loops call failed (those also show in Sentry as `step: wants_pro`).
 
 **Order matters:** all Phase 3 testing must happen in Stripe **sandbox** with `4242` test cards. If RC is flipped to live mode first, every test purchase costs real money.
 
@@ -117,7 +119,7 @@ Web (Stripe) is already shipped. To add native platforms once dev accounts are a
   - Brand color: `#2a1d3a` (neutral dark) or whatever's already set if other Ketabian products are using it.
   - Accent color: leave default or pick a neutral.
 - [ ] **Per-product overrides** (Stripe → Products → each Fifths product → Statement descriptor field):
-  - Set statement descriptor to `FIFTHS` for `fifths_pro_monthly` / `fifths_pro_annual` / `fifths_lifetime`. Max 22 chars, all caps. Appears on the cardholder's bank statement so they recognize the charge as Fifths and not just generic Ketabian.
+  - Set statement descriptor to `FIFTHS` for `fifths_pro_monthly`. Max 22 chars, all caps. Appears on the cardholder's bank statement so they recognize the charge as Fifths and not just generic Ketabian.
 - [ ] Confirm product display names in Stripe / RevCat include the Fifths prefix (e.g., `Fifths Pro Monthly`) so the line item on the receipt is unambiguous.
 
 ### RevCat sandbox cleanup (cosmetic, optional)
@@ -241,7 +243,7 @@ Right now the only emails users receive are: Supabase magic links (auth) and Str
 **Phase 0 emails (waitlist audience — ship before product launch):**
 - [ ] **Waitlist confirmation** — fires immediately after `POST /waitlist`. "You're in. Here's what you signed up for." Currently no email is sent at all — waitlist signups are silent.
 - [ ] **Survey nudge** (24h after signup, only if they didn't fill the survey) — "30 seconds to shape what we build first." Drives the `/waitlist` survey completion rate.
-- [ ] **Launch announcement** — sent the day product opens to the waitlist. Includes the $99 lifetime offer for the first 100.
+- [ ] **Launch announcement** — sent the day product opens to the waitlist. Includes the $4.99/month launch price for Pro.
 
 **Templates done — 10 brand-aligned MJML zips in [`loops-templates/_zips/`](./loops-templates/_zips/):**
 - ✅ Transactional: `magic-link.zip` (uploaded), `confirm-signup.zip` (uploaded), `payment-failed.zip` (uploaded), `cancelled.zip` (uploaded)

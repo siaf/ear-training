@@ -1,6 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
+  bucketDays,
   clearAllSessions,
+  getHistoryDays,
   getDailyStats,
   getMasteryCells,
   getOverallTotals,
@@ -144,5 +146,29 @@ describe('sessionStore', () => {
     const since = timeSinceLastSession(now);
     expect(since).toBeGreaterThanOrEqual(29_000);
     expect(since).toBeLessThanOrEqual(60_000);
+  });
+});
+
+describe('all-time stats for Pro', () => {
+  beforeEach(() => clearAllSessions());
+
+  it('counts the days since the first session, including today', () => {
+    expect(getHistoryDays()).toBe(0);
+    const now = new Date(2026, 10, 10, 12).getTime();
+    session(new Date(2026, 7, 1, 9).getTime());
+    session(now - 1000);
+    expect(getHistoryDays(now)).toBe(102);
+  });
+
+  it('merges days into weeks that end today, weighting accuracy by questions', () => {
+    const now = new Date(2026, 10, 10, 12).getTime();
+    session(now - 1000, 10, 10);            // today: 10 of 10
+    session(now - 86_400_000, 0, 30);       // yesterday: 0 of 30
+    session(now - 8 * 86_400_000, 5, 10);   // the week before
+    const weeks = bucketDays(getDailyStats(14, now), 7);
+    expect(weeks).toHaveLength(2);
+    expect(weeks[1].totalQuestions).toBe(40);
+    expect(weeks[1].accuracy).toBe(25);
+    expect(weeks[0].correct).toBe(5);
   });
 });

@@ -13,7 +13,7 @@
 // shadow, and the rows sit inside as a list. That keeps the visual weight on the panel,
 // not on each item.
 
-import { ArrowUpRight, ChevronRight, Flame, RotateCcw, Shuffle, type LucideIcon } from 'lucide-react';
+import { ArrowUpRight, ChevronRight, Flame, RotateCcw, Shuffle, SlidersHorizontal, type LucideIcon } from 'lucide-react';
 import { CURRICULUM_SEGMENTS } from '../curriculum';
 import type { Recommendation } from '../lib/recommendations';
 
@@ -31,6 +31,9 @@ export interface TodayPanelProps {
   onStartLevel: (id: string) => void;
   onStartReview?: () => void;
   onStartInterleave?: () => void;
+  /** Opens custom practice. Shown once two lessons are done, like Mixed Practice. */
+  onOpenCustom?: () => void;
+  isPro?: boolean;
 }
 
 interface ActionRowProps {
@@ -129,11 +132,14 @@ export default function TodayPanel({
   onStartLevel,
   onStartReview,
   onStartInterleave,
+  onOpenCustom,
+  isPro = false,
 }: TodayPanelProps) {
   const hasReview = dueCount > 0 && !!onStartReview;
   const hasMix = completedCount >= 2 && !!onStartInterleave;
+  const hasCustom = completedCount >= 2 && !!onOpenCustom;
   const hasRec = recommendation != null;
-  const anyAction = hasReview || hasMix || hasRec;
+  const anyAction = hasReview || hasMix || hasCustom || hasRec;
 
   return (
     <div
@@ -260,6 +266,16 @@ export default function TodayPanel({
                 subtitle={`10 mixed across your ${completedCount} cleared`}
                 mobile={mobile}
                 onClick={onStartInterleave!}
+              />
+            )}
+            {hasCustom && (
+              <ActionRow
+                Icon={SlidersHorizontal}
+                accent="butter"
+                title="Custom practice"
+                subtitle={isPro ? 'Pick exactly what to drill' : 'Pro · pick exactly what to drill'}
+                mobile={mobile}
+                onClick={onOpenCustom!}
               />
             )}
           </div>

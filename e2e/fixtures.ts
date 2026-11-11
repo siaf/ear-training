@@ -24,6 +24,44 @@ const FREE_CUSTOMER = {
   },
 };
 
+// The same customer with an active Pro subscription.
+const PRO_CUSTOMER = {
+  ...FREE_CUSTOMER,
+  subscriber: {
+    ...FREE_CUSTOMER.subscriber,
+    entitlements: {
+      pro: {
+        expires_date: '2099-01-01T00:00:00Z',
+        grace_period_expires_date: null,
+        product_identifier: 'fifths_pro_monthly',
+        purchase_date: '2026-11-01T00:00:00Z',
+      },
+    },
+    subscriptions: {
+      fifths_pro_monthly: {
+        auto_resume_date: null,
+        billing_issues_detected_at: null,
+        expires_date: '2099-01-01T00:00:00Z',
+        grace_period_expires_date: null,
+        is_sandbox: true,
+        original_purchase_date: '2026-11-01T00:00:00Z',
+        ownership_type: 'PURCHASED',
+        period_type: 'normal',
+        purchase_date: '2026-11-01T00:00:00Z',
+        refunded_at: null,
+        store: 'rc_billing',
+        store_transaction_id: 'e2e',
+        unsubscribe_detected_at: null,
+      },
+    },
+  },
+};
+
+/** Make RevenueCat report an active Pro subscription. Call before loading the app. */
+export async function asPro(page: Page) {
+  await page.route(/^https:\/\/api\.revenuecat\.com\//, (route) => route.fulfill({ json: PRO_CUSTOMER }));
+}
+
 type Fixtures = {
   /** Fails the test if the page throws or logs an error. Runs for every test. */
   pageErrors: string[];
@@ -69,12 +107,12 @@ export const test = base.extend<Fixtures>({
   ],
 });
 
-/** Load the app as a returning visitor, past onboarding. */
-export async function openApp(page: Page, url = '/path') {
-  await page.addInitScript(() => {
+/** Load the app as a returning visitor, past onboarding, with these lessons done. */
+export async function openApp(page: Page, url = '/path', completedLevels: string[] = []) {
+  await page.addInitScript((done) => {
     if (localStorage.getItem('fifths.v1')) return;
-    localStorage.setItem('fifths.v1', JSON.stringify({ hasOnboarded: true, hasEverPracticed: true, completedLevels: [] }));
-  });
+    localStorage.setItem('fifths.v1', JSON.stringify({ hasOnboarded: true, hasEverPracticed: true, completedLevels: done }));
+  }, completedLevels);
   await page.goto(url);
 }
 

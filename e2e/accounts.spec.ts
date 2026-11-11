@@ -52,3 +52,35 @@ test('the sign-in ask stays up after continuing from a passed lesson', async ({ 
   await page.getByRole('button', { name: /not now/i }).click();
   await expect(page.getByRole('dialog', { name: /sign in/i })).toBeHidden();
 });
+
+test('while checkout is closed, a signed-in learner is told on the page and put on the Pro list', async ({ page }) => {
+  // A signed-in session as supabase-js stores it for http://localhost:5199 (the fake address).
+  await page.addInitScript(() => {
+    const now = Math.floor(Date.now() / 1000);
+    localStorage.setItem('sb-localhost-auth-token', JSON.stringify({
+      access_token: 'e2e-access-token', refresh_token: 'e2e-refresh', token_type: 'bearer',
+      expires_in: 3600, expires_at: now + 3600,
+      user: { id: '00000000-0000-0000-0000-000000000001', aud: 'authenticated', role: 'authenticated', email: 'learner@example.com', app_metadata: {}, user_metadata: {}, created_at: new Date().toISOString() },
+    }));
+  });
+  // Sync talks to the fake Supabase; answer it with nothing saved.
+  await page.route(/^http:\/\/localhost:5199\//, (route) => route.fulfill({ json: [] }));
+  const wantsPro: { auth?: string; apikey?: string }[] = [];
+  await page.route('https://fifths.io/api/wants-pro', (route) => {
+    const h = route.request().headers();
+    if (route.request().method() === 'POST') wantsPro.push({ auth: h.authorization, apikey: h.apikey });
+    return route.fulfill({ json: { ok: true }, headers: { 'access-control-allow-origin': '*', 'access-control-allow-headers': 'Authorization, apikey' } });
+  });
+  const dialogs: string[] = [];
+  page.on('dialog', (d) => { dialogs.push(d.message()); void d.dismiss(); });
+
+  await openApp(page, `${ACCOUNTS_APP}/paywall`);
+  await page.getByRole('button', { name: 'subscribe' }).click();
+
+  const notice = page.getByRole('status');
+  await expect(notice).toContainText('Pro opens soon.');
+  await expect(notice).toContainText("We'll email you at learner@example.com");
+  await expect.poll(() => wantsPro.length).toBe(1);
+  expect(wantsPro[0]).toEqual({ auth: 'Bearer e2e-access-token', apikey: 'e2e' });
+  expect(dialogs).toEqual([]);
+});

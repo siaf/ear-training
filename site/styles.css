@@ -783,12 +783,14 @@ footer {
   .streak-sticker { font-size: 11px; padding: 6px 10px; bottom: 8%; }
 }
 
-/* Pricing block — 4-up tiers, used on /, /jazz, /classical, /transcribing.
-   Returning page has its own bespoke lifetime breakdown so it skips this. */
+/* Pricing block — Free and Pro, used on /, /jazz, /classical, /transcribing and /returning. */
 .pricing { margin: 64px 0 32px; }
 .pricing-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(2, 1fr);
+  max-width: 760px;
+  margin-left: auto;
+  margin-right: auto;
   gap: 14px;
   margin-top: 24px;
 }
@@ -802,7 +804,6 @@ footer {
 }
 .price-card-pro { border-color: var(--coral); box-shadow: var(--sh-sm); }
 .price-card-best { border-color: var(--mint); box-shadow: var(--sh-sm); }
-.price-card-lifetime { background: var(--page-2); border-color: var(--butter); }
 .price-tier {
   font-weight: 600; color: var(--ink-1);
   display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
@@ -816,6 +817,7 @@ footer {
   font-family: var(--ui); font-size: 13px; color: var(--ink-3);
   font-weight: 400; margin-left: 6px;
 }
+.price-was { font-size: 22px; color: var(--ink-3); margin-right: 4px; }
 .price-card ul { list-style: none; padding: 0; margin: 12px 0 0; font-size: 14px; color: var(--ink-2); }
 .price-card li { padding: 4px 0; }
 .price-card li::before { content: '✓'; color: var(--mint-ink); margin-right: 8px; font-weight: 700; }
@@ -828,9 +830,6 @@ footer {
 .pricing-fineprint {
   text-align: center; font-size: 13px; color: var(--ink-3);
   margin-top: 18px;
-}
-@media (max-width: 880px) {
-  .pricing-grid { grid-template-columns: repeat(2, 1fr); }
 }
 @media (max-width: 540px) {
   .pricing-grid { grid-template-columns: 1fr; }

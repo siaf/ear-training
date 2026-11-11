@@ -32,7 +32,7 @@ Its standout features are sight-singing into the microphone with pitch and timin
 |---|---|---|---|---|
 | [Auralia](https://risingsoftware.com/shop/education) | Desktop + cloud (schools) | From $39/student/yr (school plans) | Breadth, exam syllabi | Music schools and classrooms |
 | [Complete Ear Trainer](https://apps.apple.com/us/app/complete-ear-trainer/id1012455471) | iOS, Android | Free; $6.99 one-time | Structured progression | Pay-once mobile learners |
-| [Fifths](https://app.fifths.io/?utm_source=fifths.io&utm_medium=blog&utm_campaign=earmaster-alternatives) | Web | Free tier; $4.99/mo or $39.99/yr | Functional hearing, sing-back | Browser users who want stats on their weak spots |
+| [Fifths](https://app.fifths.io/?utm_source=fifths.io&utm_medium=blog&utm_campaign=earmaster-alternatives) | Web | Free tier; $4.99/mo | Functional hearing, sing-back | Browser users who want stats on their weak spots |
 | [Theta Music Trainer](https://trainer.thetamusic.com/) | Web, iOS | Free levels; $9/mo or $39/yr | Breadth of skills | Game-style practice in a browser |
 | [Perfect Ear](https://apps.apple.com/us/app/perfect-ear-music-rhythm/id1440768353) | iOS, Android | Free; Premium $14.99 | Wide coverage incl. rhythm | A low-cost all-rounder |
 | [Sight Singing Pro](https://apps.apple.com/us/app/-/id1631774557) | iOS, Android | $8.99/mo, $89.99/yr or $259.99 once | Mic-graded sight-singing | Singers replacing EarMaster's sight-singing |
@@ -64,7 +64,7 @@ A browser-based ear trainer with nine sections: foundations, voice, tonality, sc
 
 **Better than EarMaster at:** running in any browser with no install or signup for the first lessons; showing your weak spots without you digging for them; jazz harmony (extensions, altered dominants, modal interchange, voicings) in a simple subscription.
 **Worse at:** far less content (dozens of lessons versus EarMaster's thousands); no sight-singing from notation or melodic dictation yet; no exam-syllabus material; no app-store apps yet, so on a phone you use the browser.
-**Pricing:** free tier with foundations, tonality, scale degrees, basic intervals and most of the Voice section. Pro is $4.99/month or $39.99/year.
+**Pricing:** free tier with foundations, tonality, scale degrees, every interval and most of the Voice section. Pro is $4.99/month.
 **Choose it if:** you want to learn to hear music in a key and like seeing exactly what's tripping you up.
 
 ### 4. Theta Music Trainer

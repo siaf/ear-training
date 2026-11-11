@@ -12,7 +12,7 @@ describe('getDiatonicIntervals', () => {
     expect(intervals).toContain('perfect_5th');
     expect(intervals).toContain('major_3rd');
     expect(intervals).toContain('minor_7th');
-    expect(intervals).not.toContain('tritone');
+    expect(intervals).toContain('tritone'); // 4 to 7. The tritone lessons need it.
   });
 });
 
@@ -86,5 +86,13 @@ describe('filterDiatonicItems', () => {
       { root: 'D', type: 'ionian' },
       { root: 'D', type: 'dorian' },
     ]);
+  });
+});
+
+describe('interval lessons', () => {
+  it('can ask every interval they offer, including the tritone', () => {
+    const all = ['minor_2nd', 'major_2nd', 'minor_3rd', 'major_3rd', 'perfect_4th', 'tritone', 'perfect_5th', 'minor_6th', 'major_6th', 'minor_7th', 'major_7th', 'octave'];
+    const asked = filterDiatonicItems(all, 'interval', 'C').map((x) => x.type);
+    expect(asked.sort()).toEqual(all.slice().sort());
   });
 });
