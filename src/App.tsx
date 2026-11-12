@@ -446,15 +446,17 @@ export default function App() {
     audioEngine.setPlaybackSpeed(settings.playbackSpeed);
   }, [settings.synth, settings.playbackSpeed]);
 
-  // Drone follows setting + current scale root
+  // Drone follows setting + current scale root. It pauses while the learner sings: the
+  // mic would hear the drone's steady tonic and credit it as their note.
+  const singingNow = currentQuestion?.responseMode === 'sing';
   useEffect(() => {
-    if (route === 'practice' && settings.drone) {
+    if (route === 'practice' && settings.drone && !singingNow) {
       audioEngine.toggleDrone(currentScaleRoot, true);
       return () => {
         audioEngine.toggleDrone(currentScaleRoot, false);
       };
     }
-  }, [route, settings.drone, currentScaleRoot]);
+  }, [route, settings.drone, currentScaleRoot, singingNow]);
 
   // Debug mode (Ctrl/Cmd + K)
   useEffect(() => {

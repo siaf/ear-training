@@ -82,3 +82,36 @@ test('replaying a rhythm mid-pattern starts it again', async ({ page }) => {
     }
   });
 });
+
+// Every sing-back exercise starts on the note just played. If the mic listens while that
+// note is still ringing, our own sound counts as the singer's first note.
+test('the mic waits for a piano note to stop ringing, not just for it to end', async ({ page }) => {
+  await openEngine(page);
+  await page.evaluate(async () => {
+    const { audioEngine } = await import('/src/audioEngine.ts');
+    audioEngine.setSynthType('piano');
+  });
+  // Wait for the real piano (release 1s), not the stand-in synth used while it downloads.
+  await expect
+    .poll(async () => {
+      await page.evaluate(async () => {
+        const { audioEngine } = await import('/src/audioEngine.ts');
+        await audioEngine.playNote('C4', 0.05);
+      });
+      return (await sounds(page)).sample;
+    })
+    .toBeGreaterThan(0);
+
+  const state = await page.evaluate(async () => {
+    const { audioEngine } = await import('/src/audioEngine.ts');
+    const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+    while (audioEngine.isMicBlocked()) await wait(50);
+    await audioEngine.playNote('C4', 0.3);
+    await wait(900); // the note ended 0.6s ago, but the piano is still ringing
+    const ringing = { playing: audioEngine.isPlaybackActive(), micBlocked: audioEngine.isMicBlocked() };
+    await wait(1000);
+    return { ringing, later: audioEngine.isMicBlocked() };
+  });
+  expect(state.ringing).toEqual({ playing: false, micBlocked: true });
+  expect(state.later).toBe(false);
+});

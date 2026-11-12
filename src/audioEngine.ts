@@ -171,6 +171,11 @@ class AudioEngine {
   // Timestamp (ms, performance.now time base) after which the speakers are quiet again.
   // Used to gate mic detection so sing mode doesn't pick up our own playback.
   private playbackEndsAt: number = 0;
+  // When the mic may listen again: after the playback window AND the instrument's release
+  // tail. A piano note rings for about a second after it "ends", and every sing-back
+  // exercise starts on the note we just played, so listening any earlier credited our own
+  // ringing note as the singer's first note.
+  private micQuietAt: number = 0;
 
   // What plays right now. A Tone.Sampler throws if triggered before every sample has
   // downloaded, which left questions silent on slow connections, so use a plain synth
@@ -186,10 +191,27 @@ class AudioEngine {
   private markPlayback(durationSec: number) {
     const endsAt = performance.now() + durationSec * 1000 + 200; // + 200ms tail for speaker decay
     if (endsAt > this.playbackEndsAt) this.playbackEndsAt = endsAt;
+    const quietAt = endsAt + this.releaseSec() * 1000 + 150;
+    if (quietAt > this.micQuietAt) this.micQuietAt = quietAt;
+  }
+
+  /** How long the current instrument keeps sounding after a note is released. */
+  private releaseSec(): number {
+    const voice = this.synth;
+    const raw = voice instanceof Tone.Sampler
+      ? voice.release
+      : (voice.get() as { envelope?: { release?: unknown } }).envelope?.release;
+    const sec = typeof raw === 'number' ? raw : Number(raw);
+    return Number.isFinite(sec) ? Math.min(Math.max(sec, 0.3), 2) : 1.5;
   }
 
   isPlaybackActive(): boolean {
     return performance.now() < this.playbackEndsAt;
+  }
+
+  /** True while our own sound may still reach the mic, including the instrument's ring-out. */
+  isMicBlocked(): boolean {
+    return performance.now() < this.micQuietAt;
   }
 
   constructor() {
@@ -420,7 +442,7 @@ class AudioEngine {
     // Share the AudioContext with Tone so iOS doesn't create a second one that quietly suspends.
     const rawCtx = (Tone.context as unknown as { rawContext: AudioContext }).rawContext;
     return startPitchDetect(rawCtx, onPitch, {
-      gate: () => !this.isPlaybackActive(),
+      gate: () => !this.isMicBlocked(),
       onDeadMic,
     });
   }
