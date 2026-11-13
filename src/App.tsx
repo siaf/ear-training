@@ -44,7 +44,7 @@ import Paywall, { PlanId, PaywallNotice } from './routes/Paywall';
 import { registerProInterest } from './lib/proInterest';
 import VoiceCheck from './components/VoiceCheck';
 import CustomPractice from './routes/CustomPractice';
-import { buildCustomQueue, type CustomSelection } from './lib/customPractice';
+import { buildCustomQueue, drillItems, recordDrillResult, type CustomSelection } from './lib/customPractice';
 import { clearAllSessions, getStreakDays, getTodayMinutes, hasHistory, recordSession, timeSinceLastSession } from './lib/sessionStore';
 import {
   flushSoon,
@@ -418,15 +418,15 @@ export default function App() {
       ? interleaveSession.queue[interleaveSession.cursor]
       : null;
   const queueActiveLevelId = reviewActiveItem?.levelId ?? interleaveActiveItem?.levelId ?? null;
-  // Custom practice narrows the source lesson's answers to the items the learner picked.
+  // Custom practice answers with exactly the drill's items, on every question, even items
+  // another lesson asks (a triad question in "major vs dominant 7" offers both).
   // Memoised so the lesson object, which question generation depends on, stays stable.
   const customItemsKey = interleaveSession?.kind === 'custom' ? interleaveSession.items.join(',') : '';
   const customLevel = useMemo(() => {
     if (!customItemsKey || !queueActiveLevelId) return null;
     const source = CURRICULUM.find((l) => l.id === queueActiveLevelId);
     if (!source) return null;
-    const picked = customItemsKey.split(',');
-    return { ...source, items: source.items.filter((i) => picked.includes(i)) };
+    return { ...source, items: customItemsKey.split(',') };
   }, [customItemsKey, queueActiveLevelId]);
   const currentLevel = customLevel
     ? customLevel
@@ -674,12 +674,15 @@ export default function App() {
   // "keep going" can repeat a custom session rather than its source lesson.
   const [lastSessionKind, setLastSessionKind] = useState<'lesson' | 'review' | 'global' | 'checkpoint' | 'custom'>('lesson');
   const lastCustomSelRef = useRef<CustomSelection | null>(null);
+  // The saved drill being played: its name titles the session, and its card shows the score.
+  const lastCustomMetaRef = useRef<{ drillId?: string; name: string }>({ name: 'Custom practice' });
   const startCustomSession = useCallback(
-    async (sel: CustomSelection) => {
+    async (sel: CustomSelection, meta: { drillId?: string; name: string } = { name: 'Custom practice' }) => {
       lastCustomSelRef.current = sel;
+      lastCustomMetaRef.current = meta;
       const queue = buildCustomQueue(sel);
       if (queue.length < 2) return;
-      setInterleaveSession({ queue, cursor: 0, kind: 'custom', label: 'Custom practice', items: sel.items });
+      setInterleaveSession({ queue, cursor: 0, kind: 'custom', label: meta.name, items: drillItems(sel) });
       setInterleaveCategoryPicked(false);
       setInterleaveCategoryAttempt(null);
       void startSession(queue[0].levelId);
@@ -1038,6 +1041,9 @@ export default function App() {
     const inInterleave = interleaveSessionRef.current !== null;
     const sessionKind = inReview ? 'review' : interleaveSessionRef.current?.kind ?? 'lesson';
     setLastSessionKind(sessionKind);
+    if (sessionKind === 'custom' && lastCustomMetaRef.current.drillId) {
+      recordDrillResult(lastCustomMetaRef.current.drillId, finalStats.correctAnswers, finalStats.totalQuestions);
+    }
     const inQueueSession = inReview || inInterleave;
     if (inReview) setReviewSession(null);
     if (inInterleave) setInterleaveSession(null);
@@ -1460,7 +1466,7 @@ export default function App() {
   };
 
   const handlePracticeAgain = () => {
-    if (lastSessionKind === 'custom' && lastCustomSelRef.current) { void startCustomSession(lastCustomSelRef.current); return; }
+    if (lastSessionKind === 'custom' && lastCustomSelRef.current) { void startCustomSession(lastCustomSelRef.current, lastCustomMetaRef.current); return; }
     if (selectedLevelId) startSession(selectedLevelId);
     else startSession(currentLevel.id);
   };
@@ -1637,7 +1643,7 @@ export default function App() {
           insights={analytics.getInsights()}
           canUnlock={lastSessionKind === 'lesson' && canUnlockNextLevel(currentLevel.id, stats.accuracy)}
           sessionLabel={
-            lastSessionKind === 'custom' ? 'Custom practice'
+            lastSessionKind === 'custom' ? lastCustomMetaRef.current.name
             : lastSessionKind === 'review' ? "Today's review"
             : lastSessionKind === 'lesson' ? undefined
             : 'Mixed practice'
@@ -1744,7 +1750,7 @@ export default function App() {
     return (
       <CustomPractice
         isPro={proActive}
-        onStart={(sel) => { void startCustomSession(sel); }}
+        onStart={(sel, meta) => { void startCustomSession(sel, meta); }}
         onOpenPaywall={() => setRoute('paywall')}
         onExit={() => setRoute('path')}
       />

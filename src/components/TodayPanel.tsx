@@ -16,6 +16,7 @@
 import { ArrowUpRight, ChevronRight, Flame, RotateCcw, Shuffle, SlidersHorizontal, type LucideIcon } from 'lucide-react';
 import { CURRICULUM_SEGMENTS } from '../curriculum';
 import type { Recommendation } from '../lib/recommendations';
+import { loadDrills } from '../lib/customPractice';
 
 export interface TodayPanelProps {
   streakDays: number;
@@ -138,6 +139,7 @@ export default function TodayPanel({
   const hasReview = dueCount > 0 && !!onStartReview;
   const hasMix = completedCount >= 2 && !!onStartInterleave;
   const hasCustom = completedCount >= 2 && !!onOpenCustom;
+  const drillCount = hasCustom ? loadDrills().length : 0;
   const hasRec = recommendation != null;
   const anyAction = hasReview || hasMix || hasCustom || hasRec;
 
@@ -273,7 +275,11 @@ export default function TodayPanel({
                 Icon={SlidersHorizontal}
                 accent="butter"
                 title="Custom practice"
-                subtitle={isPro ? 'Pick exactly what to drill' : 'Pro · pick exactly what to drill'}
+                subtitle={
+                  drillCount > 0
+                    ? `${drillCount} saved ${drillCount === 1 ? 'drill' : 'drills'}${isPro ? '' : ' · Pro'}`
+                    : isPro ? 'Drill exactly what you mix up' : 'Pro · drill exactly what you mix up'
+                }
                 mobile={mobile}
                 onClick={onOpenCustom!}
               />

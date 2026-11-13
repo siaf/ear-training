@@ -11,54 +11,99 @@ async function pastIntro(page: import('@playwright/test').Page) {
   await go.click();
 }
 
-test('custom practice is offered to free learners as Pro and leads to the plans', async ({ page }) => {
+test('free learners can save a drill, and starting it leads to the plans', async ({ page }) => {
   await openApp(page, '/path', TWO_DONE);
   await page.getByRole('button', { name: /Custom practice/ }).first().click();
   await expect(page).toHaveURL(/custom/);
-  await page.getByRole('button', { name: 'unlock with pro' }).click();
+  await expect(page.getByText('pro feature')).toBeVisible();
+  // With no drills and no mistakes yet, starters are offered; one tap saves one.
+  await page.getByRole('button', { name: 'Add drill m6 vs M6' }).click();
+  await page.getByRole('button', { name: 'Start m6 vs M6' }).click();
   await expect(page).toHaveURL(/paywall/);
 });
 
-test('custom practice drills only the chosen intervals and unlocks nothing', async ({ page }) => {
+/** Answer every question of a custom session, checking the offered answers each time. */
+async function answerAll(page: import('@playwright/test').Page, total: number, pick: RegExp, check: () => Promise<void>) {
+  for (let q = 1; q <= total; q++) {
+    const answer = page.getByRole('button', { name: pick });
+    await expect(answer).toBeEnabled({ timeout: 20_000 });
+    await check();
+    await answer.click();
+    await page.keyboard.press('Enter');
+    await expect(page.getByText(`${q}/${total}`)).toBeVisible();
+    await page.keyboard.press('Enter');
+  }
+}
+
+test('a saved interval drill asks only its intervals, unlocks nothing, and keeps its score', async ({ page }) => {
   test.setTimeout(120_000);
   await asPro(page);
   await openApp(page, '/path', TWO_DONE);
   await page.getByRole('button', { name: /Custom practice/ }).first().click();
 
-  await page.getByRole('button', { name: 'Intervals', exact: true }).click();
+  await page.getByRole('button', { name: /Make your first drill/ }).click();
+  await page.getByRole('button', { name: /Intervals/ }).click();
   // Played downwards only, sixths only.
   await page.getByRole('button', { name: 'Together', exact: true }).click();
   await page.getByRole('button', { name: 'Down', exact: true }).click();
-  for (const name of ['Minor 2nd', 'Major 2nd', 'Minor 3rd']) {
-    const chip = page.getByRole('button', { name, exact: true });
-    if ((await chip.getAttribute('aria-pressed')) === 'true') await chip.click();
-  }
   await page.getByRole('button', { name: 'Minor 6th', exact: true }).click();
   await page.getByRole('button', { name: 'Major 6th', exact: true }).click();
-  await page.getByRole('button', { name: '10', exact: true }).click();
-  await page.getByRole('button', { name: 'start practice' }).click();
+  await page.getByRole('radio', { name: '10 questions' }).click();
+  await page.getByRole('button', { name: /save & start/ }).click();
 
   await expect(page).toHaveURL(/practice/);
   await expect(page.getByText('10 questions on exactly what you picked.')).toBeVisible();
   await pastIntro(page);
 
-  for (let q = 1; q <= 10; q++) {
-    const answer = page.getByRole('button', { name: /Minor 6th/ });
-    await expect(answer).toBeEnabled({ timeout: 20_000 });
+  await answerAll(page, 10, /Minor 6th/, async () => {
     // Only the two chosen intervals are offered.
     await expect(page.getByRole('button', { name: /Major 3rd|Perfect 5th|Octave/ })).toHaveCount(0);
     await expect(page.getByRole('button', { name: /Major 6th/ })).toBeVisible();
-    await answer.click();
-    await page.keyboard.press('Enter');
-    await expect(page.getByText(`${q}/10`)).toBeVisible();
-    await page.keyboard.press('Enter');
-  }
+  });
 
   await expect(page).toHaveURL(/results/);
   await expect(page.getByText('unlocks nothing')).toBeVisible();
-  await expect(page.locator('h1')).toContainText('Custom practice');
+  await expect(page.locator('h1')).toContainText('m6 vs M6');
   const done = await page.evaluate(() => JSON.parse(localStorage.getItem('fifths.v1') ?? '{}').completedLevels);
   expect(done).toEqual(TWO_DONE);
+
+  // The drill is saved, with how it went.
+  await page.goto('/custom');
+  await expect(page.getByText(/last \d+\/10 · today/)).toBeVisible();
+});
+
+test('a chords drill mixes triads and sevenths, offering every chosen chord on every question', async ({ page }) => {
+  test.setTimeout(120_000);
+  await asPro(page);
+  await page.addInitScript(() => {
+    if (localStorage.getItem('fifths.custom_drills.v1')) return;
+    localStorage.setItem('fifths.custom_drills.v1', JSON.stringify([
+      { id: 'sixths', name: '', groupId: 'intervals', variantIds: ['up'], items: ['minor_6th', 'major_6th'], length: 10, createdAt: 1 },
+    ]));
+  });
+  await openApp(page, '/custom', TWO_DONE);
+
+  await page.getByRole('button', { name: /^New drill/ }).click();
+  await page.getByRole('button', { name: /Chords/ }).click();
+  await page.getByRole('button', { name: 'Major triad', exact: true }).click();
+  await page.getByRole('button', { name: 'Dominant 7', exact: true }).click();
+  await page.getByRole('textbox', { name: 'Drill name' }).fill('Dominant or not');
+  await page.getByRole('radio', { name: '10 questions' }).click();
+  await page.getByRole('button', { name: 'save', exact: true }).click();
+
+  // Both drills are kept.
+  await expect(page.getByRole('button', { name: 'Start m6 vs M6' })).toBeVisible();
+  await page.getByRole('button', { name: 'Start Dominant or not' }).click();
+  await expect(page).toHaveURL(/practice/);
+  await pastIntro(page);
+
+  await answerAll(page, 10, /Dominant 7/, async () => {
+    // A triad question still offers the dominant 7, and a seventh question the triad.
+    await expect(page.getByRole('button', { name: /Major/ })).toHaveCount(1);
+    await expect(page.getByRole('button', { name: /Minor|Diminished|Major 7/ })).toHaveCount(0);
+  });
+  await expect(page).toHaveURL(/results/);
+  await expect(page.locator('h1')).toContainText('Dominant or not');
 });
 
 test('melodic dictation plays a key and a melody, then marks each note', async ({ page }) => {
