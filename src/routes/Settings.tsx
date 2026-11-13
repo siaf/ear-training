@@ -29,6 +29,7 @@ export interface SettingsState {
   skipSinging?: boolean; // Leave singing lessons out of "next lesson". Per device: you might sing at home but not on a train.
   degreeNotation?: DegreeNotation; // How scale-degree answers are labeled. Undefined = 'roman'.
   feedbackTiming?: FeedbackTiming; // Defaults to 'immediate'. Daily Review forces 'delayed_short'.
+  voiceCheckedAt?: number; // When the hum check before singing lessons ran (or was skipped). Unset = run it before the next one.
 }
 
 export const DEFAULT_FEEDBACK_TIMING: FeedbackTiming = 'immediate';
@@ -169,7 +170,6 @@ export default function Settings({
   onSyncNow,
   isPro = false,
 }: Props) {
-  const showDevSection = true;
   const mobile = useBreakpoint() !== 'desktop';
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [resetArmed, setResetArmed] = useState(false);
@@ -489,6 +489,16 @@ export default function Settings({
                   ))}
                 </div>
               </Row>
+              <Row label="voice check">
+                <Bean
+                  tone="soft"
+                  size="sm"
+                  disabled={!settings.voiceCheckedAt}
+                  onClick={() => onChange({ ...settings, voiceCheckedAt: undefined })}
+                >
+                  {settings.voiceCheckedAt ? 'check again' : 'before next singing lesson'}
+                </Bean>
+              </Row>
               <Row label="sing-back difficulty">
                 <div style={{ display: 'flex', gap: 6 }}>
                   {(['forgiving', 'standard', 'strict'] as SingDifficulty[]).map((d) => (
@@ -646,7 +656,8 @@ export default function Settings({
           </div>
         ) : null}
 
-        {showDevSection && onToggleDebug && (
+        {/* Only passed in local dev, or to the owner signed in online. */}
+        {onToggleDebug && (
           <div style={{ marginTop: 24, padding: '18px 22px', background: 'var(--card)', border: '1px dashed var(--ink-3)', borderRadius: 22 }}>
             <div style={{ fontFamily: 'var(--disp)', fontStyle: 'italic', fontSize: 16, fontWeight: 600, color: 'var(--ink-1)' }}>
               dev

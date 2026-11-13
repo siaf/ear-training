@@ -103,21 +103,24 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
         id: 'voice_resting_tone',
         name: 'Find Home',
         type: 'acoustic',
-        acousticKind: 'match_pitch',
+        // Plays chords that stop on V, never the answer, in a new key each question.
+        // It used to play a note and ask for it back, which gave the answer away.
+        acousticKind: 'sing_tonic',
         items: ['match'],
         responseModes: ['sing'],
         singAcceptAnyOctave: true,
         singToleranceCents: 50,
         unlockRequirement: 70,
-        description: 'After the scale establishes the key, sing the tonic',
+        description: 'Hear chords that set up a key, then sing its home note',
         segmentId: 'voice',
         prerequisites: ['voice_match_pitch'],
-        establishTonality: true,
+        // Each question sets up its own key, so no scale before each block.
+        establishTonality: false,
         intro: [
           {
             idea: "Every key has a home note. Your job: sing it.",
             purpose: "Producing the tonic in a known key is the foundational tonal-singing skill — Edwin Gordon called it the resting tone, and put it before everything else. Singing in tune in a key collapses without it.",
-            expectation: "You'll hear the scale, then sing the tonic — the note the scale started and ended on.",
+            expectation: "You'll hear a few chords that stop short of home, in a new key each time. Sing the note they want to land on. Any octave counts.",
           },
         ],
       },

@@ -69,6 +69,7 @@ Run all three before deploying. Nothing runs them for you: there's no CI for tes
 | `accounts.spec.ts` | Sign-in prompts, on a third app server with a fake Supabase address; a faked signed-in learner hitting closed checkout |
 | `tools.spec.ts` | Every free tool loads, and sample files arrive |
 | `pro.spec.ts` | Pro features as a subscriber (`asPro` in `fixtures.ts`): custom practice, melodic dictation, all-time stats; and custom practice leading free learners to the plans |
+| `singing.spec.ts` | The voice check before the first singing lesson, and "Find Home" never playing its answer. `fakeMic` in `fixtures.ts` stands in for the microphone; headless WebKit refuses a made-up mic stream, so the hum test runs in Chromium only |
 | `blog.spec.ts` | The best-apps post's updated date and lesson buttons, and the three-question ear test (`site/ear-quiz.js`) |
 
 Useful forms: `npx playwright test e2e/audio.spec.ts --project=webkit`, `npx playwright test -g "paywall"`, `npx playwright show-trace test-results/<folder>/trace.zip`.

@@ -165,6 +165,12 @@ function getDefaultIntroBody(level: CurriculumLevel): IntroBody {
           purpose: 'Matching pitch with your voice hard-wires the ear-to-voice loop — the single most useful musician reflex.',
           expectation: "You'll hear a note. Sing it back; any octave counts.",
         };
+      case 'sing_tonic':
+        return {
+          idea: 'Every key has a home note. Your job: sing it.',
+          purpose: 'Finding home by ear is what lets you sing in tune within a key.',
+          expectation: "You'll hear a few chords that stop short of home. Sing the note they want to land on.",
+        };
       case 'sing_sequence':
         return {
           idea: 'A short melodic shape, repeated and transposed up through the scale.',

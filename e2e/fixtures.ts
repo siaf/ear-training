@@ -123,3 +123,31 @@ export async function holdSamples(page: Page) {
 
 export const sounds = (page: Page) =>
   page.evaluate(() => (window as unknown as { __sounds: { synth: number; sample: number } }).__sounds);
+
+/**
+ * Stand in for the microphone. A number makes it hear a steady tone at that pitch (Hz),
+ * like someone humming; 'denied' makes it refuse, like a learner blocking the mic.
+ */
+export async function fakeMic(page: Page, input: number | 'denied') {
+  await page.addInitScript((tone) => {
+    // WebKit won't start a new audio context outside a click, so play the tone through the
+    // app's own context, which the learner's click has already started.
+    const contexts: AudioContext[] = [];
+    const Native = window.AudioContext;
+    window.AudioContext = class extends Native {
+      constructor(options?: AudioContextOptions) { super(options); contexts.push(this); }
+    };
+    navigator.mediaDevices.getUserMedia = async () => {
+      if (tone === 'denied') throw new DOMException('Permission denied', 'NotAllowedError');
+      const ctx = contexts.find((c) => c.state === 'running') ?? new Native();
+      const out = ctx.createMediaStreamDestination();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.frequency.value = tone;
+      gain.gain.value = 0.3;
+      osc.connect(gain).connect(out);
+      osc.start();
+      return out.stream;
+    };
+  }, input);
+}

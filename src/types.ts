@@ -58,7 +58,7 @@ export type ExtensionLabel = '9' | '11' | '13' | '7b9' | '7s9' | '7s11' | '7b13'
 // Borrowed chords drawn from the parallel minor (in a major key).
 export type BorrowedChordLabel = 'iv' | 'bIII' | 'bVI' | 'bVII' | 'bII';
 
-export type AcousticKind = 'same_diff' | 'beating' | 'higher_lower' | 'consonance' | 'match_pitch' | 'sing_sequence';
+export type AcousticKind = 'same_diff' | 'beating' | 'higher_lower' | 'consonance' | 'match_pitch' | 'sing_sequence' | 'sing_tonic';
 
 export type DiatonicScale = 'major' | 'natural_minor';
 

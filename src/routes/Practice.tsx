@@ -695,6 +695,7 @@ export default function Practice({
                 />
               ) : (
                 <SingPrompt
+                  label={question.acousticKind === 'sing_tonic' ? 'sing home' : undefined}
                   key={question.id}
                   targetNote={question.correctAnswer}
                   anyOctave={level.singAcceptAnyOctave ?? true}

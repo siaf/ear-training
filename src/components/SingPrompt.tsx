@@ -17,6 +17,7 @@ interface Props {
   anyOctave?: boolean;          // default true — accept any octave of the target
   toleranceCents?: number;      // default 50 — ±this many cents counts as "in tune"
   holdMs?: number;              // default 900 — how long they must stay in tune
+  label?: string;               // heading; default "sing <note>". "sing home" when naming the note would give it away
   mobile: boolean;
   onMatch: () => void;          // called once when the user holds the note in tune
   onCancel: () => void;         // user bailed
@@ -47,6 +48,7 @@ export default function SingPrompt({
   anyOctave = true,
   toleranceCents = 50,
   holdMs = 900,
+  label,
   mobile,
   onMatch,
   onCancel,
@@ -159,7 +161,7 @@ export default function SingPrompt({
           color: 'var(--ink-1)',
         }}
       >
-        sing {targetNote.replace(/\d+$/, '')}
+        {label ?? `sing ${targetNote.replace(/\d+$/, '')}`}
       </div>
 
       {/* Blob — primary feedback */}

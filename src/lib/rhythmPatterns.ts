@@ -46,6 +46,29 @@ export function pickTapPattern(): RhythmPattern {
   return TAP_PATTERNS[Math.floor(Math.random() * TAP_PATTERNS.length)];
 }
 
+/**
+ * The "different" pattern for same-or-different questions: one onset (never the downbeat)
+ * moved a sixteenth earlier or later. It stays at least a sixteenth from its neighbours and
+ * inside the 4-beat bar, so the result is still sorted with no two hits at once. (Tone's
+ * drum synth throws on a hit at the same time as the one before.)
+ */
+export function nudgeOneOnset(onsets: number[], rand: () => number = Math.random): number[] {
+  const STEP = 0.25;
+  const moves: { i: number; t: number }[] = [];
+  for (let i = 1; i < onsets.length; i++) {
+    const prev = onsets[i - 1];
+    const next = i + 1 < onsets.length ? onsets[i + 1] : 4;
+    for (const t of [onsets[i] - STEP, onsets[i] + STEP]) {
+      if (t - prev >= STEP && next - t >= STEP) moves.push({ i, t });
+    }
+  }
+  const out = onsets.slice();
+  if (moves.length === 0) return out;
+  const { i, t } = moves[Math.floor(rand() * moves.length)];
+  out[i] = t;
+  return out;
+}
+
 // Patterns the dictation level uses. 16 cells (4 beats × 4 sixteenths). Boolean per cell.
 export interface DictationPattern {
   id: string;

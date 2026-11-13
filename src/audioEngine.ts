@@ -459,7 +459,7 @@ class AudioEngine {
   }
 
   async playAcoustic(
-    kind: Exclude<AcousticKind, 'match_pitch' | 'sing_sequence'>,
+    kind: Exclude<AcousticKind, 'match_pitch' | 'sing_sequence' | 'sing_tonic'>,
     correctAnswer: string,
     rootNote: string,
     frozenSemis?: number, // pass the pre-chosen semis to make replay deterministic
@@ -1224,7 +1224,9 @@ class AudioEngine {
     const accentSet = new Set(accentBeats);
 
     const onsetTimesMs: number[] = [];
-    beats.forEach((b) => {
+    // Each synth needs strictly increasing times, so never pass it two hits at once or out of order.
+    const hits = [...new Set(beats)].sort((a, b) => a - b);
+    hits.forEach((b) => {
       const t = now + b * beatSec;
       const isAccent = accentSet.has(b);
       const which = isAccent ? accentSynth : synth;

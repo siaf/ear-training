@@ -5,7 +5,8 @@ import { AnalyticsEngine } from './analytics';
 import { Answer, Question } from './types';
 import { filterDiatonicItems } from './scaleContext';
 import { realizeDiatonicSequence, sequenceStartDegreeForQuestion } from './lib/diatonic';
-import { pickTapPattern, pickDictationPattern, gridToOnsets, encodeGrid } from './lib/rhythmPatterns';
+import { pickTapPattern, pickDictationPattern, gridToOnsets, encodeGrid, nudgeOneOnset } from './lib/rhythmPatterns';
+import { isOwnerEmail } from './lib/owner';
 import { degreeOf, encodeMelody, makeMelody } from './lib/melody';
 import {
   loadMastery,
@@ -41,6 +42,7 @@ import Stats from './routes/Stats';
 import Onboarding from './routes/Onboarding';
 import Paywall, { PlanId, PaywallNotice } from './routes/Paywall';
 import { registerProInterest } from './lib/proInterest';
+import VoiceCheck from './components/VoiceCheck';
 import CustomPractice from './routes/CustomPractice';
 import { buildCustomQueue, type CustomSelection } from './lib/customPractice';
 import { clearAllSessions, getStreakDays, getTodayMinutes, hasHistory, recordSession, timeSinceLastSession } from './lib/sessionStore';
@@ -328,6 +330,14 @@ export default function App() {
   const [debugMode, setDebugMode] = useState(initial.debugMode);
   const [syncState, setSyncState] = useState<SyncState>('disabled');
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [isOwner, setIsOwner] = useState(false);
+  useEffect(() => {
+    let live = true;
+    void isOwnerEmail(userEmail).then((v) => { if (live) setIsOwner(v); });
+    return () => { live = false; };
+  }, [userEmail]);
+  const devToolsAllowed = Boolean(import.meta.env.DEV) || isOwner;
+  const unlockAll = debugMode && devToolsAllowed;
   const [showAuth, setShowAuth] = useState(false);
   const [paywallNotice, setPaywallNotice] = useState<PaywallNotice | null>(null);
   const [showFirstLessonPrompt, setShowFirstLessonPrompt] = useState(false);
@@ -427,6 +437,13 @@ export default function App() {
     : getCurrentLevel(completedLevels, proActive, { skipSinging: settings.skipSinging });
   const lessonCfg = getLessonConfig(currentLevel);
   const stats = analytics.getSessionStats();
+  // The hum check runs once, before the first lesson that asks the learner to sing.
+  const needsVoiceCheck =
+    route === 'practice' &&
+    !interleaveSession &&
+    !reviewSession &&
+    !settings.voiceCheckedAt &&
+    (currentLevel.responseModes?.includes('sing') ?? false);
 
   // Persist on change
   useEffect(() => {
@@ -458,8 +475,9 @@ export default function App() {
     }
   }, [route, settings.drone, currentScaleRoot, singingNow]);
 
-  // Debug mode (Ctrl/Cmd + K)
+  // Unlock all lessons (Ctrl/Cmd + K): local dev, or the owner signed in online.
   useEffect(() => {
+    if (!devToolsAllowed) return;
     const onKey = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
         e.preventDefault();
@@ -468,7 +486,7 @@ export default function App() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, []);
+  }, [devToolsAllowed]);
 
   // Cloud sync engine — magic-link auth + Supabase profile/sessions sync.
   useEffect(() => {
@@ -736,6 +754,15 @@ export default function App() {
           itemType = 'match';
           correctAnswer = target;
           playedNotes = await audioEngine.playNote(target, 1.2);
+        } else if (level.acousticKind === 'sing_tonic') {
+          // A new key each question, with its home note in the singer's range. The chords
+          // end on V, which doesn't contain the home note, so the answer is never played.
+          const vocalNotes = VOICE_RANGE_NOTES[settings.voiceRange ?? DEFAULT_VOICE_RANGE];
+          const home = vocalNotes[Math.floor(Math.random() * vocalNotes.length)];
+          rootNote = home.replace(/\d+$/, '');
+          itemType = 'match';
+          correctAnswer = home;
+          playedNotes = await audioEngine.playCadence(rootNote, 'half', 'major');
         } else if (level.acousticKind === 'sing_sequence') {
           const shape = level.sequenceShape ?? [0, 1, 0, -1, 0];
           const scale = level.sequenceScale ?? 'major';
@@ -851,10 +878,8 @@ export default function App() {
           // Two patterns played in sequence — same or different. Use the same pattern bank.
           const pattern = pickTapPattern();
           const willDiffer = Math.random() < 0.5;
-          // For "different" mode, swap one onset. Cheap mutation.
-          const second = willDiffer
-            ? pattern.onsets.map((o, i) => (i === 0 ? o : o + (Math.random() < 0.5 ? 0.25 : -0.25))).map((o) => Math.max(0, o))
-            : pattern.onsets.slice();
+          // For "different" mode, move one onset by a sixteenth.
+          const second = willDiffer ? nudgeOneOnset(pattern.onsets) : pattern.onsets.slice();
           itemType = willDiffer ? 'different' : 'same';
           correctAnswer = itemType;
           // Play first pattern, then second after a 1-bar gap.
@@ -1086,7 +1111,7 @@ export default function App() {
       scaleLockRef.current = false;
       return;
     }
-    if (!introDismissed) return;
+    if (!introDismissed || needsVoiceCheck) return;
 
     const run = async () => {
       const { establishTonality, maxQuestions, questionsPerKey } = lessonCfg;
@@ -1186,6 +1211,7 @@ export default function App() {
     lessonCfg.maxQuestions,
     lessonCfg.questionsPerKey,
     introDismissed,
+    needsVoiceCheck,
   ]);
 
   const replaySound = async () => {
@@ -1218,6 +1244,8 @@ export default function App() {
         case 'acoustic':
           if (currentQuestion.acousticKind === 'match_pitch') {
             await audioEngine.playNote(currentQuestion.correctAnswer, 1.2);
+          } else if (currentQuestion.acousticKind === 'sing_tonic') {
+            await audioEngine.playCadence(currentQuestion.rootNote, 'half', 'major');
           } else if (currentQuestion.acousticKind === 'sing_sequence') {
             await audioEngine.playSequence(currentQuestion.playedNotes);
           } else if (currentQuestion.acousticKind) {
@@ -1533,6 +1561,19 @@ export default function App() {
         />
       );
     }
+    if (needsVoiceCheck) {
+      return (
+        <VoiceCheck
+          onDone={(range) =>
+            setSettings((s) => ({ ...s, voiceCheckedAt: Date.now(), ...(range ? { voiceRange: range } : {}) }))
+          }
+          onExit={() => {
+            phCapture('session_abandoned', { level_id: currentLevel.id, level_type: currentLevel.type, stage: 'voice_check' });
+            setRoute('path');
+          }}
+        />
+      );
+    }
     // Interleave session: surface the category-pick gate per question. If the queue collapses
     // to a single category (curated checkpoints often do — e.g. "Fourths & Fifths" is 100%
     // interval), the gate would just be a tautological one-button tap, so we skip it.
@@ -1640,8 +1681,8 @@ export default function App() {
           bottomPadding={isMobile && tabsActive ? 88 : 0}
           theme={theme}
           onThemeChange={setTheme}
-          debugMode={debugMode}
-          onToggleDebug={() => setDebugMode((v) => !v)}
+          debugMode={unlockAll}
+          onToggleDebug={devToolsAllowed ? () => setDebugMode((v) => !v) : undefined}
           syncState={syncState}
           userEmail={userEmail}
           onOpenAuth={() => setShowAuth(true)}
@@ -1740,7 +1781,7 @@ export default function App() {
       <Path
         completedLevels={completedLevels}
         currentLevelId={currentLevel.id}
-        debugMode={debugMode}
+        debugMode={unlockAll}
         onStart={guardedStartSession}
         onNavigate={(r) => setRoute(r)}
         onOpenPaywall={() => setRoute('paywall')}
