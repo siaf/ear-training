@@ -157,11 +157,12 @@ git tag -a deploy/app/$(date -u +%F)-$(git rev-parse --short HEAD) \
   -m "app.fifths.io production deploy" -m "Deployed: $(date -u '+%F %H:%M') UTC" \
   -m "Cloudflare deployment: https://<id>.fifths-app.pages.dev" -m "Bundle: assets/index-<hash>.js"
 git tag -l 'deploy/*'                      # every deploy, by site and date
-git tag -l 'deploy/app/*' | tail -1        # what app.fifths.io is running
+git for-each-ref --sort=-creatordate --count=1 --format='%(refname:short)' refs/tags/deploy/app    # what app.fifths.io is running
+git for-each-ref --sort=-creatordate --count=1 --format='%(refname:short)' refs/tags/deploy/site   # what fifths.io is running
 git log deploy/app/2026-11-15-e7555cc..deploy/app/2026-11-15-96da5d2 --oneline   # what a deploy shipped
 ```
 
-Tags before 2026-11-15 19:00 UTC were added afterwards from Cloudflare's list, which gives only the day.
+Tags before 2026-11-15 19:00 UTC were added afterwards from Cloudflare's list, which gives only the day. Each tag's date is the deploy time (estimated for those), which is what the "what's running" commands sort by. Don't use `git tag -l … | tail -1`: it sorts by name, so two deploys on one day come out in hash order.
 
 **After either one**, load the live site and check for errors:
 
