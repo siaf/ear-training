@@ -143,6 +143,19 @@ npx wrangler pages deploy site --project-name=fifths-marketing --branch=main --c
 
 The Pages Functions in `functions/` go live with the site deploy, at fifths.io. When an app change calls a new function, deploy the site first.
 
+**Tag every production deploy**, so `git` knows what's live and what shipped when. Deploy from a clean, committed tree, then tag the commit you deployed: `deploy/app/<date>-<commit>` or `deploy/site/<date>-<commit>`, with the time, the Cloudflare deployment URL (the "Take a peek" link wrangler prints) and, for the app, the bundle name in the message:
+
+```bash
+git tag -a deploy/app/$(date -u +%F)-$(git rev-parse --short HEAD) \
+  -m "app.fifths.io production deploy" -m "Deployed: $(date -u '+%F %H:%M') UTC" \
+  -m "Cloudflare deployment: https://<id>.fifths-app.pages.dev" -m "Bundle: assets/index-<hash>.js"
+git tag -l 'deploy/*'                      # every deploy, by site and date
+git tag -l 'deploy/app/*' | tail -1        # what app.fifths.io is running
+git log deploy/app/2026-11-15-e7555cc..deploy/app/2026-11-15-96da5d2 --oneline   # what a deploy shipped
+```
+
+Tags before 2026-11-15 19:00 UTC were added afterwards from Cloudflare's list, which gives only the day.
+
 **After either one**, load the live site and check for errors:
 
 ```bash
