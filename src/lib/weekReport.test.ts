@@ -30,6 +30,17 @@ describe('your week', () => {
     expect(r).toMatchObject({ days: 2, questions: 30, accuracy: 87, minutes: 10, mastered: ['Harmonic: Sixths'], levelId: 'int_harmonic_6ths' });
   });
 
+  it('charts the last seven days, oldest first, with days off empty', () => {
+    const r = weekReport([
+      session(2, { 'interval:minor_6th': [10, 9] }),
+      session(0, { 'interval:minor_6th': [10, 6] }),
+    ], (id) => NAMES[id], NOW)!;
+    // NOW is Sunday 15 November 2026.
+    expect(r.daily.map((d) => d.day).join('')).toBe('MTWTFSS');
+    expect(r.daily.map((d) => d.accuracy)).toEqual([null, null, null, null, 90, null, 60]);
+    expect(r.daily[6]).toMatchObject({ isToday: true, questions: 10 });
+  });
+
   it('falls back to the strongest item when nothing improved enough to show', () => {
     const r = weekReport([session(1, { 'interval:perfect_5th': [12, 11], 'interval:perfect_4th': [12, 7] })], (id) => NAMES[id], NOW)!;
     expect(r.improved).toBeNull();

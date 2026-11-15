@@ -2,8 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import { RotateCcw, Share2 } from 'lucide-react';
 import { Bean } from './primitives';
 import { CurriculumLevel } from '../types';
-import { CURRICULUM } from '../curriculum';
-import { segmentColor, segmentPaletteName } from '../lib/segmentColors';
+import { CURRICULUM, CURRICULUM_SEGMENTS } from '../curriculum';
+import { mascotForPalette, segmentColor, segmentPaletteName } from '../lib/segmentColors';
+import { cardArt } from '../lib/cardArt';
 import ShareSheet from './ShareSheet';
 import { lessonCard, toPngBlob } from '../lib/shareCards';
 import { lessonPageUrl, SITE_URL } from '../lib/lessonPages';
@@ -272,15 +273,19 @@ export default function MasteryOverlay({ level, onClose, onContinue, next = null
           heading="Share your medal"
           payload={share}
           fileName={`fifths-${level.id}-medal`}
-          makeImage={() =>
-            lessonCard({
+          makeImage={() => {
+            const paletteName = segmentPaletteName(level.segmentId ?? 'purple', idx);
+            return lessonCard({
               name: level.name,
               lines: medalLabel(level.name),
-              palette: segmentPaletteName(level.segmentId ?? 'purple', idx),
+              palette: paletteName,
               kicker: 'mastered',
-              note: 'ear training · fifths.io',
-            }).then(toPngBlob)
-          }
+              line: 'I can hear the difference. Can you?',
+              cta: 'Try it free  →  fifths.io',
+              facts: [accuracy !== undefined ? `${Math.round(accuracy)}% right` : '', CURRICULUM_SEGMENTS.find((sg) => sg.levels.some((l) => l.id === level.id))?.name ?? ''],
+              art: cardArt(mascotForPalette(paletteName)),
+            }).then(toPngBlob);
+          }}
           onClose={() => setSharing(false)}
         />
       )}

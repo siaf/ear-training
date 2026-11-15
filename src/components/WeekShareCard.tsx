@@ -6,6 +6,7 @@ import { CURRICULUM } from '../curriculum';
 import { getAllSessions, getStreakDays } from '../lib/sessionStore';
 import { weekReport, weekShareText } from '../lib/weekReport';
 import { weekCard, toPngBlob } from '../lib/shareCards';
+import { cardArt } from '../lib/cardArt';
 import { lessonPageUrl, SITE_URL } from '../lib/lessonPages';
 import type { SharePayload } from '../lib/share';
 
@@ -83,7 +84,7 @@ export default function WeekShareCard({ milestone, onDismiss, mobile }: { milest
           heading="Share your week"
           payload={payload}
           fileName="fifths-my-week"
-          makeImage={() => weekCard(report, streak).then(toPngBlob)}
+          makeImage={() => weekCard(report, streak, cardArt('fable')).then(toPngBlob)}
           onClose={() => setSharing(false)}
         />
       )}

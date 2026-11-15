@@ -23,7 +23,11 @@ export interface WeekReport {
   best: { label: string; accuracy: number } | null;
   /** The lesson the share links to: where the improvement happened, or the latest one. */
   levelId: string;
+  /** The last 7 days, oldest first, for the chart. Accuracy is null on days off. */
+  daily: { day: string; isToday: boolean; questions: number; accuracy: number | null }[];
 }
+
+const DAY_LETTERS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
 const dayKey = (t: number) => {
   const d = new Date(t);
@@ -94,7 +98,19 @@ export function weekReport(
   const latest = [...week].sort((a, b) => b.endedAt - a.endedAt);
   const levelId = (improvedKey && latest.find((s) => s.items?.[improvedKey!])?.levelId) || latest[0].levelId;
 
+  const daily: WeekReport['daily'] = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - i);
+    const k = dayKey(d.getTime());
+    const on = week.filter((s) => dayKey(s.endedAt) === k);
+    const q = on.reduce((n, s) => n + s.totalQuestions, 0);
+    const c = on.reduce((n, s) => n + s.correct, 0);
+    daily.push({ day: DAY_LETTERS[d.getDay()], isToday: i === 0, questions: q, accuracy: q ? Math.round((c / q) * 100) : null });
+  }
+
   return {
+    daily,
     days: new Set(week.map((s) => dayKey(s.endedAt))).size,
     questions,
     accuracy: questions ? Math.round((correct / questions) * 100) : 0,

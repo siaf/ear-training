@@ -67,6 +67,10 @@ const MASCOT_BY_PALETTE: Record<keyof typeof PLAYFUL, MascotName> = {
   sky:    'pulse',
   lav:    'fable',
 };
+export function mascotForPalette(name: PaletteName): MascotName {
+  return MASCOT_BY_PALETTE[name];
+}
+
 export function mascotForColor(tailwindColor: string): MascotName {
   const key = TAILWIND_TO_PALETTE[tailwindColor] ?? 'coral';
   return MASCOT_BY_PALETTE[key];

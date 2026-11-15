@@ -5,7 +5,7 @@ import { CURRICULUM, CURRICULUM_SEGMENTS, TEACHING_ORDER, getDisplayName, isProL
 import { getLessonIntro } from '../src/lib/lessonIntro';
 import { medalLabel } from '../src/lib/medalLabel';
 import { lessonSlug, OLD_SLUGS } from '../src/lib/lessonPages';
-import { segmentPaletteName } from '../src/lib/segmentColors';
+import { mascotForPalette, segmentPaletteName } from '../src/lib/segmentColors';
 
 export interface LessonPageData {
   id: string;
@@ -14,6 +14,7 @@ export interface LessonPageData {
   description: string;
   pro: boolean;
   palette: string;
+  mascot: string;
   medalLines: string[];
   intro: { idea: string; purpose: string; expectation: string }[];
   /** What the lesson asks the learner to tell apart, when the names read well. */
@@ -47,6 +48,7 @@ export function lessonPages(): { segments: { id: string; name: string; descripti
         description: level.description,
         pro: isProLesson(level),
         palette: segmentPaletteName(level.segmentId ?? 'purple', idx),
+        mascot: mascotForPalette(segmentPaletteName(level.segmentId ?? 'purple', idx)),
         medalLines: medalLabel(level.name),
         intro: getLessonIntro(level).map(({ idea, purpose, expectation }) => ({ idea, purpose, expectation })),
         items: items.length >= 2 && items.every(readable) ? items : [],

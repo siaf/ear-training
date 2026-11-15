@@ -36,7 +36,16 @@ async function cardScript() {
   return result.outputFiles[0].text;
 }
 
+/** A brand image as a data URL, so the build's blank page can draw it. */
+async function brandImage(...parts) {
+  const file = path.join(ROOT, 'public', 'brand', ...parts);
+  return `data:image/png;base64,${(await fs.readFile(file)).toString('base64')}`;
+}
+
 async function drawCards(lessons) {
+  const logo = await brandImage('logos', 'logo-horizontal-light.png');
+  const mascots = {};
+  for (const name of ['fable', 'noir', 'major', 'pulse']) mascots[name] = await brandImage('mascots', name, 'excited.png');
   const browser = await chromium.launch();
   try {
     const page = await browser.newPage();
@@ -52,18 +61,25 @@ async function drawCards(lessons) {
         lines: lesson.medalLines,
         palette: lesson.palette,
         kicker: lesson.pro ? 'ear training lesson · Pro' : 'free ear training lesson',
-        note: 'ear training · fifths.io',
+        line: lesson.pro
+          ? 'Part of Fifths Pro: ear training that shows what you keep missing.'
+          : 'Can you hear the difference?',
+        cta: lesson.pro ? 'Train your ear  →  fifths.io' : 'Try it free  →  fifths.io',
+        facts: [lesson.segment.name, lesson.pro ? 'Pro' : 'Free in your browser'],
+        art: { mascot: mascots[lesson.mascot], logo },
       });
       await fs.writeFile(path.join(OUT, lesson.slug, 'card.png'), Buffer.from(dataUrl.split(',')[1], 'base64'));
     }
     // A general picture, for app.fifths.io's link preview and the lessons index.
-    const general = await page.evaluate(async () => (await window.FifthsCards.lessonCard({
+    const general = await page.evaluate(async (art) => (await window.FifthsCards.lessonCard({
       name: 'Ear training that tells you what you keep missing',
       lines: ['your ear, trained'],
       palette: 'coral',
       kicker: 'free in your browser',
-      note: 'ear training · fifths.io',
-    })).toDataURL('image/png'));
+      line: 'Short lessons for intervals, chords, scale degrees and singing.',
+      cta: 'Start free  →  fifths.io',
+      art,
+    })).toDataURL('image/png'), { mascot: mascots.fable, logo });
     await fs.writeFile(path.join(OUT, 'card.png'), Buffer.from(general.split(',')[1], 'base64'));
   } finally {
     await browser.close();
