@@ -154,8 +154,8 @@ function lessonPage(lesson) {
   const cta = lesson.pro
     ? `<a href="${appLink(lesson, 'top')}" class="btn btn-coral" data-ph-track data-ph-cta="lesson-page-pro">Open Fifths →</a>
       <span class="note">Part of Fifths Pro. The first lessons in every section are free.</span>`
-    : `<a href="${appLink(lesson, 'top')}" class="btn btn-coral" data-ph-track data-ph-cta="lesson-page-start">Try this lesson free →</a>
-      <span class="note">In your browser, no signup.</span>`;
+    : `<a href="${appLink(lesson, 'top')}" class="btn btn-coral" data-ph-track data-ph-cta="lesson-page-start">Try it yourself →</a>
+      <span class="note">Free, in your browser, no signup.</span>`;
 
   return `${head({ title, description, canonical, ogImage })}
 <script type="application/ld+json">${JSON.stringify(ld)}</script>
@@ -183,7 +183,7 @@ ${navHeader}
     </div>
     <aside class="article-cta">
       <p><strong>Fifths</strong> is ear training that tells you what you keep missing: short lessons in your browser, and analytics that show exactly which intervals, chords and scale degrees trip you up.</p>
-      <a href="${appLink(lesson, 'bottom')}" class="btn btn-coral" data-ph-track data-ph-cta="lesson-page-bottom">${lesson.pro ? 'Open Fifths →' : 'Start this lesson →'}</a>
+      <a href="${appLink(lesson, 'bottom')}" class="btn btn-coral" data-ph-track data-ph-cta="lesson-page-bottom">${lesson.pro ? 'Open Fifths →' : 'Try it yourself →'}</a>
     </aside>
     <p class="article-back"><a href="/lessons/">← All lessons</a></p>
   </article>

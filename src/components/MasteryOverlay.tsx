@@ -2,13 +2,12 @@ import { useEffect, useRef, useState } from 'react';
 import { RotateCcw, Share2 } from 'lucide-react';
 import { Bean } from './primitives';
 import { CurriculumLevel } from '../types';
-import { CURRICULUM, CURRICULUM_SEGMENTS } from '../curriculum';
+import { CURRICULUM, CURRICULUM_SEGMENTS, isProLesson } from '../curriculum';
 import { mascotForPalette, segmentColor, segmentPaletteName } from '../lib/segmentColors';
 import { cardArt } from '../lib/cardArt';
 import ShareSheet from './ShareSheet';
 import { achievementCard, toPngBlob } from '../lib/shareCards';
-import { lessonPageUrl, SITE_URL } from '../lib/lessonPages';
-import { firstPersonClaim, type SharePayload } from '../lib/share';
+import { appShareUrl, firstPersonClaim, type SharePayload } from '../lib/share';
 import { medalLabel } from '../lib/medalLabel';
 
 interface Props {
@@ -140,7 +139,6 @@ export default function MasteryOverlay({ level, onClose, onContinue, next = null
   const palette = segmentColor(level.segmentId ?? 'purple', idx);
   const [sharing, setSharing] = useState(false);
   sharingRef.current = sharing;
-  // Ear-training lessons have a page on fifths.io; anything else links to the home page.
   const claim = firstPersonClaim(level.description, level.name);
   const share: SharePayload = {
     kind: 'medal',
@@ -148,10 +146,8 @@ export default function MasteryOverlay({ level, onClose, onContinue, next = null
     text: claim.startsWith('I can ')
       ? `${claim} Just mastered "${level.name}" in my ear training 🎧`
       : `Just mastered "${level.name}" in my ear training 🎧`,
-    url: (target) => {
-      const utm = { source: 'share', medium: target, campaign: 'medal' };
-      return idx >= 0 ? lessonPageUrl(level, utm) : `${SITE_URL}/?utm_source=share&utm_medium=${target}&utm_campaign=medal`;
-    },
+    // Opens the app on this lesson, so whoever sees it can try it themselves.
+    url: (target) => appShareUrl(isProLesson(level) ? null : level.id, { medium: target, campaign: 'medal' }),
   };
 
   return (

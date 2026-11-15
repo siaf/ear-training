@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('./posthog', () => ({ phCapture: vi.fn() }));
-import { firstPersonClaim, redditShareUrl, xShareUrl, type SharePayload } from './share';
+import { appShareUrl, firstPersonClaim, redditShareUrl, sharedArrival, xShareUrl, type SharePayload } from './share';
 import { lessonPageUrl, lessonSlug } from './lessonPages';
 
 const payload: SharePayload = {
@@ -47,5 +47,19 @@ describe('what a shared medal says', () => {
     expect(firstPersonClaim('Same chord, different vertical layouts — tell them apart', 'Voicings')).toBe('I mastered Voicings.');
     expect(firstPersonClaim('8ths, 16ths, triplets, or dotted-eighth + sixteenth?', 'Subdivisions')).toBe('I mastered Subdivisions.');
     expect(firstPersonClaim('Hear a four-chord progression — V→I or IV→I?', 'Cadences')).toBe('I can hear a four-chord progression.');
+  });
+});
+
+describe('where a share leads', () => {
+  it('opens the app on the shared lesson, or its start for Pro lessons', () => {
+    expect(appShareUrl('found_higher_lower', { medium: 'x', campaign: 'medal' }))
+      .toBe('https://app.fifths.io/?start=found_higher_lower&utm_source=share&utm_medium=x&utm_campaign=medal');
+    expect(appShareUrl(null, { medium: 'reddit', campaign: 'week' }))
+      .toBe('https://app.fifths.io/?utm_source=share&utm_medium=reddit&utm_campaign=week');
+  });
+
+  it('knows when a visit came from a share', () => {
+    expect(sharedArrival('?start=level_1&utm_source=share&utm_medium=x&utm_campaign=week')).toBe('week');
+    expect(sharedArrival('?start=level_1&utm_source=fifths.io')).toBeNull();
   });
 });

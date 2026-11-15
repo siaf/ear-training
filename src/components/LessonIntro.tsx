@@ -10,6 +10,8 @@ interface Props {
   onContinue: () => void;
   onExit: () => void;
   onSkipSinging?: () => void;
+  /** Opened from someone's share: "medal", "week" or "streak". Frames it as "try it yourself". */
+  shared?: string | null;
 }
 
 // Brand-kit palette: Fable=coral, Noir=mint, Major=butter, Pulse=sky.
@@ -20,7 +22,7 @@ const MASCOT_TONE: Record<NonNullable<LessonIntroCopy['mascot']>, { bg: string; 
   pulse: { bg: 'var(--sky-soft)',   ink: 'var(--sky-ink)' },
 };
 
-export default function LessonIntro({ pages, lessonName, onContinue, onExit, onSkipSinging }: Props) {
+export default function LessonIntro({ pages, lessonName, onContinue, onExit, onSkipSinging, shared = null }: Props) {
   const bp = useBreakpoint();
   const mobile = bp !== 'desktop';
 
@@ -175,6 +177,26 @@ export default function LessonIntro({ pages, lessonName, onContinue, onExit, onS
             gap: mobile ? 12 : 14,
           }}
         >
+          {shared && pageIdx === 0 && (
+            <div
+              role="note"
+              style={{
+                background: 'var(--butter-soft)',
+                border: '2px solid var(--ink-1)',
+                boxShadow: '0 3px 0 var(--ink-1)',
+                borderRadius: 14,
+                padding: '10px 14px',
+                fontSize: mobile ? 14 : 15,
+                lineHeight: 1.4,
+                color: 'var(--ink-1)',
+              }}
+            >
+              <b>Shared with you.</b>{' '}
+              {shared === 'medal'
+                ? 'Someone just mastered this. Can you? Try it yourself: a few minutes, free, no signup.'
+                : 'Someone is training their ear with this. Try it yourself: a few minutes, free, no signup.'}
+            </div>
+          )}
           <div
             style={{
               fontFamily: 'var(--ui)',
@@ -260,7 +282,7 @@ export default function LessonIntro({ pages, lessonName, onContinue, onExit, onS
             style={{ flex: 1, borderRadius: mobile ? 16 : 20 }}
           >
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-              {isLast ? "let's go" : 'next'}
+              {isLast ? (shared ? 'try it yourself' : "let's go") : 'next'}
               <ArrowRight size={mobile ? 16 : 22} strokeWidth={2.5} />
             </span>
           </Bean>

@@ -112,7 +112,7 @@ Whenever something moves between free and Pro, or the price changes, check every
 
 ## Sharing
 
-Learners can share a medal (the "mastered" screen), their week (the stats screen, and a prompt at 7, 14, 30… day streaks) and their ear-test score (blog). The pictures are drawn by `src/lib/shareCards.ts`, which also draws each lesson page's preview picture at build time, and the links point to the lesson's page on fifths.io.
+Learners can share a medal (the "mastered" screen), their week (the stats screen, and a prompt at 7, 14, 30… day streaks) and their ear-test score (blog). The pictures are drawn by `src/lib/shareCards.ts`, which also draws each lesson page's preview picture at build time. Shared links open the app on that lesson (`appShareUrl` in `src/lib/share.ts`; Pro lessons open the path), tagged `utm_source=share`, and that first lesson's intro says "Shared with you… try it yourself".
 
 - Nothing personal goes in a shared link or picture: no name, email or account id.
 - Reddit gets a text post with the picture saved for the learner to add, never a bare link, and they pick the community. Reddit flags domains that many accounts drop links to, and removes posts that read like ads.

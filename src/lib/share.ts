@@ -12,8 +12,26 @@ export interface SharePayload {
   title: string;
   /** The post text, without the link. */
   text: string;
-  /** Where the share leads: the lesson's page on fifths.io, tagged per target. */
+  /** Where the share leads: the app, tagged per target (appShareUrl). */
   url: (target: ShareTarget) => string;
+}
+
+export const APP_URL = 'https://app.fifths.io/';
+
+/**
+ * Where a share leads: the app itself, straight into the lesson that was shared (free
+ * lessons only; the app opens Pro ones on the path), tagged so the app can say "shared with
+ * you, try it yourself" and PostHog can count it.
+ */
+export function appShareUrl(levelId: string | null, utm: { medium: string; campaign: string }): string {
+  const tags = `utm_source=share&utm_medium=${encodeURIComponent(utm.medium)}&utm_campaign=${encodeURIComponent(utm.campaign)}`;
+  return levelId ? `${APP_URL}?start=${encodeURIComponent(levelId)}&${tags}` : `${APP_URL}?${tags}`;
+}
+
+/** How this visit arrived, when it came from someone's share: "medal", "week" or "streak". */
+export function sharedArrival(search: string): string | null {
+  const q = new URLSearchParams(search);
+  return q.get('utm_source') === 'share' ? q.get('utm_campaign') ?? 'medal' : null;
 }
 
 export function xShareUrl(p: SharePayload): string {

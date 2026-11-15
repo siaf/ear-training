@@ -2,13 +2,12 @@ import { useMemo, useState } from 'react';
 import { Flame, Share2, X as Close } from 'lucide-react';
 import { Bean } from './primitives';
 import ShareSheet from './ShareSheet';
-import { CURRICULUM } from '../curriculum';
+import { CURRICULUM, isProLesson } from '../curriculum';
 import { getAllSessions, getStreakDays } from '../lib/sessionStore';
 import { weekReport, weekShareText } from '../lib/weekReport';
 import { weekCard, toPngBlob } from '../lib/shareCards';
 import { cardArt } from '../lib/cardArt';
-import { lessonPageUrl, SITE_URL } from '../lib/lessonPages';
-import type { SharePayload } from '../lib/share';
+import { appShareUrl, type SharePayload } from '../lib/share';
 
 const nameOf = (id: string) => CURRICULUM.find((l) => l.id === id)?.name;
 
@@ -28,10 +27,8 @@ export default function WeekShareCard({ milestone, onDismiss, mobile }: { milest
     kind: milestone ? 'streak' : 'week',
     title,
     text,
-    url: (target) => {
-      const utm = { source: 'share', medium: target, campaign: milestone ? 'streak' : 'week' };
-      return level ? lessonPageUrl(level, utm) : `${SITE_URL}/?utm_source=share&utm_medium=${target}&utm_campaign=${utm.campaign}`;
-    },
+    // Opens the app on the lesson where the improvement happened.
+    url: (target) => appShareUrl(level && !isProLesson(level) ? level.id : null, { medium: target, campaign: milestone ? 'streak' : 'week' }),
   };
 
   const headline = report.improved

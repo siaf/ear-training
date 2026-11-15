@@ -67,7 +67,8 @@ test('a mastered lesson can be shared as a picture, on X, on Reddit as a text po
   const x = new URL((await opened(page))[0]);
   expect(x.origin + x.pathname).toBe('https://x.com/intent/post');
   expect(x.searchParams.get('text')).toBe('I can hear two notes and tell which is higher. Just mastered "Higher or Lower" in my ear training 🎧');
-  expect(x.searchParams.get('url')).toBe('https://fifths.io/lessons/higher-or-lower/?utm_source=share&utm_medium=x&utm_campaign=medal');
+  // The link opens the app on the same lesson, so whoever sees it can try it themselves.
+  expect(x.searchParams.get('url')).toBe('https://app.fifths.io/?start=found_higher_lower&utm_source=share&utm_medium=x&utm_campaign=medal');
 
   // Reddit: the picture is saved to add to the post, and the post is text, not a bare link.
   const download = page.waitForEvent('download');
@@ -77,7 +78,7 @@ test('a mastered lesson can be shared as a picture, on X, on Reddit as a text po
   expect(reddit.origin + reddit.pathname).toBe('https://www.reddit.com/submit');
   expect(reddit.searchParams.get('type')).toBe('TEXT');
   expect(reddit.searchParams.get('title')).toBe('Just mastered "Higher or Lower" in my ear training');
-  expect(reddit.searchParams.get('text')).toContain('https://fifths.io/lessons/higher-or-lower/?utm_source=share&utm_medium=reddit&utm_campaign=medal');
+  expect(reddit.searchParams.get('text')).toContain('https://app.fifths.io/?start=found_higher_lower&utm_source=share&utm_medium=reddit&utm_campaign=medal');
 
   // Escape closes the sheet, not the medal behind it.
   await page.keyboard.press('Escape');
@@ -100,7 +101,7 @@ test('the stats screen shares your week, leading with what improved', async ({ p
   const x = new URL((await opened(page))[0]);
   expect(x.searchParams.get('text')).toContain('My week of ear training: Minor 6th: 50% → 90%.');
   expect(x.searchParams.get('text')).toContain('Mastered: Harmonic: Sixths.');
-  expect(x.searchParams.get('url')).toBe('https://fifths.io/lessons/harmonic-sixths/?utm_source=share&utm_medium=x&utm_campaign=week');
+  expect(x.searchParams.get('url')).toBe('https://app.fifths.io/?start=int_harmonic_6ths&utm_source=share&utm_medium=x&utm_campaign=week');
 });
 
 test('reaching a 7-day streak offers to share the week, once', async ({ page }) => {
@@ -113,4 +114,13 @@ test('reaching a 7-day streak offers to share the week, once', async ({ page }) 
   await page.getByRole('button', { name: 'Not now' }).click();
   await expect(card).toBeHidden();
   expect(await page.evaluate(() => localStorage.getItem('fifths.share.streak.7'))).toBe('1');
+});
+
+test('someone opening a shared medal lands in that lesson, invited to try it themselves', async ({ page }) => {
+  await page.goto('/?start=found_higher_lower&utm_source=share&utm_medium=x&utm_campaign=medal');
+  await expect(page.getByRole('note')).toContainText('Shared with you. Someone just mastered this. Can you?');
+  const next = page.getByRole('button', { name: /^next/i });
+  if (await next.isVisible()) await next.click();
+  await page.getByRole('button', { name: /try it yourself/i }).click();
+  await expect(page.getByRole('button', { name: /^higher/i })).toBeVisible({ timeout: 20_000 });
 });

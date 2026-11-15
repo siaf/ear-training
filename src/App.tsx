@@ -72,6 +72,7 @@ function writeFlag(key: string): void {
 import { PRODUCT_IDS, checkoutIsOpen, isPro, purchaseProduct, purchasesNeedAccount, reportSandboxCheckoutAttempt, restorePurchases, subscribeBilling } from './lib/billing';
 import { trackEngagedAnon } from './lib/attribution';
 import { phCapture } from './lib/posthog';
+import { sharedArrival } from './lib/share';
 import LessonIntro from './components/LessonIntro';
 import MasteryOverlay from './components/MasteryOverlay';
 import StreakRecoverySheet from './components/StreakRecoverySheet';
@@ -296,6 +297,8 @@ function checkoutFailedNotice(): PaywallNotice {
 export default function App() {
   const initial = loadPersisted();
   const [deepLinkStart] = useState(readStartParam);
+  // Arrived from someone's share: the first lesson's intro says "try it yourself".
+  const [sharedFrom, setSharedFrom] = useState(() => (typeof window === 'undefined' ? null : sharedArrival(window.location.search)));
 
   // New visitors skip the in-app landing page: they already chose to try the
   // app on fifths.io, and a second sales page lost most of them in seconds.
@@ -630,7 +633,7 @@ export default function App() {
   useEffect(() => {
     if (!deepLinkStart) return;
     setHasOnboarded(true);
-    phCapture('deep_link_start', { level_id: deepLinkStart });
+    phCapture('deep_link_start', { level_id: deepLinkStart, shared: sharedFrom });
     if (!isSignedIn && completedLevels.length >= ANON_LESSON_LIMIT) return;
     void startSession(deepLinkStart, { deferAudio: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1120,6 +1123,7 @@ export default function App() {
       setMasteryLevelId(currentLevel.id);
       haptics.heavy();
     }
+    setSharedFrom(null); // the shared lesson is done; later intros are ordinary
     // A streak milestone offers to share the week, once per milestone.
     const streakNow = getStreakDays();
     const milestoneKey = `fifths.share.streak.${streakNow}`;
@@ -1586,6 +1590,7 @@ export default function App() {
             setRoute('path');
           }}
           onSkipSinging={canSkipSinging ? () => handleSkipSinging('intro') : undefined}
+          shared={sharedFrom && deepLinkStart === currentLevel.id ? sharedFrom : null}
         />
       );
     }

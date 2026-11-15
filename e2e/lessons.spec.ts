@@ -22,7 +22,7 @@ test('a free lesson page starts that lesson in the app, and has its own preview 
   const card = await request.get(`${SITE}/lessons/harmonic-fourths-fifths-and-octaves/card.png`);
   expect(card.ok()).toBe(true);
   expect(card.headers()['content-type']).toBe('image/png');
-  await expect(page.getByRole('link', { name: 'Try this lesson free →' }))
+  await expect(page.getByRole('link', { name: 'Try it yourself →' }).first())
     .toHaveAttribute('href', /^https:\/\/app\.fifths\.io\/\?start=int_harmonic_4ths_5ths&utm_source=fifths\.io&utm_medium=lesson-page/);
   await expect(page.locator('.lesson-items li')).toHaveText(['Perfect 4th', 'Perfect 5th', 'Octave']);
   const ld = JSON.parse((await page.locator('script[type="application/ld+json"]').textContent())!);
