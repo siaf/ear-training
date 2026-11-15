@@ -67,7 +67,7 @@ Run all three before deploying. Nothing runs them for you: there's no CI for tes
 | `lesson.spec.ts` | Onboarding, deep links, a full 12-question lesson with no samples available, Replay during a rhythm |
 | `screens.spec.ts` | Path, stats, settings, paywall, Pro lessons staying locked |
 | `billing.spec.ts` | RevenueCat hearing only about signed-in accounts that Supabase's server confirms (nothing for visitors, no anonymous IDs), and recovering after a failed load |
-| `accounts.spec.ts` | Sign-in prompts, on a third app server with a fake Supabase address; a faked signed-in learner hitting closed checkout |
+| `accounts.spec.ts` | Sign-in prompts, on a third app server with a fake Supabase address; the sign-in wall after two lessons (`ANON_LESSON_LIMIT` in `App.tsx`), including mixed practice and shared links, and never for signed-in learners; a faked signed-in learner hitting closed checkout |
 | `tools.spec.ts` | Every free tool loads, and sample files arrive |
 | `pro.spec.ts` | Pro features as a signed-in subscriber (`asPro` in `fixtures.ts`, on the accounts server): saved drills, melodic dictation, all-time stats; and drills leading free learners to the plans |
 | `repeat.spec.ts` | "Repeat lesson" after a lesson, "drill what you missed" (free and Pro), and replaying a finished lesson from the path |

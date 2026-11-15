@@ -8,13 +8,15 @@ import { reportError } from '../lib/reportError';
 interface Props {
   onClose: () => void;
   // 'first_lesson' = the soft ask after someone's first finished lesson.
-  reason?: 'sync' | 'first_lesson';
+  // 'lesson_limit' = the wall after the free lessons (ANON_LESSON_LIMIT in App.tsx).
+  reason?: 'sync' | 'first_lesson' | 'lesson_limit';
 }
 
 type Status = 'idle' | 'sending' | 'sent' | 'error';
 
 export default function AuthSheet({ onClose, reason = 'sync' }: Props) {
   const firstLesson = reason === 'first_lesson';
+  const wall = reason === 'lesson_limit';
   const [mounted, setMounted] = useState(false);
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<Status>('idle');
@@ -108,7 +110,7 @@ export default function AuthSheet({ onClose, reason = 'sync' }: Props) {
                   marginBottom: 6,
                 }}
               >
-                {firstLesson ? 'nice work' : 'cloud sync'}
+                {firstLesson ? 'nice work' : wall ? 'free account' : 'cloud sync'}
               </div>
               <h2
                 style={{
@@ -120,14 +122,18 @@ export default function AuthSheet({ onClose, reason = 'sync' }: Props) {
                   margin: '0 0 10px',
                 }}
               >
-                {firstLesson ? (
+                {wall ? (
+                  <>Save your progress to <span style={{ fontStyle: 'italic', color: 'var(--mint-ink)' }}>keep going.</span></>
+                ) : firstLesson ? (
                   <>Keep your <span style={{ fontStyle: 'italic', color: 'var(--mint-ink)' }}>progress.</span></>
                 ) : (
                   <>Sync your practice across <span style={{ fontStyle: 'italic', color: 'var(--mint-ink)' }}>devices.</span></>
                 )}
               </h2>
               <p style={{ fontSize: 14, color: 'var(--ink-2)', lineHeight: 1.5, margin: '0 0 18px' }}>
-                {firstLesson
+                {wall
+                  ? 'You\'ve finished your first lessons. A free account keeps everything you\'ve done and opens the rest of the free course, on any device. It takes 10 seconds with Google.'
+                  : firstLesson
                   ? 'Save this lesson and pick up where you left off on any device. We\'ll send an occasional nudge to keep your streak going; unsubscribe anytime.'
                   : 'Sign in once and your sessions, streaks, and progress will follow you to any device.'}
               </p>

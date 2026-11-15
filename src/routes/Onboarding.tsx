@@ -104,7 +104,7 @@ export default function Onboarding({ onDone, onSkip }: Props) {
           mobile={mobile}
           tone={TONE}
           question="Hey, I'm Fable. Where should we start?"
-          hint="Free, no signup. Turn your sound on — your first question is one tap away."
+          hint="Free, no signup to start. Turn your sound on — your first question is one tap away."
           options={CHOICES}
           onPick={pick}
         />

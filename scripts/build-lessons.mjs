@@ -115,7 +115,7 @@ function lessonPage(lesson) {
   const canonical = `${SITE_URL}/lessons/${lesson.slug}/`;
   const ogImage = `${canonical}card.png`;
   const title = `${lesson.name}: ${lesson.pro ? 'an ear training lesson' : 'a free ear training lesson'} — Fifths`;
-  const description = `${summary}. ${lesson.pro ? 'Part of Fifths Pro.' : 'Practise it free in your browser with Fifths, no signup.'}`;
+  const description = `${summary}. ${lesson.pro ? 'Part of Fifths Pro.' : 'Practise it free in your browser with Fifths, no signup to start.'}`;
   const ld = [
     {
       '@context': 'https://schema.org',
@@ -155,7 +155,7 @@ function lessonPage(lesson) {
     ? `<a href="${appLink(lesson, 'top')}" class="btn btn-coral" data-ph-track data-ph-cta="lesson-page-pro">Open Fifths →</a>
       <span class="note">Part of Fifths Pro. The first lessons in every section are free.</span>`
     : `<a href="${appLink(lesson, 'top')}" class="btn btn-coral" data-ph-track data-ph-cta="lesson-page-start">Try it yourself →</a>
-      <span class="note">Free, in your browser, no signup.</span>`;
+      <span class="note">Free, in your browser, no signup to start.</span>`;
 
   return `${head({ title, description, canonical, ogImage })}
 <script type="application/ld+json">${JSON.stringify(ld)}</script>

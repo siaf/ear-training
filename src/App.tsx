@@ -63,6 +63,14 @@ import {
 import { supabaseEnabled } from './lib/supabase';
 
 const SIGNUP_PROMPTED_KEY = 'fifths.signupPrompted';
+/**
+ * Lessons a signed-out learner can finish before saving their progress (signing in) to go on.
+ * Was 7 until 2026-11-15; 2 keeps the first lesson (where ads and shared links land) free of
+ * friction, and asks once someone has shown they're staying. Measured on the "Sign-in wall"
+ * PostHog dashboard (signin_gate_shown, fifths_signup, auth_sheet_dismissed).
+ */
+export const ANON_LESSON_LIMIT = 2;
+
 /** Streaks worth celebrating with a "share your week" card on the results screen. */
 const STREAK_MILESTONES = [7, 14, 30, 50, 100, 200, 365];
 
@@ -362,6 +370,7 @@ export default function App() {
   const coursePreview = DEV_COURSE_PREVIEW || isOwner;
   const unlockAll = debugMode && devToolsAllowed;
   const [showAuth, setShowAuth] = useState(false);
+  const [authReason, setAuthReason] = useState<'sync' | 'lesson_limit'>('sync');
   const [paywallNotice, setPaywallNotice] = useState<PaywallNotice | null>(null);
   const [showFirstLessonPrompt, setShowFirstLessonPrompt] = useState(false);
   const [proActive, setProActive] = useState<boolean>(isPro());
@@ -427,9 +436,9 @@ export default function App() {
     route === 'path' ? 'path' : route === 'stats' ? 'stats' : route === 'settings' ? 'settings' : null;
 
   const isSignedIn = userEmail !== null;
-  const ANON_LESSON_LIMIT = 7;
   const pendingPurchaseRef = useRef<string | null>(null);
-  const pendingStartRef = useRef<string | null>(null);
+  // What a learner asked for when the sign-in wall stopped them; it carries on once they're in.
+  const pendingActionRef = useRef<(() => void) | null>(null);
   // In review or interleave mode, currentLevel flips per-question to the queue's current
   // item's source level. Each question is sampled from a different lesson.
   const reviewActiveItem =
@@ -566,11 +575,11 @@ export default function App() {
       const email = getCurrentUser()?.email ?? null;
       setUserEmail(email);
       // Resume any deferred intent the user queued before signing in.
-      if (email && pendingStartRef.current) {
-        const id = pendingStartRef.current;
-        pendingStartRef.current = null;
+      if (email && pendingActionRef.current) {
+        const action = pendingActionRef.current;
+        pendingActionRef.current = null;
         setShowAuth(false);
-        void startSession(id);
+        action();
       }
       if (email && pendingPurchaseRef.current) {
         const id = pendingPurchaseRef.current;
@@ -633,6 +642,28 @@ export default function App() {
     setSettings((s) => (s.activePath === path ? s : { ...s, activePath: path }));
   }, []);
 
+  // The sign-in wall: once a signed-out learner has finished ANON_LESSON_LIMIT lessons, any
+  // further practice (a lesson, a repeat, review, mixed practice) asks them to save their
+  // progress first, then carries on with what they asked for. Only once the app knows they're
+  // signed out ('signed_out'), so a signed-in learner never sees it while the page loads, and
+  // never where accounts are off.
+  const needsAccount = syncState === 'signed_out' && completedLevels.length >= ANON_LESSON_LIMIT;
+  const signInFirst = useCallback(
+    (action: () => void, trigger: string): void => {
+      if (!needsAccount) { action(); return; }
+      pendingActionRef.current = action;
+      phCapture('signin_gate_shown', { trigger, completed_levels_count: completedLevels.length });
+      setAuthReason('lesson_limit');
+      setShowAuth(true);
+    },
+    [needsAccount, completedLevels.length],
+  );
+  const closeAuth = useCallback(() => {
+    pendingActionRef.current = null;
+    setShowAuth(false);
+    setAuthReason('sync');
+  }, []);
+
   // Wrap startSession to enforce the anonymous lesson cap.
   const guardedStartSession = useCallback(
     (levelId: string) => {
@@ -645,14 +676,9 @@ export default function App() {
         setRoute('paywall');
         return;
       }
-      if (!isSignedIn && completedLevels.length >= ANON_LESSON_LIMIT) {
-        pendingStartRef.current = levelId;
-        setShowAuth(true);
-        return;
-      }
-      void startSession(levelId);
+      signInFirst(() => { void startSession(levelId); }, 'lesson');
     },
-    [isSignedIn, completedLevels.length, startSession, proActive, rememberPath, coursePreview],
+    [signInFirst, startSession, proActive, rememberPath, coursePreview],
   );
 
   useEffect(() => {
@@ -660,10 +686,18 @@ export default function App() {
     setHasOnboarded(true);
     phCapture('deep_link_start', { level_id: deepLinkStart, shared: sharedFrom });
     rememberPath(deepLinkStart);
-    if (!isSignedIn && completedLevels.length >= ANON_LESSON_LIMIT) return;
+    // Past the free lessons, wait to learn whether they're signed in (effect below).
+    if (supabaseEnabled() && completedLevels.length >= ANON_LESSON_LIMIT) { deferredStartRef.current = deepLinkStart; return; }
     void startSession(deepLinkStart, { deferAudio: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  const deferredStartRef = useRef<string | null>(null);
+  useEffect(() => {
+    const id = deferredStartRef.current;
+    if (!id || syncState === 'disabled') return; // still finding out
+    deferredStartRef.current = null;
+    signInFirst(() => { void startSession(id, { deferAudio: true }); }, 'link');
+  }, [syncState, signInFirst, startSession]);
 
   /**
    * Start a Daily Review session. Pulls due items from the Leitner schedule, picks the source
@@ -1568,8 +1602,8 @@ export default function App() {
 
   const handlePracticeAgain = () => {
     if (lastSessionKind === 'custom' && lastCustomSelRef.current) { void startCustomSession(lastCustomSelRef.current, lastCustomMetaRef.current); return; }
-    if (selectedLevelId) startSession(selectedLevelId);
-    else startSession(currentLevel.id);
+    const id = selectedLevelId ?? currentLevel.id;
+    signInFirst(() => { void startSession(id); }, 'repeat');
   };
 
   // The learner's next lesson in teaching order (TEACHING_ORDER), skipping Pro lessons on
@@ -1581,7 +1615,8 @@ export default function App() {
   })();
 
   const handleNextLesson = () => {
-    if (nextLessonForLearner) startSession(nextLessonForLearner.id);
+    const next = nextLessonForLearner;
+    if (next) signInFirst(() => { void startSession(next.id); }, 'next_lesson');
     else setRoute('path');
   };
 
@@ -1827,7 +1862,7 @@ export default function App() {
           isPro={proActive}
         />
         {isMobile && tabsActive && <BottomTabs active={tabsActive} onChange={(r) => setRoute(r)} />}
-        {showAuth && <AuthSheet onClose={() => setShowAuth(false)} />}
+        {showAuth && <AuthSheet reason={authReason} onClose={closeAuth} />}
       </>
     );
   }
@@ -1879,7 +1914,7 @@ export default function App() {
           }}
           onDismiss={() => { setPaywallNotice(null); setRoute('path'); }}
         />
-        {showAuth && <AuthSheet onClose={() => setShowAuth(false)} />}
+        {showAuth && <AuthSheet reason={authReason} onClose={closeAuth} />}
       </>
     );
   }
@@ -1945,14 +1980,14 @@ export default function App() {
         isPro={proActive}
         isSignedIn={isSignedIn}
         dueCount={countDueItems(masteryRef.current, completedLevels.filter((id) => pathOfLevel(id) === activePath))}
-        onStartReview={() => { void startReviewSession(activePath); }}
-        onStartInterleave={() => { void startInterleaveSession(); }}
+        onStartReview={() => signInFirst(() => { void startReviewSession(activePath); }, 'review')}
+        onStartInterleave={() => signInFirst(() => { void startInterleaveSession(); }, 'mixed')}
         onOpenCustom={() => setRoute('custom')}
         recommendation={getCrossSegmentRecommendation(completedLevels, pathScreenLevelId, proActive)}
-        onStartCheckpoint={(cp) => { void startCheckpointSession(cp); }}
+        onStartCheckpoint={(cp) => signInFirst(() => { void startCheckpointSession(cp); }, 'checkpoint')}
       />
       {isMobile && tabsActive && <BottomTabs active={tabsActive} onChange={(r) => setRoute(r)} />}
-      {showAuth && <AuthSheet onClose={() => setShowAuth(false)} />}
+      {showAuth && <AuthSheet reason={authReason} onClose={closeAuth} />}
       {showStreakRecovery && (
         <StreakRecoverySheet
           streakDays={streakDays}

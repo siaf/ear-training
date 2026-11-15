@@ -220,8 +220,8 @@ export default function LessonIntro({ pages, lessonName, onContinue, onExit, onS
             >
               <b>Shared with you.</b>{' '}
               {shared === 'medal'
-                ? 'Someone just mastered this. Can you? Try it yourself: a few minutes, free, no signup.'
-                : 'Someone is training their ear with this. Try it yourself: a few minutes, free, no signup.'}
+                ? 'Someone just mastered this. Can you? Try it yourself: a few minutes, free, no signup to start.'
+                : 'Someone is training their ear with this. Try it yourself: a few minutes, free, no signup to start.'}
             </div>
           )}
           <div

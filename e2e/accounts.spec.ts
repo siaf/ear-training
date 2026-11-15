@@ -1,4 +1,4 @@
-import { test, expect, openApp, ACCOUNTS_APP } from './fixtures';
+import { test, expect, openApp, ACCOUNTS_APP, signedIn } from './fixtures';
 
 // ACCOUNTS_APP: the app with accounts switched on (see fixtures.ts).
 
@@ -83,4 +83,44 @@ test('while checkout is closed, a signed-in learner is told on the page and put 
   await expect.poll(() => wantsPro.length).toBe(1);
   expect(wantsPro[0]).toEqual({ auth: 'Bearer e2e-access-token', apikey: 'e2e' });
   expect(dialogs).toEqual([]);
+});
+
+// The sign-in wall (ANON_LESSON_LIMIT in App.tsx): two lessons free, then save your progress.
+const TWO_DONE = ['found_higher_lower', 'found_same_diff'];
+const wall = (page: import('@playwright/test').Page) => page.getByRole('dialog', { name: /sign in/i });
+
+test('after two lessons, a signed-out learner saves their progress before a third', async ({ page }) => {
+  await openApp(page, `${ACCOUNTS_APP}/path`, TWO_DONE);
+  await page.getByRole('button', { name: /continue/i }).first().click();
+  await expect(wall(page)).toContainText('Save your progress to keep going.');
+  await expect(page).toHaveURL(/path/);
+
+  // "Not now" keeps them on the path, without starting anything.
+  await page.getByRole('button', { name: 'not now' }).click();
+  await expect(wall(page)).toBeHidden();
+  await expect(page).toHaveURL(/path/);
+
+  // Mixed practice is more practice too.
+  await page.getByText('Mix it up').click();
+  await expect(wall(page)).toContainText('Save your progress to keep going.');
+});
+
+test('one lesson in, the next one starts without signing in', async ({ page }) => {
+  await openApp(page, `${ACCOUNTS_APP}/path`, ['found_higher_lower']);
+  await page.getByRole('button', { name: /continue/i }).first().click();
+  await expect(page).toHaveURL(/practice/);
+  await expect(wall(page)).toBeHidden();
+});
+
+test('a shared link past the free lessons asks to sign in too', async ({ page }) => {
+  await openApp(page, `${ACCOUNTS_APP}/?start=found_beating&utm_source=share&utm_campaign=medal`, TWO_DONE);
+  await expect(wall(page)).toContainText('Save your progress to keep going.');
+});
+
+test('signed-in learners never see the wall, however many lessons they have', async ({ page }) => {
+  await signedIn(page);
+  await openApp(page, `${ACCOUNTS_APP}/path`, [...TWO_DONE, 'rhy_same_diff', 'found_beating', 'found_consonance']);
+  await page.getByRole('button', { name: /continue/i }).first().click();
+  await expect(page).toHaveURL(/practice/);
+  await expect(wall(page)).toBeHidden();
 });

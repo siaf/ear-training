@@ -68,7 +68,7 @@ function articlePage(post) {
   // Strip the leading H1 from rendered HTML — we already render <h1> in the article header.
   // A paragraph holding only {{lesson-cta}} becomes a lesson button mid-post.
   const lessonCtaHtml = `<aside class="article-cta article-cta-mid">
-      <p>Want to hear the difference for yourself? Fifths is free in your browser, with no signup.</p>
+      <p>Want to hear the difference for yourself? Fifths is free in your browser, with no signup to start.</p>
       <a href="https://app.fifths.io/?utm_source=fifths.io&utm_medium=blog&utm_campaign=${slug}&utm_content=mid" class="btn btn-coral" data-ph-track data-ph-cta="article-mid">Start a free lesson →</a>
     </aside>`;
   const body = post.html
