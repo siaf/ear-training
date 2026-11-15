@@ -279,9 +279,10 @@ export default function MasteryOverlay({ level, onClose, onContinue, next = null
               name: level.name,
               lines: medalLabel(level.name),
               palette: paletteName,
-              kicker: 'mastered',
-              line: 'I can hear the difference. Can you?',
-              cta: 'Try it free  →  fifths.io',
+              kicker: 'I just mastered',
+              banner: 'mastered',
+              description: level.description,
+              cta: 'Can you? Try it free  →  fifths.io',
               facts: [accuracy !== undefined ? `${Math.round(accuracy)}% right` : '', CURRICULUM_SEGMENTS.find((sg) => sg.levels.some((l) => l.id === level.id))?.name ?? ''],
               art: cardArt(mascotForPalette(paletteName)),
             }).then(toPngBlob);

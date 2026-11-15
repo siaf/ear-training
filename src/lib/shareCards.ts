@@ -184,51 +184,6 @@ function ribbons(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: numbe
   tail(1, palette.ink);
 }
 
-/** The mastery medal, the same drawing as MasteryOverlay's, scaled to radius `r`. */
-function medal(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number, palette: { bg: string; ink: string }, lines: string[]) {
-  const s = r / 112;
-  ctx.save();
-  // An ink offset under it, like the app's chunky shapes.
-  ctx.beginPath();
-  ctx.arc(cx, cy + 7, r, 0, Math.PI * 2);
-  ctx.fillStyle = INK;
-  ctx.fill();
-  ctx.beginPath();
-  ctx.arc(cx, cy, r, 0, Math.PI * 2);
-  ctx.fillStyle = palette.bg;
-  ctx.fill();
-  const glow = ctx.createRadialGradient(cx, cy - 24 * s, 0, cx, cy - 24 * s, 135 * s);
-  glow.addColorStop(0, 'rgba(255,255,255,0.7)');
-  glow.addColorStop(0.6, 'rgba(255,255,255,0)');
-  ctx.fillStyle = glow;
-  ctx.fill();
-  ctx.lineWidth = 6 * s;
-  ctx.strokeStyle = palette.ink;
-  ctx.stroke();
-
-  ctx.beginPath();
-  ctx.arc(cx, cy, 88 * s, 0, Math.PI * 2);
-  ctx.setLineDash([3 * s, 6 * s]);
-  ctx.lineWidth = 2 * s;
-  ctx.globalAlpha = 0.5;
-  ctx.stroke();
-  ctx.setLineDash([]);
-  ctx.globalAlpha = 1;
-
-  ctx.fillStyle = palette.ink;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'alphabetic';
-  ctx.font = `italic 400 ${18 * s}px ${SERIF}`;
-  ctx.fillText('Mastery', cx, cy - 12 * s);
-  ctx.font = `400 ${26 * s}px ${SERIF}`;
-  ctx.fillText('unlocked', cx, cy + 20 * s);
-  const two = lines.length > 1;
-  ctx.font = `500 ${(two ? 11 : 12) * s}px ${SANS}`;
-  ctx.globalAlpha = 0.75;
-  lines.forEach((line, i) => ctx.fillText(line, cx, cy + (two ? 44 + i * 14 : 50) * s));
-  ctx.restore();
-}
-
 /** Under the card: the logo on the left, and an invitation to try on the right. */
 function foot(ctx: CanvasRenderingContext2D, logo: HTMLImageElement | null, cta: string) {
   if (logo) {
@@ -249,17 +204,121 @@ function foot(ctx: CanvasRenderingContext2D, logo: HTMLImageElement | null, cta:
   ctx.fillText(cta, x + w / 2, FOOT_Y + 39);
 }
 
+/** Splits a short label into one or two even lines at a space. */
+function balance(text: string): string[] {
+  // Interval shorthand stays together: "Melodic / P4, P5 & P8 ↑", not "Melodic P4, / P5…".
+  const shorthand = text.match(/^(.+?) ((?:P\d|TT|M\d|m\d)\b.*)$/);
+  if (shorthand) return [shorthand[1], shorthand[2]];
+  const words = text.split(' ');
+  if (words.length < 2 || text.length <= 12) return [text];
+  let best = [text];
+  let longest = Infinity;
+  for (let i = 1; i < words.length; i++) {
+    const lines = [words.slice(0, i).join(' '), words.slice(i).join(' ')];
+    const l = Math.max(...lines.map((x) => x.length));
+    if (l < longest) { best = lines; longest = l; }
+  }
+  return best;
+}
+
 /**
- * A lesson's picture: its medal on ribbons, the section's mascot cheering, and its name.
- * `kicker` is "mastered" when a learner shares their medal, "free ear training lesson" on
- * the lesson's own page; `line` speaks to whoever sees it.
+ * The medal for sharing: readable at a glance in a feed. The skill's short name large in the
+ * middle, three stars above, and a banner across it ("MASTERED", like an award ribbon).
+ */
+function awardMedal(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number, palette: { bg: string; ink: string }, label: string, banner: string) {
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(cx, cy + 8, r, 0, Math.PI * 2);
+  ctx.fillStyle = INK;
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.fillStyle = palette.bg;
+  ctx.fill();
+  const glow = ctx.createRadialGradient(cx, cy - r * 0.3, 0, cx, cy - r * 0.3, r * 1.1);
+  glow.addColorStop(0, 'rgba(255,255,255,0.75)');
+  glow.addColorStop(0.65, 'rgba(255,255,255,0)');
+  ctx.fillStyle = glow;
+  ctx.fill();
+  ctx.lineWidth = 8;
+  ctx.strokeStyle = INK;
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(cx, cy, r * 0.82, 0, Math.PI * 2);
+  ctx.setLineDash([4, 8]);
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = palette.ink;
+  ctx.globalAlpha = 0.55;
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.globalAlpha = 1;
+
+  ctx.textAlign = 'center';
+  ctx.fillStyle = palette.ink;
+  ctx.font = `400 ${Math.round(r * 0.17)}px ${SANS}`;
+  ctx.fillText('★  ★  ★', cx, cy - r * 0.48);
+
+  // The skill, as large as fits inside the ring: "higher or lower", "P4, P5 & P8 ↑".
+  const lines = balance(label);
+  let size = Math.round(r * 0.3);
+  for (; size > 18; size -= 2) {
+    ctx.font = `italic 400 ${size}px ${SERIF}`;
+    if (lines.every((l) => ctx.measureText(l).width <= r * 1.3)) break;
+  }
+  ctx.fillStyle = INK;
+  const lineH = size * 1.05;
+  const top = cy - r * 0.05 - ((lines.length - 1) * lineH) / 2;
+  lines.forEach((l, i) => ctx.fillText(l, cx, top + i * lineH + size * 0.3));
+
+  // The banner, wider than the medal, with folded ends.
+  const bw = r * 1.7;
+  const bh = r * 0.34;
+  const by = cy + r * 0.36;
+  const fold = r * 0.16;
+  ctx.fillStyle = palette.ink;
+  for (const dir of [-1, 1] as const) {
+    const ex = cx + dir * (bw / 2);
+    ctx.beginPath();
+    ctx.moveTo(ex - dir * fold, by + fold * 0.6);
+    ctx.lineTo(ex + dir * fold * 1.1, by + fold * 0.6);
+    ctx.lineTo(ex + dir * fold * 0.55, by + fold * 0.6 + bh / 2);
+    ctx.lineTo(ex + dir * fold * 1.1, by + fold * 0.6 + bh);
+    ctx.lineTo(ex - dir * fold, by + fold * 0.6 + bh);
+    ctx.closePath();
+    ctx.fill();
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = INK;
+    ctx.stroke();
+  }
+  rounded(ctx, cx - bw / 2, by, bw, bh, 6);
+  ctx.fillStyle = INK;
+  ctx.fill();
+  ctx.fillStyle = '#ffffff';
+  ctx.font = `700 ${Math.round(bh * 0.46)}px ${SANS}`;
+  spacing(ctx, 5);
+  ctx.textBaseline = 'middle';
+  ctx.fillText(banner, cx + 2.5, by + bh / 2 + 1);
+  ctx.textBaseline = 'alphabetic';
+  spacing(ctx, 0);
+  ctx.restore();
+}
+
+/**
+ * A lesson's picture, made to read in a feed by someone who has never heard of Fifths:
+ * the medal says what the skill is in two words, and the text says it as a sentence:
+ * "I just mastered / Higher or Lower / Hear two notes and tell which is higher".
+ * `kicker` is "I just mastered" when a learner shares a medal, "Free ear training lesson"
+ * on the lesson's own page, and `banner` is what the medal's ribbon says.
  */
 export async function lessonCard(opts: {
   name: string;
+  /** The medal label (medalLabel.ts); shortened further here for the big medal. */
   lines: string[];
   palette: PaletteName;
   kicker: string;
-  line: string;
+  banner: string;
+  /** What the skill is, in plain words: the lesson's description. */
+  description: string;
   cta: string;
   /** Small chips under the text: "92% right", "Intervals". */
   facts?: string[];
@@ -273,45 +332,55 @@ export async function lessonCard(opts: {
   blob(ctx, 640, 640, 120, PALETTES.lav.soft); // clear of the logo, whose background is the page colour
   chunky(ctx, PANEL.x, PANEL.y, PANEL.w, PANEL.h, PANEL.r, CARD);
 
-  // Clip to the card, so the ribbons and mascot stay inside it.
+  // The medal side, clipped to the card.
+  const cx = 290;
+  const cy = 236;
+  const r = 158;
+  // Parentheses don't fit a medal: "voicings (closed, drop-2…)" says "voicings".
+  const short = opts.lines.join(' ').replace(/\s*\([^)]*\)?/g, '').trim();
+  const label = short.charAt(0).toUpperCase() + short.slice(1);
   ctx.save();
   rounded(ctx, PANEL.x + 2, PANEL.y + 2, PANEL.w - 4, PANEL.h - 4, PANEL.r - 2);
   ctx.clip();
-  blob(ctx, 270, 250, 205, p.soft);
-  confetti(ctx, 270, 230, 175);
-  ribbons(ctx, 270, 225, 150, p);
-  medal(ctx, 270, 225, 150, p, opts.lines);
-  if (mascot) ctx.drawImage(mascot, 330, 262, 220, 220);
+  blob(ctx, cx, cy + 20, 215, p.soft);
+  confetti(ctx, cx, cy - 10, 190);
+  ribbons(ctx, cx, cy, r, p);
+  awardMedal(ctx, cx, cy, r, p, label, opts.banner.toUpperCase());
+  if (mascot) ctx.drawImage(mascot, cx + 112, cy + 92, 170, 170);
   ctx.restore();
 
-  // The text column, centred in the card: kicker, name, line, facts.
-  const x = 560;
+  // The sentence: kicker, name, what it is, facts. Centred down the card.
+  const x = 610;
+  const width = 510;
   ctx.textAlign = 'left';
-  let size = 60;
+  let size = 64;
   let lines: string[] = [];
-  for (; size >= 38; size -= 4) {
+  for (; size >= 40; size -= 4) {
     ctx.font = `italic 400 ${size}px ${SERIF}`;
-    lines = wrap(ctx, opts.name, 540, 3);
+    lines = wrap(ctx, opts.name, width, 3);
     if (!lines[lines.length - 1].endsWith('…')) break;
   }
-  ctx.font = `500 26px ${SANS}`;
-  const said = wrap(ctx, opts.line, 540, 2);
+  ctx.font = `500 28px ${SANS}`;
+  const desc = wrap(ctx, opts.description, width, 3);
   const facts = opts.facts?.filter(Boolean) ?? [];
-  const lineH = size * 1.08;
-  const height = 38 + 26 + lines.length * lineH + 14 + said.length * 34 + (facts.length ? 26 + 46 : 0);
+  const lineH = size * 1.06;
+  const height = 26 + 18 + lines.length * lineH + 16 + desc.length * 38 + (facts.length ? 24 + 44 : 0);
   let y = PANEL.y + (PANEL.h - height) / 2;
 
-  pill(ctx, x, y, opts.kicker.toUpperCase(), p.soft, p.ink);
-  y += 38 + 26;
+  ctx.fillStyle = p.ink;
+  ctx.font = `700 22px ${SANS}`;
+  spacing(ctx, 3);
+  ctx.fillText(opts.kicker.toUpperCase(), x, y + 20);
+  spacing(ctx, 0);
+  y += 26 + 18;
   ctx.fillStyle = INK;
   ctx.font = `italic 400 ${size}px ${SERIF}`;
-  lines.forEach((line, i) => ctx.fillText(line, x, y + size * 0.8 + i * lineH));
-  y += lines.length * lineH + 14;
+  lines.forEach((line, i) => ctx.fillText(line, x, y + size * 0.78 + i * lineH));
+  y += lines.length * lineH + 16;
   ctx.fillStyle = INK_2;
-  ctx.font = `500 26px ${SANS}`;
-  said.forEach((line, i) => ctx.fillText(line, x, y + 26 + i * 34));
-  y += said.length * 34 + 26;
-  // Facts as chips, the badge-of-honour details.
+  ctx.font = `500 28px ${SANS}`;
+  desc.forEach((line, i) => ctx.fillText(line, x, y + 28 + i * 38));
+  y += desc.length * 38 + 24;
   let fx = x;
   for (const fact of facts) {
     ctx.font = `600 20px ${SANS}`;

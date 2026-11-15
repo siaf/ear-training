@@ -60,12 +60,11 @@ async function drawCards(lessons) {
         name: lesson.name,
         lines: lesson.medalLines,
         palette: lesson.palette,
-        kicker: lesson.pro ? 'ear training lesson · Pro' : 'free ear training lesson',
-        line: lesson.pro
-          ? 'Part of Fifths Pro: ear training that shows what you keep missing.'
-          : 'Can you hear the difference?',
-        cta: lesson.pro ? 'Train your ear  →  fifths.io' : 'Try it free  →  fifths.io',
-        facts: [lesson.segment.name, lesson.pro ? 'Pro' : 'Free in your browser'],
+        kicker: lesson.pro ? 'Ear training lesson · Pro' : 'Free ear training lesson',
+        banner: lesson.pro ? 'pro lesson' : 'free lesson',
+        description: lesson.description,
+        cta: lesson.pro ? 'Train your ear  →  fifths.io' : 'Can you hear it? Try free  →  fifths.io',
+        facts: [lesson.segment.name, lesson.pro ? 'Part of Fifths Pro' : 'In your browser'],
         art: { mascot: mascots[lesson.mascot], logo },
       });
       await fs.writeFile(path.join(OUT, lesson.slug, 'card.png'), Buffer.from(dataUrl.split(',')[1], 'base64'));
@@ -75,8 +74,9 @@ async function drawCards(lessons) {
       name: 'Ear training that tells you what you keep missing',
       lines: ['your ear, trained'],
       palette: 'coral',
-      kicker: 'free in your browser',
-      line: 'Short lessons for intervals, chords, scale degrees and singing.',
+      kicker: 'Free ear training app',
+      banner: 'fifths',
+      description: 'Short lessons for intervals, chords, scale degrees and singing, in your browser.',
       cta: 'Start free  →  fifths.io',
       art,
     })).toDataURL('image/png'), { mascot: mascots.fable, logo });
