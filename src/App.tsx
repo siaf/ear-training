@@ -44,7 +44,7 @@ import Paywall, { PlanId, PaywallNotice } from './routes/Paywall';
 import { registerProInterest } from './lib/proInterest';
 import VoiceCheck from './components/VoiceCheck';
 import CustomPractice from './routes/CustomPractice';
-import { buildCustomQueue, drillItems, recordDrillResult, type CustomSelection } from './lib/customPractice';
+import { autoName, buildCustomQueue, drillFromMistakes, drillItems, recordDrillResult, variantSummary, type CustomSelection } from './lib/customPractice';
 import { clearAllSessions, getStreakDays, getTodayMinutes, hasHistory, recordSession, timeSinceLastSession } from './lib/sessionStore';
 import {
   flushSoon,
@@ -66,7 +66,7 @@ function readFlag(key: string): boolean {
 function writeFlag(key: string): void {
   try { localStorage.setItem(key, '1'); } catch { /* private mode */ }
 }
-import { PRODUCT_IDS, checkoutIsOpen, isPro, purchaseProduct, reportSandboxCheckoutAttempt, subscribeBilling } from './lib/billing';
+import { PRODUCT_IDS, checkoutIsOpen, isPro, purchaseProduct, purchasesNeedAccount, reportSandboxCheckoutAttempt, restorePurchases, subscribeBilling } from './lib/billing';
 import { trackEngagedAnon } from './lib/attribution';
 import { phCapture } from './lib/posthog';
 import LessonIntro from './components/LessonIntro';
@@ -269,6 +269,15 @@ function checkoutClosedNotice(email: string): PaywallNotice {
     tone: 'info',
     title: 'Pro opens soon.',
     body: `We'll email you at ${email} the moment it does. You haven't been charged.`,
+  };
+}
+
+function nothingToRestoreNotice(): PaywallNotice {
+  return {
+    plan: 'pro',
+    tone: 'info',
+    title: 'No Pro subscription found.',
+    body: 'Nothing to restore for this Apple ID. If you subscribed on another one, sign in with it in Settings first.',
   };
 }
 
@@ -1635,6 +1644,11 @@ export default function App() {
 
   if (route === 'results') {
     const masteryLevel = masteryLevelId ? CURRICULUM.find((l) => l.id === masteryLevelId) : null;
+    // "Drill what you missed": the session's mix-ups as a custom drill (Pro). Not after a
+    // drill, where "repeat drill" already does that.
+    const missedSel = lastSessionKind === 'custom'
+      ? null
+      : drillFromMistakes(stats.confusionMatrix ?? [], lastSessionKind === 'lesson' ? currentLevel.id : undefined);
     return (
       <>
         <Results
@@ -1649,9 +1663,23 @@ export default function App() {
             : 'Mixed practice'
           }
           onBackToPath={() => setRoute('path')}
-          onPracticeAgain={handlePracticeAgain}
+          onPracticeAgain={() => {
+            if (lastSessionKind === 'lesson') phCapture('lesson_repeated', { level_id: currentLevel.id, accuracy: stats.accuracy, from: 'results' });
+            handlePracticeAgain();
+          }}
           onNextLesson={handleNextLesson}
           nextLevel={nextLessonForLearner}
+          repeatLabel={lastSessionKind === 'lesson' ? 'repeat lesson' : lastSessionKind === 'custom' ? 'repeat drill' : 'keep going →'}
+          missedDrill={missedSel && {
+            name: autoName(missedSel),
+            detail: variantSummary(missedSel),
+            isPro: proActive,
+            onStart: () => {
+              phCapture('missed_drill_clicked', { is_pro: proActive, group: missedSel.groupId, items: missedSel.items.length, from: lastSessionKind });
+              if (!proActive) { setRoute('paywall'); return; }
+              void startCustomSession(missedSel, { name: autoName(missedSel) });
+            },
+          }}
           onNavigate={(tab) => setRoute(tab)}
         />
         {showFirstLessonPrompt && !masteryLevel && (
@@ -1667,6 +1695,13 @@ export default function App() {
               // The sign-in ask waits behind this overlay. Moving on here would unmount it
               // a few ms after it appeared, leaving it armed for the next results screen.
               if (!showFirstLessonPrompt) handleNextLesson();
+            }}
+            accuracy={stats.accuracy}
+            onRepeat={() => {
+              setMasteryLevelId(null);
+              phCapture('lesson_repeated', { level_id: masteryLevel.id, accuracy: stats.accuracy, from: 'mastery' });
+              // Same as continuing: the sign-in ask behind the overlay comes first.
+              if (!showFirstLessonPrompt) handlePracticeAgain();
             }}
           />
         )}
@@ -1716,9 +1751,10 @@ export default function App() {
             const productId = planToProductId[plan];
             if (!productId) { setRoute('path'); return; }
             reportSandboxCheckoutAttempt(productId, isSignedIn);
-            // Anonymous users must sign in before purchase so the entitlement attaches
-            // to their email (not a localStorage anon ID that can be wiped).
-            if (!isSignedIn) {
+            // On the web and Android, buyers sign in first so Pro belongs to their account
+            // (billing.ts sends RevenueCat nothing without one). The iOS app can't require
+            // that, so there Pro rides on the Apple ID until they sign in.
+            if (!isSignedIn && purchasesNeedAccount()) {
               pendingPurchaseRef.current = productId;
               setShowAuth(true);
               return;
@@ -1739,6 +1775,13 @@ export default function App() {
             }
           }}
           notice={paywallNotice}
+          billingNote={purchasesNeedAccount() ? undefined : 'billed to your Apple ID · cancel any time in Settings'}
+          onRestore={purchasesNeedAccount() ? undefined : async () => {
+            setPaywallNotice(null);
+            const restored = await restorePurchases();
+            if (restored) setRoute('path');
+            else setPaywallNotice(nothingToRestoreNotice());
+          }}
           onDismiss={() => { setPaywallNotice(null); setRoute('path'); }}
         />
         {showAuth && <AuthSheet onClose={() => setShowAuth(false)} />}

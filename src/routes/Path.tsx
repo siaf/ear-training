@@ -8,7 +8,7 @@ import TodayPanel from '../components/TodayPanel';
 import UpsellCard, { type UpsellMode } from '../components/UpsellCard';
 import type { Recommendation } from '../lib/recommendations';
 import { CHECKPOINTS, type Checkpoint } from '../lib/checkpoints';
-import { Flag, Flame, Lock as LockIcon } from 'lucide-react';
+import { Flag, Flame, Lock as LockIcon, RotateCcw } from 'lucide-react';
 import { getLessonIconRender, getSegmentIcon, type LessonIconRender } from '../lib/lessonIcons';
 import { mascotForColor, segmentColor } from '../lib/segmentColors';
 import { phCapture } from '../lib/posthog';
@@ -252,9 +252,11 @@ function RiverNode({
         />
       )}
       <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+        <div style={{ position: 'relative', width: sz, height: sz }}>
         <button
           onClick={onClick}
           disabled={isLocked}
+          title={isDone && !proLocked ? `Repeat ${level.name}` : undefined}
           aria-label={proLocked ? `${level.name} — Pro lesson` : level.name}
           style={{
             width: sz,
@@ -277,29 +279,6 @@ function RiverNode({
         >
           <NodeIconBody render={iconRender} size={iconSize} />
         </button>
-        {proLocked && (
-          <span
-            aria-hidden
-            style={{
-              position: 'absolute',
-              top: -6,
-              right: -6,
-              padding: '2px 8px',
-              borderRadius: 999,
-              background: 'var(--butter)',
-              color: 'var(--butter-ink)',
-              fontSize: 10,
-              fontWeight: 700,
-              letterSpacing: 0.6,
-              fontFamily: 'var(--ui)',
-              border: '1.5px solid var(--butter-ink)',
-              boxShadow: '0 2px 0 var(--butter-ink)',
-              zIndex: 4,
-            }}
-          >
-            PRO
-          </span>
-        )}
         {isDone && !proLocked && (
           <span
             aria-label="Completed"
@@ -323,6 +302,55 @@ function RiverNode({
             <svg width={mobile ? 12 : 14} height={mobile ? 12 : 14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={4} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
               <polyline points="20 6 9 17 4 12" />
             </svg>
+          </span>
+        )}
+        {isDone && !proLocked && (
+          // Finished lessons can be played again; this says so without words.
+          <span
+            aria-hidden
+            style={{
+              position: 'absolute',
+              bottom: -2,
+              right: -6,
+              width: mobile ? 22 : 26,
+              height: mobile ? 22 : 26,
+              borderRadius: '50%',
+              background: 'var(--card)',
+              color: 'var(--ink-1)',
+              border: '2px solid var(--ink-1)',
+              boxShadow: '0 2px 0 var(--ink-1)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              pointerEvents: 'none',
+              zIndex: 4,
+            }}
+          >
+            <RotateCcw size={mobile ? 11 : 13} strokeWidth={3} />
+          </span>
+        )}
+        </div>
+        {proLocked && (
+          <span
+            aria-hidden
+            style={{
+              position: 'absolute',
+              top: -6,
+              right: -6,
+              padding: '2px 8px',
+              borderRadius: 999,
+              background: 'var(--butter)',
+              color: 'var(--butter-ink)',
+              fontSize: 10,
+              fontWeight: 700,
+              letterSpacing: 0.6,
+              fontFamily: 'var(--ui)',
+              border: '1.5px solid var(--butter-ink)',
+              boxShadow: '0 2px 0 var(--butter-ink)',
+              zIndex: 4,
+            }}
+          >
+            PRO
           </span>
         )}
         <div

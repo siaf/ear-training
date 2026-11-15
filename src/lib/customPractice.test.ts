@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CURRICULUM } from '../curriculum';
+import { CURRICULUM, getDisplayName } from '../curriculum';
 import { filterDiatonicItems } from '../scaleContext';
 import {
   CUSTOM_GROUPS,
@@ -7,6 +7,7 @@ import {
   autoName,
   buildCustomQueue,
   canStart,
+  drillFromMistakes,
   drillName,
   loadDrills,
   saveDrills,
@@ -163,5 +164,26 @@ describe('suggested drills', () => {
 
   it('offers starter drills that can all run', () => {
     for (const s of STARTER_DRILLS) expect(canStart(s)).toBe(true);
+  });
+});
+
+describe('drill what you missed', () => {
+  it('drills every item the learner mixed up, played the way it was asked', () => {
+    expect(drillFromMistakes([
+      { mistook: 'Perfect 5th ↓→', actuallyWas: 'Minor 6th ↓→', count: 2 },
+      { mistook: 'Major 6th ↓→', actuallyWas: 'Minor 6th ↓→', count: 1 },
+    ], 'int_all_melodic_desc')).toEqual({ groupId: 'intervals', variantIds: ['down'], items: ['perfect_5th', 'minor_6th', 'major_6th'], length: 10 });
+  });
+
+  it('takes the key from the lesson when the mistake doesn’t say', () => {
+    expect(drillFromMistakes([{ mistook: getDisplayName('4'), actuallyWas: getDisplayName('7'), count: 1 }], 'scale_degree_minor'))
+      .toMatchObject({ groupId: 'scale_degrees', variantIds: ['minor'], items: ['4', '7'] });
+    expect(drillFromMistakes([{ mistook: 'Dominant 7', actuallyWas: 'Major 7', count: 1 }], 'level_8'))
+      .toMatchObject({ groupId: 'chords', variantIds: ['all'], items: ['major_7', 'dominant_7'] });
+  });
+
+  it('makes no drill from a clean session or mistakes drills can’t ask', () => {
+    expect(drillFromMistakes([])).toBeNull();
+    expect(drillFromMistakes([{ mistook: 'Higher', actuallyWas: 'Lower', count: 3 }])).toBeNull();
   });
 });

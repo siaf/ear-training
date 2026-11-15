@@ -1,4 +1,4 @@
-import { test, expect, asPro, openApp, sounds } from './fixtures';
+import { test, expect, asPro, openApp, sounds, ACCOUNTS_APP } from './fixtures';
 
 const TWO_DONE = ['found_higher_lower', 'found_same_diff'];
 const DICTATION_READY = [...TWO_DONE, 'ton_stable_unstable', 'ton_is_tonic', 'scale_degree_major_1', 'scale_degree_major_2'];
@@ -38,7 +38,7 @@ async function answerAll(page: import('@playwright/test').Page, total: number, p
 test('a saved interval drill asks only its intervals, unlocks nothing, and keeps its score', async ({ page }) => {
   test.setTimeout(120_000);
   await asPro(page);
-  await openApp(page, '/path', TWO_DONE);
+  await openApp(page, `${ACCOUNTS_APP}/path`, TWO_DONE);
   await page.getByRole('button', { name: /Custom practice/ }).first().click();
 
   await page.getByRole('button', { name: /Make your first drill/ }).click();
@@ -68,7 +68,7 @@ test('a saved interval drill asks only its intervals, unlocks nothing, and keeps
   expect(done).toEqual(TWO_DONE);
 
   // The drill is saved, with how it went.
-  await page.goto('/custom');
+  await page.goto(`${ACCOUNTS_APP}/custom`);
   await expect(page.getByText(/last \d+\/10 · today/)).toBeVisible();
 });
 
@@ -81,7 +81,7 @@ test('a chords drill mixes triads and sevenths, offering every chosen chord on e
       { id: 'sixths', name: '', groupId: 'intervals', variantIds: ['up'], items: ['minor_6th', 'major_6th'], length: 10, createdAt: 1 },
     ]));
   });
-  await openApp(page, '/custom', TWO_DONE);
+  await openApp(page, `${ACCOUNTS_APP}/custom`, TWO_DONE);
 
   await page.getByRole('button', { name: /^New drill/ }).click();
   await page.getByRole('button', { name: /Chords/ }).click();
@@ -108,7 +108,7 @@ test('a chords drill mixes triads and sevenths, offering every chosen chord on e
 
 test('melodic dictation plays a key and a melody, then marks each note', async ({ page }) => {
   await asPro(page);
-  await openApp(page, '/path', DICTATION_READY);
+  await openApp(page, `${ACCOUNTS_APP}/path`, DICTATION_READY);
   await page.getByRole('button', { name: 'Three Notes, Step by Step', exact: true }).click();
   await expect(page).toHaveURL(/practice/);
   await pastIntro(page);
@@ -150,7 +150,7 @@ test('Pro stats can show all time, by week once the history is long', async ({ p
     };
     localStorage.setItem('fifths.sessions.v1', JSON.stringify([session(200), session(1)]));
   });
-  await openApp(page, '/stats');
+  await openApp(page, `${ACCOUNTS_APP}/stats`);
   await expect(page.getByText('last 30 days')).toBeVisible();
   await page.getByRole('button', { name: 'all time', exact: true }).click();
   await expect(page.getByText('all time, by week')).toBeVisible();

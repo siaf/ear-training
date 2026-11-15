@@ -323,6 +323,58 @@ export interface DrillSuggestion {
 
 const INTERVAL_MARK = / ([↑↓])([♫→])$/;
 
+let itemsByName: Map<string, { groupId: string; item: string }> | null = null;
+
+/**
+ * Confusions are stored by display name ("Minor 6th ↓→"). Maps one back to the two items,
+ * when both belong to the same drill topic, and to how an interval was played.
+ */
+function parseConfusion(c: { mistook: string; actuallyWas: string }) {
+  if (!itemsByName) {
+    itemsByName = new Map();
+    for (const g of CUSTOM_GROUPS) for (const item of g.items) itemsByName.set(getDisplayName(item), { groupId: g.id, item });
+  }
+  const a = itemsByName.get(c.actuallyWas.replace(INTERVAL_MARK, ''));
+  const b = itemsByName.get(c.mistook.replace(INTERVAL_MARK, ''));
+  if (!a || !b || a.groupId !== b.groupId || a.item === b.item) return null;
+  const mark = c.actuallyWas.match(INTERVAL_MARK);
+  const variant = a.groupId === 'intervals' && mark ? (mark[2] === '♫' ? 'harmonic' : mark[1] === '↑' ? 'up' : 'down') : null;
+  return { a, b, variant };
+}
+
+/**
+ * "Drill what you missed" after a session: every item the learner confused with another,
+ * in the topic with the most mix-ups, played the way they were asked. Null when the
+ * mistakes don't make a drill (fewer than two items, or a lesson drills can't ask).
+ */
+export function drillFromMistakes(
+  confusions: { mistook: string; actuallyWas: string; count: number }[],
+  levelId?: string,
+): CustomSelection | null {
+  const byGroup = new Map<string, { items: Set<string>; count: number; variants: Set<string> }>();
+  for (const c of confusions) {
+    const pair = parseConfusion(c);
+    if (!pair) continue;
+    const entry = byGroup.get(pair.a.groupId) ?? { items: new Set<string>(), count: 0, variants: new Set<string>() };
+    entry.items.add(pair.a.item).add(pair.b.item);
+    entry.count += c.count;
+    if (pair.variant) entry.variants.add(pair.variant);
+    byGroup.set(pair.a.groupId, entry);
+  }
+  const best = [...byGroup.entries()].sort((x, y) => y[1].count - x[1].count)[0];
+  if (!best) return null;
+  const [groupId, entry] = best;
+  const group = customGroup(groupId)!;
+  const items = group.items.filter((i) => entry.items.has(i));
+  const fromLesson = group.variants.find((v) => levelId && v.levelIds.includes(levelId))?.id
+    ?? (groupId === 'scale_degrees' && levelId?.includes('minor') ? 'minor' : undefined);
+  const variantIds = entry.variants.size > 0
+    ? group.variants.map((v) => v.id).filter((id) => entry.variants.has(id))
+    : [fromLesson ?? group.variants[0].id];
+  const sel = { groupId, variantIds, items, length: 10 };
+  return canStart(sel) ? sel : null;
+}
+
 /**
  * Pairs the learner keeps confusing in the last `days` days, as ready-made drills, most
  * confused first. Pairs a saved drill already covers are left out.
@@ -332,28 +384,20 @@ export function suggestDrills(
   saved: CustomSelection[],
   { days = 30, now = Date.now(), limit = 3 } = {},
 ): DrillSuggestion[] {
-  // Session confusions are stored by display name ("Minor 6th ↓→"); map them back to items.
-  const byName = new Map<string, { groupId: string; item: string }>();
-  for (const g of CUSTOM_GROUPS) for (const item of g.items) byName.set(getDisplayName(item), { groupId: g.id, item });
-
   const pairs = new Map<string, { groupId: string; items: [string, string]; count: number; variants: Map<string, number> }>();
   const since = now - days * 86_400_000;
   for (const s of sessions) {
     if (s.endedAt < since) continue;
     for (const c of s.confusions ?? []) {
-      const mark = c.actuallyWas.match(INTERVAL_MARK);
-      const a = byName.get(c.actuallyWas.replace(INTERVAL_MARK, ''));
-      const b = byName.get(c.mistook.replace(INTERVAL_MARK, ''));
-      if (!a || !b || a.groupId !== b.groupId || a.item === b.item) continue;
+      const pair = parseConfusion(c);
+      if (!pair) continue;
+      const { a, b, variant: markVariant } = pair;
       const group = customGroup(a.groupId)!;
       const items = [a.item, b.item].sort((x, y) => group.items.indexOf(x) - group.items.indexOf(y)) as [string, string];
       const key = `${a.groupId}:${items.join('|')}`;
       const entry = pairs.get(key) ?? { groupId: a.groupId, items, count: 0, variants: new Map() };
       entry.count += c.count;
-      if (a.groupId === 'intervals' && mark) {
-        const variant = mark[2] === '♫' ? 'harmonic' : mark[1] === '↑' ? 'up' : 'down';
-        entry.variants.set(variant, (entry.variants.get(variant) ?? 0) + c.count);
-      }
+      if (markVariant) entry.variants.set(markVariant, (entry.variants.get(markVariant) ?? 0) + c.count);
       pairs.set(key, entry);
     }
   }

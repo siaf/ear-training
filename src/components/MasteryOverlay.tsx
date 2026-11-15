@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { RotateCcw } from 'lucide-react';
 import { Bean } from './primitives';
 import { CurriculumLevel } from '../types';
 import { CURRICULUM } from '../curriculum';
@@ -10,7 +11,14 @@ interface Props {
   onContinue: () => void;
   /** The learner's next lesson in teaching order, if there is one. */
   next?: CurriculumLevel | null;
+  /** Play the lesson again, to firm up a pass. */
+  onRepeat?: () => void;
+  /** This session's score, to say when a pass was narrow. */
+  accuracy?: number;
 }
+
+/** Below this, a pass is worth another run before moving on. */
+const SOLID_PASS = 90;
 
 const PARTICLE_COUNT = 60;
 const COLORS = ['var(--mint)', 'var(--coral)', 'var(--butter)', 'var(--lav)', 'var(--sky)'];
@@ -101,7 +109,8 @@ function Medallion({ color, inkColor, label }: { color: string; inkColor: string
   );
 }
 
-export default function MasteryOverlay({ level, onClose, onContinue, next = null }: Props) {
+export default function MasteryOverlay({ level, onClose, onContinue, next = null, onRepeat, accuracy }: Props) {
+  const narrow = accuracy !== undefined && accuracy < SOLID_PASS;
   const [mounted, setMounted] = useState(false);
   const ref = useRef<HTMLDivElement | null>(null);
   const reduced = prefersReducedMotion();
@@ -178,15 +187,42 @@ export default function MasteryOverlay({ level, onClose, onContinue, next = null
           {next
             ? <>Your ear just unlocked <b>{next.name}</b>. Keep the rhythm.</>
             : <>You've cleared every level on the path. More coming soon.</>}
+          {narrow && (
+            <>
+              <br />
+              You passed with {Math.round(accuracy!)}%. One more run would lock it in.
+            </>
+          )}
         </p>
-        <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
           <Bean tone="coral" size="lg" onClick={onContinue}>
             keep going →
           </Bean>
-          <Bean tone="soft" size="lg" onClick={onClose}>
-            savor it
-          </Bean>
+          {onRepeat && (
+            <Bean tone={narrow ? 'ink' : 'soft'} size="lg" onClick={onRepeat}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                <RotateCcw size={17} strokeWidth={2.5} aria-hidden />
+                repeat lesson
+              </span>
+            </Bean>
+          )}
         </div>
+        <button
+          type="button"
+          onClick={onClose}
+          style={{
+            marginTop: 12,
+            background: 'none',
+            border: 'none',
+            padding: 6,
+            cursor: 'pointer',
+            fontSize: 13,
+            fontWeight: 600,
+            color: 'var(--ink-3)',
+          }}
+        >
+          savor it · see results
+        </button>
       </div>
     </div>
   );

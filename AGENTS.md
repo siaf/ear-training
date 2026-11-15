@@ -65,10 +65,11 @@ Run all three before deploying. Nothing runs them for you: there's no CI for tes
 | `audio.spec.ts` | The real audio engine: sound while samples download, failed downloads, samples taking over, replaying rhythms |
 | `lesson.spec.ts` | Onboarding, deep links, a full 12-question lesson with no samples available, Replay during a rhythm |
 | `screens.spec.ts` | Path, stats, settings, paywall, Pro lessons staying locked |
-| `billing.spec.ts` | RevenueCat recovering after a failed load, using the signed-in account |
+| `billing.spec.ts` | RevenueCat hearing only about signed-in accounts that Supabase's server confirms (nothing for visitors, no anonymous IDs), and recovering after a failed load |
 | `accounts.spec.ts` | Sign-in prompts, on a third app server with a fake Supabase address; a faked signed-in learner hitting closed checkout |
 | `tools.spec.ts` | Every free tool loads, and sample files arrive |
-| `pro.spec.ts` | Pro features as a subscriber (`asPro` in `fixtures.ts`): custom practice, melodic dictation, all-time stats; and custom practice leading free learners to the plans |
+| `pro.spec.ts` | Pro features as a signed-in subscriber (`asPro` in `fixtures.ts`, on the accounts server): saved drills, melodic dictation, all-time stats; and drills leading free learners to the plans |
+| `repeat.spec.ts` | "Repeat lesson" after a lesson, "drill what you missed" (free and Pro), and replaying a finished lesson from the path |
 | `singing.spec.ts` | The voice check before the first singing lesson, and "Find Home" never playing its answer. `fakeMic` in `fixtures.ts` stands in for the microphone; headless WebKit refuses a made-up mic stream, so the hum test runs in Chromium only |
 | `blog.spec.ts` | The best-apps post's updated date and lesson buttons, and the three-question ear test (`site/ear-quiz.js`) |
 
@@ -146,7 +147,7 @@ Then watch Sentry for new issues. To roll back, promote an earlier deployment in
 | Sentry | Errors | Org `ketabian-llc`, project `fifths-web`. Resolve fixed bugs so they reopen if they return. Archive only expected noise, like people refusing the mic. |
 | PostHog | Analytics | The same project covers the site and the app. |
 | Supabase | Accounts and sync | Project ref `azsedefwatnqjogotudi`. |
-| RevenueCat | Payments | The web SDK is a lazy import in `src/lib/billing.ts`. |
+| RevenueCat | Payments | The web SDK is a lazy import in `src/lib/billing.ts`. On the web and Android it starts only for a signed-in account that Supabase's server has confirmed (`syncEngine.ts`), configured with that account's id: visitors send RevenueCat nothing. The iOS app is the exception, because Apple doesn't allow requiring an account to buy: it bills an anonymous ID from launch, moves it to the account with `logIn` once confirmed, and its paywall has "restore purchases". |
 | Loops | Email | The key exists only as a Cloudflare secret, on `fifths-marketing`. So server code that writes to Loops lives in `functions/` and is served from fifths.io, like `functions/api/wants-pro.js`, which the app calls cross-origin. Tests for files in `functions/` go under `src/`, because Cloudflare turns every file in `functions/` into a route. |
 | Cloudflare D1 | Waitlist | Database `fifths`, used by `functions/waitlist.js`. |
 

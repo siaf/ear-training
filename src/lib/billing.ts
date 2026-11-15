@@ -27,18 +27,53 @@ const PRODUCT_VALUE_USD: Record<string, number> = {
 };
 
 interface BillingProvider {
-  isPro: () => boolean;
-  identifyUser: (userId: string) => Promise<void>;
-  logOut: () => Promise<void>;
+  /** The account RevenueCat is talking to. */
+  userId: string;
+  /** Point RevenueCat at another signed-in account (no anonymous ID in between). */
+  switchUser: (userId: string) => Promise<void>;
+  /** Fetch the account's customer info: the first call creates the RevenueCat customer. */
+  load: () => Promise<void>;
+  /** Stop talking to RevenueCat until someone signs in again. */
+  stop: () => Promise<void>;
   purchaseProduct: (productId: string) => Promise<boolean>;
   restorePurchases: () => Promise<boolean>;
 }
 
+// On the web and Android, RevenueCat only ever hears about signed-in accounts that
+// Supabase's server has confirmed (see startBilling's caller in syncEngine.ts). A visitor
+// who isn't signed in never loads the SDK, so nothing is sent for them.
+//
+// The iOS app is the exception. Apple doesn't let an app require an account just to buy,
+// so there billing starts at launch with RevenueCat's anonymous ID (Apple's receipt is
+// what proves a purchase), and moves to the account with logIn once one is confirmed.
+// Signing out goes back to anonymous, and "Restore purchases" finds them by Apple ID.
+
+/** Stands for "no account yet" in the iOS app, where billing runs without one. */
+const ANONYMOUS = '$anonymous';
+
+/** False only in the iOS app: everywhere else, buying needs a confirmed account. */
+export function purchasesNeedAccount(): boolean {
+  return !(isNative() && platform() === 'ios');
+}
+
+/** iOS app only: start billing at launch, before anyone signs in. Does nothing elsewhere. */
+export function startBillingWithoutAccount(): Promise<void> {
+  if (purchasesNeedAccount()) return Promise.resolve();
+  return startBilling(ANONYMOUS);
+}
+
 let provider: BillingProvider | null = null;
-let initStarted = false;
-let lastUserId: string | undefined;
+/** The confirmed account billing should serve, or null when nobody is signed in. */
+let accountId: string | null = null;
+/** Customer info has loaded for accountId. */
+let loaded = false;
+let starting: Promise<void> | null = null;
 let customerInfo: CustomerInfoLike | null = null;
 const listeners = new Set<(info: CustomerInfoLike | null) => void>();
+
+/** Waits between tries when RevenueCat or the network fails. Tests shorten them. */
+let retryDelaysMs = [2_000, 8_000];
+export function setBillingRetryDelaysForTests(delays: number[]) { retryDelaysMs = delays; }
 
 function notify() {
   for (const fn of listeners) {
@@ -61,33 +96,64 @@ export function isPro(): boolean {
   return Boolean(customerInfo?.entitlements?.active?.[PRO_ENTITLEMENT]);
 }
 
-/** Call once at app boot. Picks the right SDK (web vs iOS/Android). */
-export async function initBilling(userId?: string): Promise<void> {
-  if (initStarted) return;
-  initStarted = true;
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-  try {
-    if (isNative()) {
-      provider = await initNative(userId);
-    } else {
-      provider = await initWeb(userId);
+/**
+ * Start billing for a signed-in account. Only call this once Supabase's server has
+ * confirmed the account: its id is what RevenueCat stores, and purchases attach to it.
+ * Tries a few times before reporting, since one failed request is usually the network.
+ */
+export function startBilling(userId: string): Promise<void> {
+  if (accountId === userId && (loaded || starting)) return starting ?? Promise.resolve();
+  accountId = userId;
+  loaded = false;
+  // One start at a time, so the SDK is never configured twice (in the iOS app, launch
+  // starts anonymous billing and a sign-in can follow straight away).
+  const previous = starting;
+  const run = (async () => {
+    if (previous) await previous.catch(() => {});
+    let lastError: unknown = null;
+    for (let attempt = 0; attempt <= retryDelaysMs.length; attempt++) {
+      if (attempt > 0) await wait(retryDelaysMs[attempt - 1]);
+      if (accountId !== userId) return; // signed out or switched while waiting
+      try {
+        if (!provider) provider = await (isNative() ? initNative(userId) : userId === ANONYMOUS ? null : initWeb(userId));
+        if (!provider) return; // no key for this platform: billing is off
+        if (provider.userId !== userId) await provider.switchUser(userId);
+        await provider.load();
+        if (accountId !== userId) return;
+        loaded = true;
+        return;
+      } catch (err) {
+        lastError = err;
+      }
     }
-  } catch (err) {
-    reportError('billing', err, { step: 'init' });
-    provider = null;
-    initStarted = false;
-  }
+    if (accountId === userId) reportError('billing', lastError, { step: 'load', attempts: retryDelaysMs.length + 1 });
+  })();
+  starting = run;
+  void run.finally(() => { if (starting === run) starting = null; });
+  return run;
 }
 
-export async function identifyUser(userId: string): Promise<void> {
-  lastUserId = userId;
+/**
+ * Signed out: forget the account. Everywhere but the iOS app, stop talking to RevenueCat;
+ * the iOS app goes back to anonymous billing, as at launch.
+ */
+export async function stopBilling(): Promise<void> {
+  if (accountId === ANONYMOUS) return;
+  setCustomerInfo(null);
+  if (!purchasesNeedAccount()) { await startBilling(ANONYMOUS); return; }
+  accountId = null;
+  loaded = false;
   if (!provider) return;
-  try { await provider.identifyUser(userId); } catch (err) { reportError('billing', err, { step: 'identify' }); }
+  try { await provider.stop(); } catch (err) { console.warn('[billing] stop failed', err); }
 }
 
-export async function logOutBilling(): Promise<void> {
-  if (!provider) return;
-  try { await provider.logOut(); } catch (err) { console.warn('[billing] logOut failed', err); }
+/** Billing for the confirmed account, loading it again first if an earlier load failed. */
+async function readyProvider(): Promise<BillingProvider | null> {
+  if (!accountId) return null;
+  if (!loaded) await startBilling(accountId);
+  return loaded ? provider : null;
 }
 
 /**
@@ -118,14 +184,19 @@ export type PurchaseResult = 'purchased' | 'cancelled' | 'failed';
 
 export async function purchaseProduct(productId: string): Promise<PurchaseResult> {
   phCapture('purchase_started', { product_id: productId });
-  // Init can fail on a bad connection at boot (the SDK is a lazy import), so try again.
-  if (!provider) await initBilling(lastUserId);
-  if (!provider) {
-    reportError('billing', new Error('purchaseProduct called before billing init'), { step: 'purchase', productId });
+  // The app asks people to sign in before buying, so no account means no checkout.
+  if (!accountId) {
+    phCapture('purchase_failed', { product_id: productId, reason: 'not_signed_in' });
+    return 'failed';
+  }
+  // Loading can fail on a bad connection (the SDK is a lazy import), so it tries again here.
+  const ready = await readyProvider();
+  if (!ready) {
+    reportError('billing', new Error('Checkout opened before billing loaded'), { step: 'purchase', productId });
     phCapture('purchase_failed', { product_id: productId, reason: 'billing_not_ready' });
     return 'failed';
   }
-  try { return (await provider.purchaseProduct(productId)) ? 'purchased' : 'failed'; }
+  try { return (await ready.purchaseProduct(productId)) ? 'purchased' : 'failed'; }
   catch (err) {
     const { code, errorCode } = err as { code?: string; errorCode?: number };
     // Native reports a cancel as a code string, the web SDK as ErrorCode.UserCancelledError (1).
@@ -140,52 +211,41 @@ export async function purchaseProduct(productId: string): Promise<PurchaseResult
 }
 
 export async function restorePurchases(): Promise<boolean> {
-  if (!provider) await initBilling(lastUserId);
-  if (!provider) return false;
-  try { return await provider.restorePurchases(); }
+  const ready = await readyProvider();
+  if (!ready) return false;
+  try { return await ready.restorePurchases(); }
   catch (err) { reportError('billing', err, { step: 'restore' }); return false; }
 }
 
 // ─── Web (Stripe via RevenueCat Web Billing) ────────────────────────────
-const RC_ANON_ID_KEY = 'fifths.rc.anon_id';
+// Billing used to start with an anonymous ID kept here, then alias it on sign-in.
+const OLD_RC_ANON_ID_KEY = 'fifths.rc.anon_id';
 
-function persistedAnonId(generate: () => string): string {
-  try {
-    const existing = localStorage.getItem(RC_ANON_ID_KEY);
-    if (existing) return existing;
-    const fresh = generate();
-    localStorage.setItem(RC_ANON_ID_KEY, fresh);
-    return fresh;
-  } catch {
-    return generate();
-  }
-}
-
-async function initWeb(userId?: string): Promise<BillingProvider | null> {
+async function initWeb(userId: string): Promise<BillingProvider | null> {
   const apiKey = import.meta.env.VITE_REVENUECAT_WEB_KEY as string | undefined;
   if (!apiKey) return null;
 
   const { Purchases, LogLevel } = await import('@revenuecat/purchases-js');
   if (import.meta.env.DEV) Purchases.setLogLevel(LogLevel.Verbose);
+  try { localStorage.removeItem(OLD_RC_ANON_ID_KEY); } catch { /* ignore */ }
 
-  const appUserId = userId ?? persistedAnonId(() => Purchases.generateRevenueCatAnonymousAppUserId());
-  if (!Purchases.isConfigured()) {
-    Purchases.configure({ apiKey, appUserId });
-  }
-  const inst = Purchases.getSharedInstance();
-  setCustomerInfo(await inst.getCustomerInfo());
-
-  return {
-    isPro,
-    identifyUser: async (uid: string) => {
-      const result = await inst.identifyUser(uid);
-      setCustomerInfo(result.customerInfo);
+  // Configured straight away with the account's id: no request goes out until load().
+  let inst = Purchases.isConfigured() ? Purchases.getSharedInstance() : Purchases.configure({ apiKey, appUserId: userId });
+  const web: BillingProvider = {
+    userId,
+    switchUser: async (uid: string) => {
+      if (!Purchases.isConfigured()) inst = Purchases.configure({ apiKey, appUserId: uid });
+      else if (inst.getAppUserId() !== uid) await inst.changeUser(uid);
+      web.userId = uid;
     },
-    logOut: async () => {
-      const fresh = Purchases.generateRevenueCatAnonymousAppUserId();
-      try { localStorage.setItem(RC_ANON_ID_KEY, fresh); } catch { /* ignore */ }
-      await inst.changeUser(fresh);
-      setCustomerInfo(await inst.getCustomerInfo());
+    load: async () => {
+      const info = await inst.getCustomerInfo();
+      if (accountId === web.userId) setCustomerInfo(info); // not if they signed out meanwhile
+    },
+    stop: async () => {
+      // close() sends nothing; the next sign-in configures again with that account.
+      if (Purchases.isConfigured()) inst.close();
+      web.userId = '';
     },
     purchaseProduct: async (productId: string) => {
       const offerings = await inst.getOfferings();
@@ -212,10 +272,13 @@ async function initWeb(userId?: string): Promise<BillingProvider | null> {
       return Boolean(info.entitlements.active[PRO_ENTITLEMENT]);
     },
   };
+  return web;
 }
 
 // ─── Native (iOS / Android via Capacitor) ───────────────────────────────
-async function initNative(userId?: string): Promise<BillingProvider | null> {
+async function initNative(userId: string): Promise<BillingProvider | null> {
+  // Android follows the web's rule; only the iOS app bills before sign-in.
+  if (userId === ANONYMOUS && purchasesNeedAccount()) return null;
   const apiKey = platform() === 'ios'
     ? (import.meta.env.VITE_REVENUECAT_IOS_KEY as string | undefined)
     : (import.meta.env.VITE_REVENUECAT_ANDROID_KEY as string | undefined);
@@ -223,24 +286,32 @@ async function initNative(userId?: string): Promise<BillingProvider | null> {
 
   const { Purchases, LOG_LEVEL } = await import('@revenuecat/purchases-capacitor');
   if (import.meta.env.DEV) await Purchases.setLogLevel({ level: LOG_LEVEL.DEBUG });
-  await Purchases.configure({ apiKey, appUserID: userId });
-  const { customerInfo: info } = await Purchases.getCustomerInfo();
-  setCustomerInfo(info);
+  // Configured once per launch: with the signed-in account, or (iOS app only) anonymously.
+  await Purchases.configure({ apiKey, appUserID: userId === ANONYMOUS ? undefined : userId });
 
-  Purchases.addCustomerInfoUpdateListener((info) => {
-    setCustomerInfo(info);
-  });
-
-  return {
-    isPro,
-    identifyUser: async (uid: string) => {
-      await Purchases.logIn({ appUserID: uid });
-      const { customerInfo: info } = await Purchases.getCustomerInfo();
-      setCustomerInfo(info);
+  const native: BillingProvider = {
+    userId,
+    // Between accounts, logIn goes straight from one to the other. logOut makes an anonymous
+    // user, so it's only used to go back to anonymous billing in the iOS app.
+    switchUser: async (uid: string) => {
+      if (uid !== ANONYMOUS) {
+        const boughtAnonymously = native.userId === ANONYMOUS && isPro();
+        const { customerInfo: info } = await Purchases.logIn({ appUserID: uid });
+        // logIn merges an anonymous buyer into the account, unless the account already has
+        // an anonymous ID of its own (another device, or the web before Nov 2026). Then the
+        // Apple receipt is restored onto the account, so Pro follows them in.
+        if (boughtAnonymously && !info.entitlements.active[PRO_ENTITLEMENT]) await Purchases.restorePurchases();
+      } else if (native.userId && native.userId !== ANONYMOUS) {
+        await Purchases.logOut();
+      }
+      native.userId = uid;
     },
-    logOut: async () => {
-      await Purchases.logOut();
-      setCustomerInfo(null);
+    load: async () => {
+      const { customerInfo: info } = await Purchases.getCustomerInfo();
+      if (accountId === native.userId) setCustomerInfo(info); // not if they signed out meanwhile
+    },
+    stop: async () => {
+      native.userId = '';
     },
     purchaseProduct: async (productId: string) => {
       const { current } = await Purchases.getOfferings();
@@ -263,4 +334,9 @@ async function initNative(userId?: string): Promise<BillingProvider | null> {
       return Boolean(info.entitlements.active[PRO_ENTITLEMENT]);
     },
   };
+  // Renewals and refunds arrive here; ignore them once the account has signed out.
+  void Purchases.addCustomerInfoUpdateListener((info) => {
+    if (accountId && accountId === native.userId) setCustomerInfo(info);
+  });
+  return native;
 }

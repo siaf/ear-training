@@ -57,8 +57,52 @@ const PRO_CUSTOMER = {
   },
 };
 
-/** Make RevenueCat report an active Pro subscription. Call before loading the app. */
+/**
+ * The app on a server that has accounts switched on, with Supabase at a fake address
+ * (playwright.config.ts). Billing only runs for signed-in learners, so Pro tests use it.
+ */
+export const ACCOUNTS_APP = process.env.ACCOUNTS_APP_URL ?? 'http://localhost:5192';
+const FAKE_SUPABASE = /^http:\/\/localhost:5199\//;
+
+export const E2E_USER = {
+  id: '00000000-0000-0000-0000-000000000001',
+  aud: 'authenticated',
+  role: 'authenticated',
+  email: 'learner@example.com',
+  email_confirmed_at: '2026-11-01T00:00:00Z',
+  is_anonymous: false,
+  app_metadata: {},
+  user_metadata: {},
+  created_at: '2026-11-01T00:00:00Z',
+};
+
+/**
+ * A signed-in learner, as supabase-js stores the session for the fake address. Supabase's
+ * server is faked too: it confirms the account (or, with `server: 'rejects'`, refuses the
+ * session), and sync gets nothing saved. Call before loading ACCOUNTS_APP.
+ */
+export async function signedIn(page: Page, { server = 'confirms' as 'confirms' | 'rejects' | 'unconfirmed' } = {}) {
+  await page.addInitScript((user) => {
+    const now = Math.floor(Date.now() / 1000);
+    localStorage.setItem('sb-localhost-auth-token', JSON.stringify({
+      access_token: 'e2e-access-token', refresh_token: 'e2e-refresh', token_type: 'bearer',
+      expires_in: 3600, expires_at: now + 3600, user,
+    }));
+  }, E2E_USER);
+  await page.route(FAKE_SUPABASE, (route) => {
+    if (!route.request().url().includes('/auth/v1/user')) return route.fulfill({ json: [] });
+    if (server === 'rejects') return route.fulfill({ status: 401, json: { code: 401, msg: 'invalid JWT' } });
+    const user = server === 'unconfirmed' ? { ...E2E_USER, email_confirmed_at: null } : E2E_USER;
+    return route.fulfill({ json: user });
+  });
+}
+
+/**
+ * A signed-in learner whose RevenueCat customer has Pro. Call before loading the app,
+ * and load it from ACCOUNTS_APP.
+ */
 export async function asPro(page: Page) {
+  await signedIn(page);
   await page.route(/^https:\/\/api\.revenuecat\.com\//, (route) => route.fulfill({ json: PRO_CUSTOMER }));
 }
 

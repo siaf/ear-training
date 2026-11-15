@@ -7,7 +7,8 @@ import {
   subscribeSessions,
 } from './sessionStore';
 import { subscribeMastery } from './itemMastery';
-import { identifyUser, logOutBilling } from './billing';
+import { startBilling, stopBilling } from './billing';
+import { isEstablishedAccount } from './establishedAccount';
 import { trackAccountSignup } from './attribution';
 import { phCapture } from './posthog';
 import { reportError } from './reportError';
@@ -43,6 +44,8 @@ let unsubscribeMastery: (() => void) | null = null;
 let unsubscribeAuth: (() => void) | null = null;
 let unsubscribeVisibility: (() => void) | null = null;
 let lastSyncAt = 0;
+/** The account billing was started for, once Supabase's server confirmed it. */
+let billingAccountId: string | null = null;
 // Sessions never change once recorded, so each one only needs uploading once.
 const syncedSessionIds = new Set<string>();
 let started = false;
@@ -102,6 +105,7 @@ export function startSyncEngine(opts: { getProfile: GetProfile; applyProfile: Ap
       }
     } else if (currentUser && Date.now() - lastSyncAt > REFRESH_MIN_INTERVAL_MS) {
       void initialSync();
+      if (billingAccountId !== currentUser.id) void startBillingForConfirmedAccount(currentUser);
     }
   };
   document.addEventListener('visibilitychange', onVisibilityChange);
@@ -130,13 +134,45 @@ function handleSession(session: Session | null) {
   if (!isSignedIn) {
     syncedSessionIds.clear();
     setState('signed_out');
-    void logOutBilling();
+    billingAccountId = null;
+    void stopBilling();
     return;
   }
   if (!wasSignedIn) {
-    void identifyUser(user.id);
+    void startBillingForConfirmedAccount(user);
     trackAccountSignup(user);
     void initialSync();
+  }
+}
+
+const BILLING_CONFIRM_RETRY_MS = [3_000, 10_000];
+
+/**
+ * RevenueCat only ever hears about accounts Supabase's server vouches for. The session in
+ * storage can be expired or revoked, so ask the server for the user, and start billing
+ * only for that same, established account. A network failure gets a couple more tries;
+ * a session the server rejects doesn't.
+ */
+async function startBillingForConfirmedAccount(user: User, attempt = 0): Promise<void> {
+  if (!supabase || currentUser?.id !== user.id || billingAccountId === user.id) return;
+  let confirmed: User | null = null;
+  let networkFailure = false;
+  try {
+    const { data, error } = await supabase.auth.getUser();
+    confirmed = error ? null : data.user;
+    const status = (error as { status?: number } | null)?.status;
+    networkFailure = Boolean(error) && (status === undefined || status === 0 || status >= 500);
+  } catch {
+    networkFailure = true;
+  }
+  if (currentUser?.id !== user.id || billingAccountId === user.id) return; // signed out or switched meanwhile
+  if (confirmed && confirmed.id === user.id && isEstablishedAccount(confirmed)) {
+    billingAccountId = user.id;
+    void startBilling(user.id);
+    return;
+  }
+  if (networkFailure && attempt < BILLING_CONFIRM_RETRY_MS.length) {
+    setTimeout(() => { void startBillingForConfirmedAccount(user, attempt + 1); }, BILLING_CONFIRM_RETRY_MS[attempt]);
   }
 }
 

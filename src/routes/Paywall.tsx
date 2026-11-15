@@ -21,6 +21,10 @@ interface Props {
   onSelect: (plan: PlanId) => void;
   onDismiss: () => void;
   notice?: PaywallNotice | null;
+  /** The iOS app, where people can buy without an account, must offer this. */
+  onRestore?: () => void;
+  /** Who bills: Stripe on the web, Apple in the iOS app. */
+  billingNote?: string;
 }
 
 interface Plan {
@@ -103,7 +107,7 @@ function triggerCopy(trigger: PaywallTrigger): { title: string; sub: string } {
   }
 }
 
-export default function Paywall({ trigger, currentPlan, onSelect, onDismiss, notice }: Props) {
+export default function Paywall({ trigger, currentPlan, onSelect, onDismiss, notice, onRestore, billingNote = 'billing powered by stripe · cancel any time · no hidden fees' }: Props) {
   const mobile = useBreakpoint() !== 'desktop';
   const noticeRef = useRef<HTMLDivElement>(null);
 
@@ -322,8 +326,29 @@ export default function Paywall({ trigger, currentPlan, onSelect, onDismiss, not
             textAlign: 'center',
           }}
         >
-          billing powered by stripe · cancel any time · no hidden fees
+          {billingNote}
         </p>
+        {onRestore && (
+          <div style={{ textAlign: 'center', marginTop: 10 }}>
+            <button
+              type="button"
+              onClick={onRestore}
+              style={{
+                background: 'none',
+                border: 'none',
+                padding: 8,
+                cursor: 'pointer',
+                fontSize: 13,
+                fontWeight: 600,
+                color: 'var(--ink-2)',
+                textDecoration: 'underline',
+                textUnderlineOffset: 3,
+              }}
+            >
+              restore purchases
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

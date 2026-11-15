@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Check } from 'lucide-react';
+import { Check, RotateCcw, Target } from 'lucide-react';
 import { useBreakpoint } from '../lib/useBreakpoint';
 import { Bean, Brand, ColorPill, ProgressBar } from '../components/primitives';
 import { CurriculumLevel, SessionStats } from '../types';
@@ -19,6 +19,19 @@ interface Props {
   sessionLabel?: string;
   /** The learner's next lesson in teaching order. Null when there isn't one. */
   nextLevel?: CurriculumLevel | null;
+  /** What the replay button says: "repeat lesson", "repeat drill", or "keep going" for reviews. */
+  repeatLabel?: string;
+  /** A drill of what this session's mix-ups were (Pro). Null when they don't make one. */
+  missedDrill?: MissedDrill | null;
+}
+
+export interface MissedDrill {
+  /** e.g. "P5 vs m6 vs M6" */
+  name: string;
+  /** e.g. "Down", or '' */
+  detail: string;
+  isPro: boolean;
+  onStart: () => void;
 }
 
 function Scorecard({
@@ -66,6 +79,8 @@ export default function Results({
   onNavigate,
   sessionLabel,
   nextLevel = null,
+  repeatLabel = 'repeat lesson',
+  missedDrill = null,
 }: Props) {
   const mobile = useBreakpoint() !== 'desktop';
 
@@ -319,6 +334,50 @@ export default function Results({
                 </div>
               ))}
             </div>
+            {missedDrill && (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: 12,
+                  marginTop: 14,
+                  paddingTop: 14,
+                  borderTop: '1.5px dashed var(--hairline)',
+                }}
+              >
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 12, color: 'var(--ink-3)', marginBottom: 2 }}>
+                    drill just these, 10 questions{missedDrill.detail ? ` · ${missedDrill.detail.toLowerCase()}` : ''}
+                  </div>
+                  <div style={{ fontFamily: 'var(--disp)', fontStyle: 'italic', fontWeight: 600, fontSize: 18, color: 'var(--ink-1)' }}>
+                    {missedDrill.name}
+                  </div>
+                </div>
+                <Bean tone={missedDrill.isPro ? 'coral' : 'ink'} size="md" onClick={missedDrill.onStart}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                    <Target size={16} strokeWidth={2.5} aria-hidden />
+                    drill what you missed
+                    {!missedDrill.isPro && (
+                      <span
+                        style={{
+                          fontSize: 10,
+                          fontWeight: 700,
+                          letterSpacing: 0.6,
+                          padding: '2px 7px',
+                          borderRadius: 999,
+                          background: 'var(--butter)',
+                          color: 'var(--butter-ink)',
+                        }}
+                      >
+                        PRO
+                      </span>
+                    )}
+                  </span>
+                </Bean>
+              </div>
+            )}
           </div>
         )}
 
@@ -372,8 +431,12 @@ export default function Results({
               next lesson → {nextLevel.name}
             </Bean>
           )}
-          <Bean tone="ink" size="lg" onClick={onPracticeAgain}>
-            keep going →
+          {/* Below the target, repeating is the thing to do, so it leads. */}
+          <Bean tone={!sessionLabel && !canUnlock ? 'coral' : 'ink'} size="lg" onClick={onPracticeAgain}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+              {repeatLabel.startsWith('repeat') && <RotateCcw size={17} strokeWidth={2.5} aria-hidden />}
+              {repeatLabel}
+            </span>
           </Bean>
           <Bean tone="soft" size="lg" onClick={onBackToPath}>
             done for today

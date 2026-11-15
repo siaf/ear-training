@@ -1,6 +1,6 @@
-import { test, expect, openApp } from './fixtures';
+import { test, expect, openApp, ACCOUNTS_APP } from './fixtures';
 
-const ACCOUNTS_APP = process.env.ACCOUNTS_APP_URL ?? 'http://localhost:5192';
+// ACCOUNTS_APP: the app with accounts switched on (see fixtures.ts).
 
 // A first lesson passed with a perfect score, which opens the mastery overlay.
 async function passFirstLesson(page: import('@playwright/test').Page) {
