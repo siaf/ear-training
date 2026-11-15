@@ -80,7 +80,7 @@ Rules for browser tests:
 - **They must never reach production.** `playwright.config.ts` blanks the PostHog and Sentry keys, blanks Supabase or points it at a fake address, and `e2e/fixtures.ts` blocks all outside traffic except the React and Tone scripts from unpkg. It also fakes sample files and RevenueCat. Keep both in place, and never point a test at a live URL.
 - Every test fails if the page throws or logs an error. Don't filter out a new error to get a test passing; find out what it is first.
 - Import `test` from `./fixtures`, not from `@playwright/test`.
-- Headless browsers play audio silently, so tests count sounds started rather than listen for them. `sounds(page)` returns how many came from synths and how many from samples. Audio needs a real click to start; see `openEngine` in `audio.spec.ts`.
+- Tests are silent: `e2e/fixtures.ts` sends all audio through a gain of zero just before the speakers (headless browsers on a Mac otherwise play out loud). So tests count sounds started rather than listen for them. `sounds(page)` returns how many came from synths and how many from samples. Audio needs a real click to start; see `openEngine` in `audio.spec.ts`.
 - When you add a test for a bug, put the old code back and check that the test fails. One test here passed on broken code until it was rewritten.
 - Run new tests a few times with `--repeat-each=3`. Timing mistakes often pass on the first run.
 - Only one Playwright run at a time per checkout: runs share ports and `test-results/`.

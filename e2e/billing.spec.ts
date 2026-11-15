@@ -23,9 +23,15 @@ function accountCheck(page: Page) {
 
 test('nothing goes to RevenueCat for a learner who isn’t signed in', async ({ page }) => {
   const rc = watchRevenueCat(page);
+  // Let each page's sample downloads finish before the next: WebKit reports downloads cut
+  // off by a navigation as page errors.
+  const settle = () => page.waitForLoadState('networkidle');
   await openApp(page, '/path');
+  await settle();
   await page.goto('/paywall');
+  await settle();
   await openApp(page, `${ACCOUNTS_APP}/path`);
+  await settle();
   await page.goto(`${ACCOUNTS_APP}/paywall`);
   await expect(page.getByRole('button', { name: 'subscribe' })).toBeVisible();
   await page.waitForTimeout(1_000);

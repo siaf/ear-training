@@ -134,6 +134,29 @@ export const test = base.extend<Fixtures>({
         };
         count(OscillatorNode.prototype, 'synth');
         count(AudioBufferSourceNode.prototype, 'sample');
+
+        // Silent tests: everything still plays (and is counted above), but through a gain of
+        // zero just before the speakers. Headless browsers on a Mac otherwise play out loud.
+        const connect = AudioNode.prototype.connect as (this: AudioNode, ...args: unknown[]) => unknown;
+        const disconnect = AudioNode.prototype.disconnect as (this: AudioNode, ...args: unknown[]) => unknown;
+        const mutes = new WeakMap<BaseAudioContext, GainNode>();
+        const muted = (ctx: BaseAudioContext) => {
+          let gain = mutes.get(ctx);
+          if (!gain) {
+            gain = ctx.createGain();
+            gain.gain.value = 0;
+            connect.call(gain, ctx.destination);
+            mutes.set(ctx, gain);
+          }
+          return gain;
+        };
+        const quiet = (target: unknown) => (target instanceof AudioDestinationNode ? muted(target.context) : target);
+        AudioNode.prototype.connect = function (this: AudioNode, target: unknown, ...rest: unknown[]) {
+          return connect.call(this, quiet(target), ...rest);
+        } as typeof AudioNode.prototype.connect;
+        AudioNode.prototype.disconnect = function (this: AudioNode, ...args: unknown[]) {
+          return args.length ? disconnect.call(this, quiet(args[0]), ...args.slice(1)) : disconnect.call(this);
+        } as typeof AudioNode.prototype.disconnect;
       });
 
       const errors: string[] = [];
