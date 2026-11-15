@@ -247,6 +247,61 @@ function getDefaultIntroBody(level: CurriculumLevel): IntroBody {
         purpose: 'Same chord, different sound. Pianists and arrangers cycle voicings constantly — recognizing them tightens your harmonic ear.',
         expectation: "You'll hear one chord. Tap which voicing.",
       };
+    case 'reading':
+      // The Rhythm, Theory and History courses use the same lesson type; give them their own words.
+      if (level.visualKind === 'rhythm_tap') {
+        return {
+          idea: 'Read the bar, press start, and tap the rhythm after the count-in.',
+          purpose: 'The clicks keep the beat. Tap where each note starts; stay still through rests and the far end of a tie.',
+          expectation: "You won't hear the rhythm first: reading it is the point. It plays once you've tapped.",
+        };
+      }
+      if (level.visualKind === 'rhythm_hear') {
+        return {
+          idea: 'Hear a bar, then find it on paper.',
+          purpose: 'Count along with the clicks and notice where each new sound starts.',
+          expectation: 'Pick the rhythm you heard: A, B or C.',
+        };
+      }
+      if (level.visualKind?.startsWith('rhythm_')) {
+        return {
+          idea: 'Count every beat, even the ones you don\'t play.',
+          purpose: 'Rhythm is counting: once you can say where each note falls, you can play it.',
+          expectation: 'Look at the bar and answer. After each answer you\'ll see how it\'s counted.',
+        };
+      }
+      if (level.visualKind?.startsWith('th_')) {
+        return {
+          idea: 'Theory is the why behind what you hear.',
+          purpose: 'Each drill links a pattern on the page to its sound, so it sticks.',
+          expectation: "You'll see it on the staff and can hear it. After each answer you'll see why.",
+        };
+      }
+      if (level.visualKind === 'hx_hear') {
+        return {
+          idea: 'Every era has hallmarks you can hear.',
+          purpose: 'These short passages are written to show one hallmark each, and play on your instrument. Listen for texture and harmony.',
+          expectation: 'Which style is it?',
+        };
+      }
+      if (level.visualKind?.startsWith('hx_')) {
+        return {
+          idea: 'A little history each day adds up.',
+          purpose: 'Short questions and spaced review make names, dates and ideas stick.',
+          expectation: "Pick the answer. After each one you'll get the story behind it.",
+        };
+      }
+      return {
+        idea: 'Reading music is recognising where a note sits, fast.',
+        purpose: 'Every drill here trains one reading reflex until it needs no counting. Short, frequent rounds work best.',
+        expectation: "You'll see a staff. Pick the answer, or place the note where it goes. After each answer you'll see how to read it.",
+      };
+    case 'fretboard':
+      return {
+        idea: 'The neck is a grid: strings across, frets along.',
+        purpose: 'Knowing where notes and shapes sit lets you play what you hear and read, instead of what your fingers happen to know.',
+        expectation: "You'll see the neck with the low E string at the bottom. Name what's marked, or tap where it goes.",
+      };
     case 'rhythm':
       return {
         idea: 'Rhythm has a vocabulary just like pitch does.',

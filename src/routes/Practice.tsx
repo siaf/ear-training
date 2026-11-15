@@ -10,6 +10,7 @@ import SingSequence from '../components/SingSequence';
 import RhythmTapPad from '../components/RhythmTapPad';
 import RhythmGrid from '../components/RhythmGrid';
 import MelodyInput from '../components/MelodyInput';
+import VisualPrompt from '../components/notation/VisualPrompt';
 import { decodeMelody, gradeMelody } from '../lib/melody';
 import { gradeGrid } from '../lib/rhythmGrader';
 import { encodeGrid } from '../lib/rhythmPatterns';
@@ -171,11 +172,16 @@ export default function Practice({
     setSequenceHits(null);
   }, [question?.id]);
 
-  const options = level.itemGroups ? Object.keys(level.itemGroups) : level.items;
+  // Some visual questions bring their own buttons (A, B, C for three written rhythms).
+  const options = question?.visual?.choices?.map((c) => c.key) ?? (level.itemGroups ? Object.keys(level.itemGroups) : level.items);
   const highlightIdx = selectedAnswer ? options.indexOf(selectedAnswer) : -1;
   const isCorrect = question && selectedAnswer === question.correctAnswer;
   const inSing = question?.responseMode === 'sing';
   const notation = degreeNotation ?? DEFAULT_DEGREE_NOTATION;
+  // Read Music and Guitar lessons: something to look at instead of something to hear.
+  // Their answer buttons answer on the first tap, like a flashcard.
+  const isVisual = level.type === 'reading' || level.type === 'fretboard';
+  const tapAnswer = question?.responseMode === 'tap_staff' || question?.responseMode === 'tap_fret' || question?.responseMode === 'tap_rhythm';
 
   // Keyboard shortcuts: 1-9 to pick an option, Space/Enter to submit or advance.
   useEffect(() => {
@@ -192,6 +198,8 @@ export default function Practice({
       if (!question) return;
       // Melodic dictation takes number keys as notes; MelodyInput handles its own keys.
       if (question.responseMode === 'sequence' && !showFeedback) return;
+      // Tap answers on a staff or neck: VisualPrompt handles its own keys.
+      if (tapAnswer && !showFeedback) return;
 
       if (e.key === ' ' || e.key === 'Enter') {
         if (showFeedback) {
@@ -215,13 +223,14 @@ export default function Practice({
         const idx = parseInt(e.key, 10) - 1;
         if (idx < options.length) {
           e.preventDefault();
-          onPick(options[idx]);
+          if (isVisual) onAnswer(options[idx]);
+          else onPick(options[idx]);
         }
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [question, showFeedback, feedbackPending, selectedAnswer, inSing, isPlayingScale, options, onPick, onSubmit, onNext, onReplay, showSettings]);
+  }, [question, showFeedback, feedbackPending, selectedAnswer, inSing, isPlayingScale, options, onPick, onAnswer, onSubmit, onNext, onReplay, showSettings, isVisual, tapAnswer]);
 
   // Play-button sizing collapses on mobile for vertical budget.
   const playSz = mobile ? (tablet ? 88 : 68) : 148;
@@ -480,118 +489,146 @@ export default function Practice({
           <Blob size={mobile ? 140 : 260} color="var(--lav)" />
         </div>
 
-        {/* Play + squiggle — fills vertical space; options sit at the bottom */}
-        <div
-          style={{
-            flex: 1,
-            minHeight: 0,
-            position: 'relative',
-            zIndex: 2,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: mobile ? 6 : 22,
-            width: '100%',
-          }}
-        >
-          <div style={{ position: 'relative', width: playSz, height: playSz }}>
-            {audioPlaying ? (
-              <>
-                {/* Morphing blob cluster — same ink-1 as the play button, layered opacities for depth */}
-                <div
-                  aria-label="Playing"
-                  role="img"
-                  style={{
-                    position: 'absolute',
-                    inset: 0,
-                    transform: `scale(${1 + pulse * 0.08}) rotate(${t * 18}deg)`,
-                    transition: 'transform 120ms linear',
-                    opacity: 0.25,
-                  }}
-                >
-                  <Blob size={playSz} color="var(--ink-1)" />
-                </div>
-                <div
-                  style={{
-                    position: 'absolute',
-                    inset: 0,
-                    transform: `scale(${0.92 + (1 - pulse) * 0.12}) rotate(${-t * 12}deg)`,
-                    transition: 'transform 120ms linear',
-                    opacity: 0.55,
-                  }}
-                >
-                  <Blob size={playSz} color="var(--ink-1)" />
-                </div>
-                <div
-                  style={{
-                    position: 'absolute',
-                    inset: 0,
-                    transform: `scale(${0.75 + pulse * 0.10}) rotate(${t * 8}deg)`,
-                    transition: 'transform 120ms linear',
-                  }}
-                >
-                  <Blob size={playSz} color="var(--ink-1)" />
-                </div>
-              </>
-            ) : (
-              <>
-                <div
-                  style={{
-                    position: 'absolute',
-                    inset: 0,
-                    borderRadius: '50%',
-                    border: '2px solid var(--coral)',
-                    transform: `scale(${1 + pulse * 0.45})`,
-                    opacity: 1 - pulse,
-                    pointerEvents: 'none',
-                  }}
-                />
-                <button
-                  onClick={onReplay}
-                  disabled={isPlayingScale || !question}
-                  aria-label="Replay"
-                  style={{
-                    width: playSz,
-                    height: playSz,
-                    borderRadius: '50%',
-                    background: 'var(--ink-1)',
-                    color: 'var(--page)',
-                    border: 'none',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: isPlayingScale || !question ? 'wait' : 'pointer',
-                    boxShadow: '0 14px 36px rgba(42,29,58,0.3)',
-                    transform: `scale(${1 + pulse * 0.03})`,
-                  }}
-                >
-                  <PlayIcon
-                    size={mobile ? 30 : 64}
-                    strokeWidth={2}
-                    fill="currentColor"
-                    style={{ marginLeft: mobile ? 3 : 6 }}
-                  />
-                </button>
-              </>
+        {isVisual ? (
+          <div
+            style={{
+              flex: 1,
+              minHeight: 0,
+              position: 'relative',
+              zIndex: 2,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              width: '100%',
+              overflowY: 'auto',
+            }}
+          >
+            {question?.visual && (
+              <VisualPrompt
+                key={question.id}
+                question={question}
+                showFeedback={showFeedback}
+                feedbackPending={feedbackPending}
+                mobile={mobile}
+                onAnswer={onAnswer}
+                onReplay={onReplay}
+              />
             )}
           </div>
-          {!(question?.responseMode === 'sing' && !isPlayingScale) && (
-            <div
-              style={{
-                fontSize: mobile ? 20 : 30,
-                color: 'var(--ink-1)',
-                fontFamily: 'var(--disp)',
-                fontWeight: 600,
-                letterSpacing: -0.005,
-                lineHeight: 1.15,
-                textAlign: 'center',
-              }}
-            >
-              {isPlayingScale ? 'New key — listen' : 'What did you hear?'}
+        ) : (
+          // Play + squiggle: fills vertical space; options sit at the bottom.
+          <div
+            style={{
+              flex: 1,
+              minHeight: 0,
+              position: 'relative',
+              zIndex: 2,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: mobile ? 6 : 22,
+              width: '100%',
+            }}
+          >
+            <div style={{ position: 'relative', width: playSz, height: playSz }}>
+              {audioPlaying ? (
+                <>
+                  {/* Morphing blob cluster — same ink-1 as the play button, layered opacities for depth */}
+                  <div
+                    aria-label="Playing"
+                    role="img"
+                    style={{
+                      position: 'absolute',
+                      inset: 0,
+                      transform: `scale(${1 + pulse * 0.08}) rotate(${t * 18}deg)`,
+                      transition: 'transform 120ms linear',
+                      opacity: 0.25,
+                    }}
+                  >
+                    <Blob size={playSz} color="var(--ink-1)" />
+                  </div>
+                  <div
+                    style={{
+                      position: 'absolute',
+                      inset: 0,
+                      transform: `scale(${0.92 + (1 - pulse) * 0.12}) rotate(${-t * 12}deg)`,
+                      transition: 'transform 120ms linear',
+                      opacity: 0.55,
+                    }}
+                  >
+                    <Blob size={playSz} color="var(--ink-1)" />
+                  </div>
+                  <div
+                    style={{
+                      position: 'absolute',
+                      inset: 0,
+                      transform: `scale(${0.75 + pulse * 0.10}) rotate(${t * 8}deg)`,
+                      transition: 'transform 120ms linear',
+                    }}
+                  >
+                    <Blob size={playSz} color="var(--ink-1)" />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div
+                    style={{
+                      position: 'absolute',
+                      inset: 0,
+                      borderRadius: '50%',
+                      border: '2px solid var(--coral)',
+                      transform: `scale(${1 + pulse * 0.45})`,
+                      opacity: 1 - pulse,
+                      pointerEvents: 'none',
+                    }}
+                  />
+                  <button
+                    onClick={onReplay}
+                    disabled={isPlayingScale || !question}
+                    aria-label="Replay"
+                    style={{
+                      width: playSz,
+                      height: playSz,
+                      borderRadius: '50%',
+                      background: 'var(--ink-1)',
+                      color: 'var(--page)',
+                      border: 'none',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: isPlayingScale || !question ? 'wait' : 'pointer',
+                      boxShadow: '0 14px 36px rgba(42,29,58,0.3)',
+                      transform: `scale(${1 + pulse * 0.03})`,
+                    }}
+                  >
+                    <PlayIcon
+                      size={mobile ? 30 : 64}
+                      strokeWidth={2}
+                      fill="currentColor"
+                      style={{ marginLeft: mobile ? 3 : 6 }}
+                    />
+                  </button>
+                </>
+              )}
             </div>
-          )}
-        </div>
+            {!(question?.responseMode === 'sing' && !isPlayingScale) && (
+              <div
+                style={{
+                  fontSize: mobile ? 20 : 30,
+                  color: 'var(--ink-1)',
+                  fontFamily: 'var(--disp)',
+                  fontWeight: 600,
+                  letterSpacing: -0.005,
+                  lineHeight: 1.15,
+                  textAlign: 'center',
+                }}
+              >
+                {isPlayingScale ? 'New key — listen' : 'What did you hear?'}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Mixed Practice (#5) — category gate: user must classify the question's category
             before the answer chips become available. Wrong picks count toward analytics but
@@ -622,7 +659,7 @@ export default function Practice({
               }}
             >
               {interleaveCategoryOptions.map((cat, i) => {
-                const toneCycle = ['mint', 'lav', 'butter', 'sky', 'coral'] as const;
+                const toneCycle = ['lav', 'sky', 'butter'] as const; // never mint or coral: those mean right and wrong
                 const tone = toneCycle[i % toneCycle.length];
                 return (
                   <button
@@ -745,7 +782,7 @@ export default function Practice({
               />
             </div>
           ) : null
-        ) : question?.responseMode === 'grid' ? (
+        ) : tapAnswer ? null : question?.responseMode === 'grid' ? (
           /* Rhythm dictation — 16-cell grid input. Strict equality grade. */
           !showFeedback ? (
             <div style={{ marginTop: mobile ? 14 : 28, width: '100%', maxWidth: 760, zIndex: 2, position: 'relative' }}>
@@ -765,12 +802,24 @@ export default function Practice({
         ) : (
         <div
           style={{
-            marginTop: mobile ? 14 : 48,
+            marginTop: isVisual ? (mobile ? 10 : 24) : mobile ? 14 : 48,
             width: '100%',
             maxWidth: mobile ? 720 : 860,
             display: 'grid',
             gridTemplateColumns:
-              level.type === 'scale_degree'
+              isVisual
+                ? options.some((o) => answerLabel(o, level, notation).length > 24)
+                  ? mobile
+                    ? '1fr' // sentence-length answers (History) get the full width
+                    : 'repeat(2, 1fr)'
+                  : options.some((o) => answerLabel(o, level, notation).length > 4)
+                  ? mobile
+                    ? `repeat(${Math.min(options.length, options.length > 6 ? 3 : 2)}, 1fr)`
+                    : `repeat(${Math.min(options.length, 4)}, 1fr)`
+                  : mobile
+                  ? `repeat(${Math.min(options.length, 4)}, 1fr)`
+                  : `repeat(${Math.min(options.length, 7)}, 1fr)`
+                : level.type === 'scale_degree'
                 ? mobile
                   ? `repeat(${Math.min(options.length, 4)}, 1fr)`
                   : `repeat(${options.length}, 1fr)`
@@ -803,7 +852,7 @@ export default function Practice({
             // Brand: scale degrees render as `degchip` — tonic is dark/inverted, others
             // sit on a uniform butter-soft surface. Other answer types keep the
             // tone-cycle variety that aids "pick at a glance".
-            const toneCycle = ['mint', 'lav', 'butter', 'sky', 'coral'] as const;
+            const toneCycle = ['lav', 'sky', 'butter'] as const; // never mint or coral: those mean right and wrong
             const tone = toneCycle[i % toneCycle.length];
             const baseBg = isDegree
               ? isTonic
@@ -816,8 +865,27 @@ export default function Practice({
                 : 'var(--ink-1)'
               : `var(--${tone}-ink)`;
 
-            const bg = showCorrect ? 'var(--mint)' : showWrong ? 'var(--coral-soft)' : isSelected ? 'var(--ink-1)' : baseBg;
-            const fg = showCorrect ? 'var(--mint-ink)' : showWrong ? 'var(--coral-ink)' : isSelected ? 'var(--page)' : baseInk;
+            // After checking, buttons that are neither the answer nor the learner's
+            // pick go neutral, so only the right (and wrong) one keeps a colour.
+            const bystander = showFeedback && !showCorrect && !showWrong;
+            const bg = showCorrect
+              ? 'var(--mint)'
+              : showWrong
+              ? 'var(--coral-soft)'
+              : bystander
+              ? 'var(--page-2)'
+              : isSelected
+              ? 'var(--ink-1)'
+              : baseBg;
+            const fg = showCorrect
+              ? 'var(--mint-ink)'
+              : showWrong
+              ? 'var(--coral-ink)'
+              : bystander
+              ? 'var(--ink-3)'
+              : isSelected
+              ? 'var(--page)'
+              : baseInk;
             const border = showCorrect
               ? '2px solid var(--mint-ink)'
               : showWrong
@@ -831,7 +899,7 @@ export default function Practice({
             return (
               <button
                 key={opt}
-                onClick={() => onPick(opt)}
+                onClick={() => (isVisual ? onAnswer(opt) : onPick(opt))}
                 disabled={showFeedback || feedbackPending || !question || isPlayingScale}
                 style={{
                   padding: isDegree
@@ -850,7 +918,8 @@ export default function Practice({
                   fontSize: mobile ? 14.5 : 22,
                   border,
                   cursor: showFeedback || feedbackPending || !question || isPlayingScale ? 'not-allowed' : 'pointer',
-                  boxShadow: 'var(--sh-sm)',
+                  boxShadow: bystander ? 'none' : 'var(--sh-sm)',
+                  opacity: bystander ? 0.55 : 1,
                   transition: 'all 160ms',
                   minHeight: mobile ? 44 : 76,
                   lineHeight: 1.1,
@@ -878,6 +947,11 @@ export default function Practice({
                     }}
                   >
                     {i + 1}
+                  </span>
+                )}
+                {(showCorrect || showWrong) && (
+                  <span aria-hidden style={{ marginRight: 6, fontWeight: 800 }}>
+                    {showCorrect ? '✓' : '✗'}
                   </span>
                 )}
                 {isDegree ? (
@@ -1043,6 +1117,21 @@ export default function Practice({
               </div>
             ) : null}
           </div>
+          {question.visual && !isCorrect && (
+            // How to read it, not just what it was. Right answers move on by themselves. Shown in the bar so the picture keeps its place.
+            <p
+              style={{
+                margin: mobile ? '0 0 10px' : '0 auto 16px',
+                maxWidth: mobile ? undefined : 860,
+                fontSize: mobile ? 13 : 15,
+                lineHeight: 1.45,
+                color: 'var(--ink-2)',
+              }}
+            >
+              {question.visual.tap && <b style={{ color: 'var(--mint-ink)' }}>Right answer in green. </b>}
+              {question.visual.explain}
+            </p>
+          )}
           <div
             style={{
               display: 'flex',

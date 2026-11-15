@@ -81,18 +81,19 @@ export const E2E_USER = {
  * server is faked too: it confirms the account (or, with `server: 'rejects'`, refuses the
  * session), and sync gets nothing saved. Call before loading ACCOUNTS_APP.
  */
-export async function signedIn(page: Page, { server = 'confirms' as 'confirms' | 'rejects' | 'unconfirmed' } = {}) {
+export async function signedIn(page: Page, { server = 'confirms' as 'confirms' | 'rejects' | 'unconfirmed', email = E2E_USER.email } = {}) {
+  const account = { ...E2E_USER, email };
   await page.addInitScript((user) => {
     const now = Math.floor(Date.now() / 1000);
     localStorage.setItem('sb-localhost-auth-token', JSON.stringify({
       access_token: 'e2e-access-token', refresh_token: 'e2e-refresh', token_type: 'bearer',
       expires_in: 3600, expires_at: now + 3600, user,
     }));
-  }, E2E_USER);
+  }, account);
   await page.route(FAKE_SUPABASE, (route) => {
     if (!route.request().url().includes('/auth/v1/user')) return route.fulfill({ json: [] });
     if (server === 'rejects') return route.fulfill({ status: 401, json: { code: 401, msg: 'invalid JWT' } });
-    const user = server === 'unconfirmed' ? { ...E2E_USER, email_confirmed_at: null } : E2E_USER;
+    const user = server === 'unconfirmed' ? { ...account, email_confirmed_at: null } : account;
     return route.fulfill({ json: user });
   });
 }

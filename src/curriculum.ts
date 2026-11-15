@@ -1,4 +1,10 @@
-import { CurriculumLevel, CurriculumSegment } from './types';
+import { CurriculumLevel, CurriculumSegment, PathId } from './types';
+import { READ_SEGMENTS, READ_TEACHING_ORDER } from './curriculumRead';
+import { GUITAR_SEGMENTS, GUITAR_TEACHING_ORDER } from './curriculumGuitar';
+import { RHYTHM_SEGMENTS, RHYTHM_TEACHING_ORDER } from './curriculumRhythm';
+import { THEORY_SEGMENTS, THEORY_TEACHING_ORDER } from './curriculumTheory';
+import { HISTORY_SEGMENTS, HISTORY_TEACHING_ORDER } from './curriculumHistory';
+import { visualLabel } from './notation/questions';
 
 // Organized curriculum with segments
 export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
@@ -1522,10 +1528,44 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
     color: 'indigo',
     levels: [],
   },
+
+  // The Read Music and Guitar paths: separate courses, each with its own sections.
+  ...READ_SEGMENTS,
+  ...GUITAR_SEGMENTS,
+  ...RHYTHM_SEGMENTS,
+  ...THEORY_SEGMENTS,
+  ...HISTORY_SEGMENTS,
 ];
 
-// Flatten all levels from segments for backwards compatibility
+// Every lesson in every path. Look lessons up by id here; walk a path with lessonsInPath.
 export const CURRICULUM: CurriculumLevel[] = CURRICULUM_SEGMENTS.flatMap(segment => segment.levels);
+
+export interface PathInfo {
+  id: PathId;
+  name: string;
+  short: string;
+  description: string;
+}
+
+/** The courses a learner picks between. Ear training is the original one. */
+export const PATHS: PathInfo[] = [
+  { id: 'ear', name: 'Ear Training', short: 'Ear', description: 'Hear intervals, chords and progressions' },
+  { id: 'read', name: 'Read Music', short: 'Read', description: 'From treble and bass clef to a full score' },
+  { id: 'guitar', name: 'Guitar & Bass', short: 'Guitar', description: 'The neck as one pattern: notes, shapes, chords and scales, on guitar and bass' },
+  { id: 'rhythm', name: 'Rhythm', short: 'Rhythm', description: 'Read rhythms and tap them; hear rhythms and find them on paper' },
+  { id: 'theory', name: 'Music Theory', short: 'Theory', description: 'Scales, keys, chords and cadences: how music is built' },
+  { id: 'history', name: 'Music History', short: 'History', description: 'The eras, the composers, and how each style sounds' },
+];
+export const DEFAULT_PATH: PathId = 'ear';
+export const isPathId = (v: unknown): v is PathId => PATHS.some((p) => p.id === v);
+
+export const pathOfSegment = (segment: CurriculumSegment): PathId => segment.pathId ?? 'ear';
+const PATH_OF_LEVEL = new Map(CURRICULUM_SEGMENTS.flatMap((seg) => seg.levels.map((l) => [l.id, pathOfSegment(seg)] as const)));
+/** Which path a lesson belongs to. Unknown ids count as ear training. */
+export const pathOfLevel = (levelOrId: CurriculumLevel | string): PathId =>
+  PATH_OF_LEVEL.get(typeof levelOrId === 'string' ? levelOrId : levelOrId.id) ?? 'ear';
+export const segmentsInPath = (path: PathId) => CURRICULUM_SEGMENTS.filter((s) => pathOfSegment(s) === path);
+export const lessonsInPath = (path: PathId) => CURRICULUM.filter((l) => pathOfLevel(l) === path);
 
 /**
  * The order lessons are taught in, across sections. The path still shows lessons by
@@ -1567,11 +1607,29 @@ export const TEACHING_ORDER: string[] = [
   'jazz_dom_extensions', 'jazz_altered_dominants', 'jazz_modal_interchange', 'jazz_voicings',
 ];
 
-/** Lessons in teaching order. Any lesson missing from TEACHING_ORDER goes at the end. */
-export const TAUGHT: CurriculumLevel[] = [
-  ...TEACHING_ORDER.map((id) => CURRICULUM.find((l) => l.id === id)).filter((l): l is CurriculumLevel => !!l),
-  ...CURRICULUM.filter((l) => !TEACHING_ORDER.includes(l.id)),
-];
+/** Each path's teaching order. Same rules as TEACHING_ORDER (curriculum.test.ts checks every path). */
+export const PATH_TEACHING_ORDER: Record<PathId, string[]> = {
+  ear: TEACHING_ORDER,
+  read: READ_TEACHING_ORDER,
+  guitar: GUITAR_TEACHING_ORDER,
+  rhythm: RHYTHM_TEACHING_ORDER,
+  theory: THEORY_TEACHING_ORDER,
+  history: HISTORY_TEACHING_ORDER,
+};
+
+/** A path's lessons in teaching order. Any lesson missing from its order goes at the end. */
+function taughtIn(path: PathId): CurriculumLevel[] {
+  const order = PATH_TEACHING_ORDER[path];
+  const lessons = lessonsInPath(path);
+  return [
+    ...order.map((id) => lessons.find((l) => l.id === id)).filter((l): l is CurriculumLevel => !!l),
+    ...lessons.filter((l) => !order.includes(l.id)),
+  ];
+}
+const TAUGHT_BY_PATH = Object.fromEntries(PATHS.map((p) => [p.id, taughtIn(p.id)])) as Record<PathId, CurriculumLevel[]>;
+
+/** Ear-training lessons in teaching order. */
+export const TAUGHT: CurriculumLevel[] = TAUGHT_BY_PATH.ear;
 
 export function isProLesson(level: CurriculumLevel): boolean {
   return level.tier === 'pro';
@@ -1597,8 +1655,9 @@ function effectivePrereqs(level: CurriculumLevel, isPro: boolean): string[] {
 export function getCurrentLevel(
   completedLevels: string[],
   isPro: boolean = true,
-  opts: { skipSinging?: boolean } = {},
+  opts: { skipSinging?: boolean; path?: PathId } = {},
 ): CurriculumLevel {
+  const TAUGHT = TAUGHT_BY_PATH[opts.path ?? DEFAULT_PATH];
   const done = new Set(completedLevels);
   const skipped = (level: CurriculumLevel) => Boolean(opts.skipSinging) && isSingOnlyLevel(level);
   const candidates = TAUGHT.filter(level => {
@@ -1644,6 +1703,9 @@ export function getUnlockedLevels(
 }
 
 export function getDisplayName(item: string): string {
+  // Reading and fretboard items and answers: notes, keys, clefs, fret positions.
+  const visual = visualLabel(item);
+  if (visual) return visual;
   // Hand-curated labels for items that don't snake-case cleanly into a nice display string.
   const SPECIAL: Record<string, string> = {
     // Cadences

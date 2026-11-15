@@ -3,6 +3,9 @@ import { useEffect, useState } from 'react';
 import { Bean } from './primitives';
 import type { LessonIntroCopy } from '../types';
 import { useBreakpoint } from '../lib/useBreakpoint';
+import RhythmStaff from './rhythm/RhythmStaff';
+import { countLabel, countsOf, describe, parseRhythm, parseTime } from '../rhythm/model';
+import Fretboard from './notation/Fretboard';
 
 interface Props {
   pages: LessonIntroCopy[];
@@ -142,6 +145,29 @@ export default function LessonIntro({ pages, lessonName, onContinue, onExit, onS
           minHeight: 0,
         }}
       >
+        {page.rhythmFigure ? (
+          <div className="fx-fade-up" style={{ width: '100%', maxWidth: 520, background: 'var(--card)', borderRadius: 18, border: '1px solid var(--hairline)', padding: '8px 12px', boxSizing: 'border-box' }}>
+            <RhythmStaff
+              notes={parseRhythm(page.rhythmFigure.src)}
+              time={parseTime(page.rhythmFigure.time ?? '4/4')}
+              counts={countsOf(parseRhythm(page.rhythmFigure.src), parseTime(page.rhythmFigure.time ?? '4/4')).map(countLabel)}
+              ariaLabel={describe(parseRhythm(page.rhythmFigure.src))}
+            />
+          </div>
+        ) : page.figure ? (
+          // A teaching picture takes the mascot's place: the names are shown here, so
+          // the questions can leave them off.
+          <div className="fx-fade-up" style={{ width: '100%', maxWidth: 560 }}>
+            <Fretboard
+              dots={page.figure.neck.map((d) => ({ ...d, state: d.root ? ('root' as const) : ('dot' as const) }))}
+              // Centre on the dots unless the page says where to look.
+              focusFret={page.figure.focusFret ?? Math.round((Math.min(...page.figure.neck.map((d) => d.f)) + Math.max(...page.figure.neck.map((d) => d.f))) / 2)}
+              stringNames={page.figure.stringNames}
+              neck={page.figure.bass ? 'bass' : 'guitar'}
+              ariaLabel={page.figure.neck.map((d) => d.label).join(', ')}
+            />
+          </div>
+        ) : (
         <div
           className="fx-mascot-enter"
           style={{
@@ -161,6 +187,7 @@ export default function LessonIntro({ pages, lessonName, onContinue, onExit, onS
             style={{ width: '92%', height: '92%', objectFit: 'contain' }}
           />
         </div>
+        )}
 
         <div
           className="fx-fade-up"

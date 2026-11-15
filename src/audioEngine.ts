@@ -461,6 +461,14 @@ class AudioEngine {
     return [note];
   }
 
+  /** Several notes at once, e.g. a chord read off a staff. */
+  async playNotesTogether(notes: string[], durationSec = 1.4): Promise<string[]> {
+    await this.initialize();
+    this.synth.triggerAttackRelease(notes, durationSec);
+    this.markPlayback(durationSec);
+    return notes;
+  }
+
   async playSequence(notes: string[], noteDurSec = 0.45, gapSec = 0.08): Promise<string[]> {
     await this.initialize();
     const now = Tone.now();
@@ -470,6 +478,20 @@ class AudioEngine {
     });
     this.markPlayback(notes.length * step);
     return notes;
+  }
+
+  /**
+   * A short passage: events at beat times, each one or more notes held for d beats.
+   * Used by the History path's listening examples.
+   */
+  async playPassage(events: Array<{ t: number; notes: string[]; d: number }>, bpm: number): Promise<number> {
+    await this.initialize();
+    const beat = 60 / bpm;
+    const now = Tone.now() + 0.08;
+    for (const e of events) this.synth.triggerAttackRelease(e.notes, Math.max(0.08, e.d * beat), now + e.t * beat);
+    const end = Math.max(0, ...events.map((e) => e.t + e.d)) * beat + 0.3;
+    this.markPlayback(end);
+    return end;
   }
 
   async startListening(onPitch: PitchListener, onDeadMic?: () => void): Promise<ListenHandle> {
@@ -1340,6 +1362,53 @@ class AudioEngine {
     // Accent the downbeat so the listener locks the bar.
     const { duration } = await this.playRhythmOnsets(beats, bpm, [0]);
     return { duration };
+  }
+
+  /**
+   * The Rhythm path's player. Clicks count in for `countIn` beats, then the rhythm plays
+   * (unless `hits` is false, when the learner is the one playing it). With `metronome`,
+   * the clicks carry on through the bar. Onsets are in beats from the end of the count-in.
+   * Returns performance.now() times for the bar's beat 0 and for each onset, so taps can
+   * be graded against what was scheduled.
+   */
+  async playRhythmBar(opts: {
+    onsets: number[];
+    bpm: number;
+    countIn: number;
+    bars?: number;
+    beatsPerBar: number;
+    hits?: boolean;
+    metronome?: boolean;
+  }): Promise<{ startMs: number; onsetTimesMs: number[]; duration: number }> {
+    await this.initialize();
+    const { onsets, bpm, countIn, beatsPerBar, hits = true, metronome = false } = opts;
+    const beatSec = 60 / bpm;
+    const lead = 0.12; // schedule a moment ahead so the first click isn't clipped
+    const now = Tone.now() + lead;
+    const nowMs = performance.now() + lead * 1000;
+    // Fresh synths each time: they're monophonic, and a replay mid-pattern would otherwise
+    // schedule a note before one already queued.
+    const click = new Tone.Synth({ oscillator: { type: 'square' }, envelope: { attack: 0.001, decay: 0.03, sustain: 0, release: 0.02 }, volume: -20 }).toDestination();
+    const hit = new Tone.MembraneSynth({ pitchDecay: 0.03, octaves: 3, envelope: { attack: 0.001, decay: 0.16, sustain: 0, release: 0.06 }, volume: -4 }).toDestination();
+    const bars = opts.bars ?? 1;
+    const barBeats = beatsPerBar * bars;
+    const clickBeats: number[] = [];
+    for (let b = 0; b < countIn; b++) clickBeats.push(b);
+    if (metronome) for (let b = 0; b < barBeats; b++) clickBeats.push(countIn + b);
+    clickBeats.forEach((b) => {
+      const accent = (b - countIn) % beatsPerBar === 0 || b === 0;
+      click.triggerAttackRelease(accent ? 'C6' : 'G5', 0.03, now + b * beatSec);
+    });
+    const unique = [...new Set(onsets)].sort((a, b) => a - b);
+    if (hits) unique.forEach((o) => hit.triggerAttackRelease('A2', '32n', now + (countIn + o) * beatSec));
+    const duration = lead + (countIn + Math.max(barBeats, (unique[unique.length - 1] ?? 0) + 1)) * beatSec;
+    window.setTimeout(() => {
+      click.dispose();
+      hit.dispose();
+    }, duration * 1000 + 600);
+    this.markPlayback(duration);
+    const startMs = nowMs + countIn * beatSec * 1000;
+    return { startMs, onsetTimesMs: unique.map((o) => startMs + o * beatSec * 1000), duration };
   }
 
   async playCorrectChime() {

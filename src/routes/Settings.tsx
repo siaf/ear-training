@@ -1,3 +1,4 @@
+import type { PathId } from '../types';
 import { useState } from 'react';
 import { useBreakpoint } from '../lib/useBreakpoint';
 import { Bean, Brand, ColorPill } from '../components/primitives';
@@ -30,6 +31,7 @@ export interface SettingsState {
   degreeNotation?: DegreeNotation; // How scale-degree answers are labeled. Undefined = 'roman'.
   feedbackTiming?: FeedbackTiming; // Defaults to 'immediate'. Daily Review forces 'delayed_short'.
   voiceCheckedAt?: number; // When the hum check before singing lessons ran (or was skipped). Unset = run it before the next one.
+  activePath?: PathId; // Which course the path screen shows. Undefined = ear training.
 }
 
 export const DEFAULT_FEEDBACK_TIMING: FeedbackTiming = 'immediate';

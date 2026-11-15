@@ -82,6 +82,31 @@ Why: simultaneous training in coupled motor systems (vocal-pitch + rhythmic-arti
 
 ---
 
+## Composition path (planned, not built)
+
+The user wants a Composition course after Rhythm, Theory and History (November 2026). It's the hardest fit: the app grades right and wrong answers, and creative work doesn't have one right answer. The plan is to come at it from two sides.
+
+**Choices that train taste (gradeable, uses what exists):**
+- *Which ending sounds finished?* Two endings of a phrase, one on a cadence. Theory's cadence lessons already build and play these.
+- *Which answer fits this question?* A 2-bar melody, then three 2-bar replies, one of which mirrors its rhythm and lands on the tonic.
+- *Which chord fits under this note?* A melody note on the staff; pick I, IV or V.
+- *Spot the motif:* hear a motif, then pick the bar that develops it (repeated, sequenced, inverted, rhythm changed).
+
+**Guided building (needs a new editor):**
+- A small melody and chord editor: tap notes onto a staff or degrees onto a grid, then play them back. Rhythm's note-value buttons and Read Music's tap-to-place staff are starting points.
+- Constraint exercises, checked by rules:
+  - finish a 4-bar melody so it ends on the tonic;
+  - use this motif twice;
+  - write a bass line that moves by step or by 4th or 5th;
+  - harmonise with I, IV and V so every melody note is in its chord.
+- Free writing later, maybe with AI feedback on things the rules can't check (contour, tension and release).
+
+**Order:** motif and phrase (question and answer), cadences as punctuation, harmonising a melody, writing a bass line, then form (AABA, verse and chorus).
+
+**Reuse:** Theory's chord and cadence builders, Rhythm's notation, the audio engine's passage player (`playPassage`), and the visual-question system.
+
+---
+
 ## Cross-cutting
 
 - All of these can be staged behind the existing curriculum gating; none requires audio-engine changes that don't already exist (chord audio, pitch detection, metronome).

@@ -1,7 +1,7 @@
 // What scripts/build-lessons.mjs needs from the app, bundled by esbuild so the public lesson
 // pages always match the app: names, intros, order, free or Pro, and the medal's look.
 
-import { CURRICULUM, CURRICULUM_SEGMENTS, TEACHING_ORDER, getDisplayName, isProLesson } from '../src/curriculum';
+import { CURRICULUM, TEACHING_ORDER, getDisplayName, isProLesson, lessonsInPath, segmentsInPath } from '../src/curriculum';
 import { getLessonIntro } from '../src/lib/lessonIntro';
 import { medalLabel } from '../src/lib/medalLabel';
 import { lessonSlug, OLD_SLUGS } from '../src/lib/lessonPages';
@@ -27,12 +27,15 @@ export interface LessonPageData {
 const readable = (name: string) => Boolean(name) && !/[_:]/.test(name);
 
 export function lessonPages(): { segments: { id: string; name: string; description: string; lessons: LessonPageData[] }[]; oldSlugs: Record<string, string> } {
-  const byId = new Map(CURRICULUM.map((l) => [l.id, l]));
+  // Ear training only for now. The other courses (Read Music, Guitar & Bass, Rhythm, Theory,
+  // History) share CURRICULUM but don't have pages yet, and some of their names repeat
+  // across courses ("All Four Triads"), so they'd need course-specific slugs first.
+  const byId = new Map(lessonsInPath('ear').map((l) => [l.id, l]));
   const link = (id: string) => {
     const l = byId.get(id);
     return l ? { name: l.name, slug: lessonSlug(l.name) } : null;
   };
-  const segments = CURRICULUM_SEGMENTS.map((segment) => ({
+  const segments = segmentsInPath('ear').map((segment) => ({
     id: segment.id,
     name: segment.name,
     description: segment.description,

@@ -13,7 +13,7 @@
 //     existing are 100%).
 //   - Suppressed if the suggestion is the user's current level (they're already on it).
 
-import { CURRICULUM, isLevelUnlocked } from '../curriculum';
+import { CURRICULUM, isLevelUnlocked, pathOfLevel, segmentsInPath } from '../curriculum';
 import { getAllSessions } from './sessionStore';
 import type { CurriculumLevel } from '../types';
 
@@ -72,7 +72,10 @@ export function getCrossSegmentRecommendation(
   isPro: boolean,
   now = Date.now(),
 ): Recommendation | null {
-  const segments = getSegmentAccuracy(now).filter((s) => s.attempts >= MIN_SAMPLES);
+  // Compare sections within the path the learner is on: a weak reading section is no
+  // reason to send an ear-training learner to it.
+  const inPath = new Set(segmentsInPath(pathOfLevel(currentLevelId)).map((seg) => seg.id));
+  const segments = getSegmentAccuracy(now).filter((s) => s.attempts >= MIN_SAMPLES && inPath.has(s.segmentId));
   if (segments.length < 2) return null;
 
   const sorted = [...segments].sort((a, b) => a.accuracy - b.accuracy);

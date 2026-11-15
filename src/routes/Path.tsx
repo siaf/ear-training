@@ -1,14 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useBreakpoint } from '../lib/useBreakpoint';
-import { CURRICULUM, CURRICULUM_SEGMENTS, isLevelUnlocked } from '../curriculum';
-import { CurriculumLevel, CurriculumSegment } from '../types';
+import { CURRICULUM, CURRICULUM_SEGMENTS, PATHS, isLevelUnlocked, pathOfLevel, segmentsInPath } from '../curriculum';
+import { CurriculumLevel, CurriculumSegment, PathId } from '../types';
 import { Bean, Brand } from '../components/primitives';
 import DesktopSidebar from '../components/DesktopSidebar';
 import TodayPanel from '../components/TodayPanel';
 import UpsellCard, { type UpsellMode } from '../components/UpsellCard';
 import type { Recommendation } from '../lib/recommendations';
 import { CHECKPOINTS, type Checkpoint } from '../lib/checkpoints';
-import { Flag, Flame, Lock as LockIcon, RotateCcw } from 'lucide-react';
+import { BookOpen, Drum, Ear, Flag, Flame, GraduationCap, Guitar, Landmark, Lock as LockIcon, RotateCcw, type LucideIcon } from 'lucide-react';
 import { getLessonIconRender, getSegmentIcon, type LessonIconRender } from '../lib/lessonIcons';
 import { mascotForColor, segmentColor } from '../lib/segmentColors';
 import { phCapture } from '../lib/posthog';
@@ -18,6 +18,11 @@ type NodeState = 'done' | 'current' | 'locked';
 interface Props {
   completedLevels: string[];
   currentLevelId: string;
+  /** Which course is showing, and how to switch. */
+  activePath?: PathId;
+  onSwitchPath?: (path: PathId) => void;
+  /** Courses this learner can open. The rest show locked, as "coming soon". Omitted = all. */
+  openPaths?: PathId[];
   debugMode: boolean;
   onStart: (levelId: string) => void;
   onNavigate: (route: 'settings' | 'stats') => void;
@@ -718,6 +723,9 @@ function RiverInner({
 export default function Path({
   completedLevels,
   currentLevelId,
+  activePath = 'ear',
+  onSwitchPath,
+  openPaths,
   debugMode,
   onStart,
   onNavigate,
@@ -736,11 +744,15 @@ export default function Path({
   recommendation = null,
   onStartCheckpoint,
 }: Props) {
+  // The side cards follow the course on show. Saving progress applies to every course;
+  // the Pro pitch is about ear-training lessons, so other courses (all free) don't show it.
   const upsellMode: UpsellMode = isPro
     ? 'none'
     : !isSignedIn
     ? 'create_account'
-    : 'go_pro';
+    : activePath === 'ear'
+    ? 'go_pro'
+    : 'none';
   const onUpsellClick = upsellMode === 'create_account' ? onOpenAuth : onOpenPaywall;
   const onProTap = (_levelId: string) => {
     if (!isSignedIn && onOpenAuth) onOpenAuth();
@@ -762,10 +774,17 @@ export default function Path({
   );
 
   const completed = useMemo(() => new Set(completedLevels), [completedLevels]);
-  const segments = useMemo(() => CURRICULUM_SEGMENTS.filter((s) => s.levels.length > 0), []);
+  const segments = useMemo(() => segmentsInPath(activePath).filter((s) => s.levels.length > 0), [activePath]);
   const totalLevels = segments.reduce((n, s) => n + s.levels.length, 0);
+  const clearedHere = completedLevels.filter((id) => pathOfLevel(id) === activePath).length;
+  // Mixed practice and custom practice are listening drills: they count ear lessons only,
+  // and only show on the ear-training course.
+  const earCleared = completedLevels.filter((id) => pathOfLevel(id) === 'ear').length;
+  const onEar = activePath === 'ear';
+  const startInterleave = onEar ? onStartInterleave : undefined;
+  const openCustom = onEar ? onOpenCustom : undefined;
 
-  const currentLevel = CURRICULUM.find((l) => l.id === currentLevelId) ?? CURRICULUM[0];
+  const currentLevel = CURRICULUM.find((l) => l.id === currentLevelId) ?? segments[0]?.levels[0] ?? CURRICULUM[0];
   const currentSegment = segments.find((s) => s.id === currentLevel.segmentId);
   const segIdx = segments.findIndex((s) => s.id === currentLevel.segmentId);
   const segPalette = currentSegment ? segmentColor(currentSegment.color, segIdx) : segmentColor('purple', 0);
@@ -842,7 +861,7 @@ export default function Path({
                   Your <span style={{ fontStyle: 'italic', color: segPalette.ink }}>path</span>
                 </h1>
                 <p style={{ fontSize: 11, color: 'var(--ink-2)', margin: '2px 0 0' }}>
-                  {completedLevels.length} of {totalLevels} cleared
+                  {clearedHere} of {totalLevels} cleared
                 </p>
               </div>
               <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
@@ -852,6 +871,11 @@ export default function Path({
                 </Bean>
               </div>
             </div>
+            {onSwitchPath && (
+              <div style={{ padding: '8px 14px', background: 'var(--page)', borderBottom: '1px solid var(--hairline)' }}>
+                <PathSwitcher active={activePath} onSwitch={onSwitchPath} open={openPaths} mobile />
+              </div>
+            )}
           </>
         ) : null}
         <div
@@ -898,8 +922,9 @@ export default function Path({
                 </div>
               </div>
               <p style={{ fontSize: 13, color: 'var(--ink-2)', margin: '6px 0 0' }}>
-                {completedLevels.length} of {totalLevels} cleared
+                {clearedHere} of {totalLevels} cleared
               </p>
+              {onSwitchPath && <PathSwitcher active={activePath} onSwitch={onSwitchPath} open={openPaths} mobile={false} />}
             </div>
           )}
           <div
@@ -926,12 +951,12 @@ export default function Path({
                       todayMinutes={todayMinutes}
                       recommendation={recommendation}
                       dueCount={dueCount}
-                      completedCount={completedLevels.length}
+                      completedCount={earCleared}
                       mobile
                       onStartLevel={onStart}
                       onStartReview={onStartReview}
-                      onStartInterleave={onStartInterleave}
-                      onOpenCustom={onOpenCustom}
+                      onStartInterleave={startInterleave}
+                      onOpenCustom={openCustom}
                       isPro={isPro}
                     />
                     {onUpsellClick && (
@@ -960,11 +985,11 @@ export default function Path({
                 todayMinutes={todayMinutes}
                 recommendation={recommendation}
                 dueCount={dueCount}
-                completedCount={completedLevels.length}
+                completedCount={earCleared}
                 onStartLevel={onStart}
                 onStartReview={onStartReview}
-                onStartInterleave={onStartInterleave}
-                onOpenCustom={onOpenCustom}
+                onStartInterleave={startInterleave}
+                onOpenCustom={openCustom}
                 isPro={isPro}
                 upsell={upsellMode}
                 onUpsellClick={onUpsellClick}
@@ -973,6 +998,108 @@ export default function Path({
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+const PATH_ICONS: Record<PathId, LucideIcon> = { ear: Ear, read: BookOpen, guitar: Guitar, rhythm: Drum, theory: GraduationCap, history: Landmark };
+
+/** The courses (ear training, reading, guitar and bass, rhythm…), each with its own progress. */
+function PathSwitcher({ active, onSwitch, open, mobile }: { active: PathId; onSwitch: (p: PathId) => void; open?: PathId[]; mobile: boolean }) {
+  // A locked course says it's coming soon when tapped, and the path stays where it is.
+  const [soon, setSoon] = useState<PathId | null>(null);
+  const soonInfo = PATHS.find((p) => p.id === soon);
+  useEffect(() => {
+    if (!soon) return;
+    const t = window.setTimeout(() => setSoon(null), 5000);
+    return () => window.clearTimeout(t);
+  }, [soon]);
+  return (
+    <div style={{ width: mobile ? '100%' : undefined }}>
+    <div
+      role="tablist"
+      aria-label="Course"
+      style={{
+        // Phones: a grid of three to a row, so six courses fit without scrolling.
+        display: mobile ? 'grid' : 'flex',
+        gridTemplateColumns: 'repeat(3, 1fr)',
+        flexWrap: 'wrap',
+        gap: mobile ? 4 : 6,
+        marginTop: mobile ? 0 : 14,
+        padding: 4,
+        borderRadius: mobile ? 18 : 999,
+        background: 'var(--ink-5)',
+        width: mobile ? '100%' : 'fit-content',
+        boxSizing: 'border-box',
+      }}
+    >
+      {PATHS.map((p) => {
+        const on = p.id === active;
+        const locked = open !== undefined && !open.includes(p.id);
+        const Icon = locked ? LockIcon : PATH_ICONS[p.id];
+        return (
+          <button
+            key={p.id}
+            role="tab"
+            aria-selected={on}
+            aria-disabled={locked || undefined}
+            data-locked={locked || undefined}
+            title={locked ? `${p.name}: coming soon` : p.description}
+            onClick={() => {
+              if (locked) {
+                // Which courses people try to open tells us what to finish first.
+                if (soon !== p.id) phCapture('path_coming_soon_tapped', { path: p.id });
+                setSoon(p.id);
+                return;
+              }
+              setSoon(null);
+              if (on) return;
+              phCapture('path_switched', { from: active, to: p.id });
+              onSwitch(p.id);
+            }}
+            style={{
+              flex: mobile ? 1 : undefined,
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 6,
+              padding: mobile ? '7px 8px' : '8px 16px',
+              borderRadius: 999,
+              border: 'none',
+              background: on ? 'var(--ink-1)' : 'transparent',
+              color: on ? 'var(--page)' : locked ? 'var(--ink-3)' : 'var(--ink-2)',
+              fontFamily: 'var(--ui)',
+              fontWeight: 700,
+              fontSize: mobile ? 13 : 14,
+              cursor: on ? 'default' : 'pointer',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            <Icon size={mobile ? 15 : 16} strokeWidth={2.3} />
+            {mobile ? p.short : p.name}
+          </button>
+        );
+      })}
+    </div>
+    {soonInfo && (
+      <div
+        role="status"
+        style={{
+          marginTop: 8,
+          padding: '10px 14px',
+          borderRadius: 14,
+          background: 'var(--card)',
+          border: '1px solid var(--ink-5)',
+          fontFamily: 'var(--ui)',
+          fontSize: 13,
+          lineHeight: 1.45,
+          color: 'var(--ink-2)',
+          maxWidth: mobile ? undefined : 460,
+        }}
+      >
+        <b style={{ color: 'var(--ink-1)' }}>{soonInfo.name} is coming soon.</b> {soonInfo.description}.
+      </div>
+    )}
     </div>
   );
 }

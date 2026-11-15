@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { CURRICULUM, TEACHING_ORDER, getCurrentLevel, isLevelUnlocked, isSingOnlyLevel } from './curriculum';
+import { CURRICULUM, PATHS, PATH_TEACHING_ORDER, TEACHING_ORDER, getCurrentLevel, isLevelUnlocked, isSingOnlyLevel, lessonsInPath, pathOfLevel } from './curriculum';
+
+const EAR = lessonsInPath('ear');
 
 const level = (id: string) => CURRICULUM.find((l) => l.id === id)!;
 
@@ -32,14 +34,14 @@ describe('skipping singing lessons', () => {
 
   it('keeps every listening lesson reachable without singing', () => {
     const done: string[] = [];
-    for (let i = 0; i < CURRICULUM.length; i++) {
+    for (let i = 0; i < EAR.length; i++) {
       const next = getCurrentLevel(done, true, { skipSinging: true });
       if (done.includes(next.id)) break;
       expect(isSingOnlyLevel(next)).toBe(false);
       expect(isLevelUnlocked(next, done)).toBe(true);
       done.push(next.id);
     }
-    expect(done.length).toBe(CURRICULUM.filter((l) => !isSingOnlyLevel(l)).length);
+    expect(done.length).toBe(EAR.filter((l) => !isSingOnlyLevel(l)).length);
   });
 });
 
@@ -63,7 +65,7 @@ describe('teaching order across sections', () => {
   const pos = (id: string) => TEACHING_ORDER.indexOf(id);
 
   it('lists every lesson exactly once', () => {
-    expect([...TEACHING_ORDER].sort()).toEqual(CURRICULUM.map((l) => l.id).sort());
+    expect([...TEACHING_ORDER].sort()).toEqual(EAR.map((l) => l.id).sort());
   });
 
   it('puts every lesson after its prerequisites', () => {
@@ -114,5 +116,50 @@ describe('lesson fixes', () => {
       .map((id) => level(id))
       .filter((l) => l.segmentId === 'intervals');
     expect(taughtBefore.some((l) => l.items.includes('octave'))).toBe(true);
+  });
+});
+
+describe('separate paths', () => {
+  for (const { id: path } of PATHS) {
+    const order = PATH_TEACHING_ORDER[path];
+    const lessons = lessonsInPath(path);
+    const pos = (id: string) => order.indexOf(id);
+
+    it(`${path}: teaching order lists every lesson in the path exactly once`, () => {
+      expect([...order].sort()).toEqual(lessons.map((l) => l.id).sort());
+    });
+
+    it(`${path}: puts every lesson after its prerequisites, all in the same path`, () => {
+      const problems = lessons.flatMap((l) =>
+        (l.prerequisites ?? []).flatMap((p) => [
+          ...(pathOfLevel(p) !== path ? [`${l.id} needs ${p} from another path`] : []),
+          ...(pos(p) > pos(l.id) ? [`${l.id} before ${p}`] : []),
+          ...(CURRICULUM.some((x) => x.id === p) ? [] : [`${l.id} needs missing ${p}`]),
+        ]),
+      );
+      expect(problems).toEqual([]);
+    });
+
+    it(`${path}: "continue" walks the path's own order and never leaves it`, () => {
+      const done: string[] = [];
+      for (;;) {
+        const next = getCurrentLevel(done, true, { path });
+        if (done.includes(next.id)) break;
+        expect(pathOfLevel(next)).toBe(path);
+        done.push(next.id);
+      }
+      expect(done).toEqual(order);
+    });
+  }
+
+  it('gives every lesson a unique id across all paths', () => {
+    const ids = CURRICULUM.map((l) => l.id);
+    expect(ids.length).toBe(new Set(ids).size);
+  });
+
+  it('starts each new path with a lesson that needs nothing first', () => {
+    for (const path of ['read', 'guitar'] as const) {
+      expect(getCurrentLevel([], false, { path }).prerequisites ?? []).toEqual([]);
+    }
   });
 });

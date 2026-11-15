@@ -97,6 +97,8 @@ export default function Results({
 
 
   const shortfall = Math.max(0, level.unlockRequirement - stats.accuracy);
+  // Reading and fretboard lessons are about seeing, not hearing.
+  const visual = level.type === 'reading' || level.type === 'fretboard';
   void weakestInterval;
   void weakestDegree;
 
@@ -152,9 +154,9 @@ export default function Results({
           }}
         >
           {stats.accuracy >= 90
-            ? 'Sharp ear.'
+            ? visual ? 'Sharp eyes.' : 'Sharp ear.'
             : stats.accuracy >= 75
-            ? 'Nice ear.'
+            ? visual ? 'Nice reading.' : 'Nice ear.'
             : stats.accuracy >= 50
             ? 'Coming together.'
             : 'Good effort.'}{' '}
@@ -217,7 +219,7 @@ export default function Results({
                   <b style={{ color: 'var(--coral-ink)' }}>
                     {getDisplayName(top3Confusions[0].actuallyWas)}
                   </b>{' '}
-                  — you heard <i>{getDisplayName(top3Confusions[0].mistook)}</i>{' '}
+                  — you {visual ? 'said' : 'heard'} <i>{getDisplayName(top3Confusions[0].mistook)}</i>{' '}
                   {top3Confusions[0].count > 1 ? `${top3Confusions[0].count}×.` : 'once.'}
                 </>
               )}
@@ -300,7 +302,7 @@ export default function Results({
               {sessionLabel
                 ? 'Practice sessions don’t unlock lessons. Every answer still counts toward your stats and reviews.'
                 : canUnlock
-                ? 'Keep the rhythm — your ear is tuning.'
+                ? visual ? 'Keep going: it gets faster every round.' : 'Keep the rhythm — your ear is tuning.'
                 : `One more clean session (target ${level.unlockRequirement}%) and you're in.`}
             </div>
           </div>
@@ -335,7 +337,7 @@ export default function Results({
                   }}
                 >
                   <div style={{ fontSize: 13, color: 'var(--ink-1)' }}>
-                    You heard <i style={{ color: 'var(--coral-ink)' }}>{getDisplayName(c.mistook)}</i> — it was{' '}
+                    You {visual ? 'said' : 'heard'} <i style={{ color: 'var(--coral-ink)' }}>{getDisplayName(c.mistook)}</i> — it was{' '}
                     <b>{getDisplayName(c.actuallyWas)}</b>
                   </div>
                   <ColorPill tone="coral">{c.count}×</ColorPill>

@@ -208,7 +208,9 @@ export default function MasteryOverlay({ level, onClose, onContinue, next = null
         </h2>
         <p style={{ fontSize: 14, color: 'var(--ink-2)', margin: '0 0 22px', lineHeight: 1.5 }}>
           {next
-            ? <>Your ear just unlocked <b>{next.name}</b>. Keep the rhythm.</>
+            ? level.type === 'reading' || level.type === 'fretboard'
+              ? <>You just unlocked <b>{next.name}</b>. Keep going.</>
+              : <>Your ear just unlocked <b>{next.name}</b>. Keep the rhythm.</>
             : <>You've cleared every level on the path. More coming soon.</>}
           {narrow && (
             <>

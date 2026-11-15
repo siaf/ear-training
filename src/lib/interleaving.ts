@@ -23,7 +23,9 @@ export type InterleaveCategory =
   | 'mode'
   | 'rhythm'
   | 'acoustic'
-  | 'melody';
+  | 'melody'
+  | 'reading'
+  | 'fretboard';
 
 const TYPE_TO_CATEGORY: Record<QuestionType, InterleaveCategory> = {
   interval: 'interval',
@@ -40,6 +42,8 @@ const TYPE_TO_CATEGORY: Record<QuestionType, InterleaveCategory> = {
   rhythm: 'rhythm',
   acoustic: 'acoustic',
   melodic_dictation: 'melody',
+  reading: 'reading',
+  fretboard: 'fretboard',
 };
 
 export const INTERLEAVE_CATEGORY_LABELS: Record<InterleaveCategory, string> = {
@@ -52,7 +56,14 @@ export const INTERLEAVE_CATEGORY_LABELS: Record<InterleaveCategory, string> = {
   rhythm: 'rhythm',
   acoustic: 'acoustic',
   melody: 'melody',
+  reading: 'reading',
+  fretboard: 'fretboard',
 };
+
+// Mixed Practice is a listening drill: its first step asks what kind of sound was played.
+// Reading and fretboard lessons show what they are, so they stay out of it.
+const VISUAL_TYPES = new Set<QuestionType>(['reading', 'fretboard']);
+export const isVisualLevel = (level: CurriculumLevel) => VISUAL_TYPES.has(level.type);
 
 export function categoryForLevel(level: CurriculumLevel): InterleaveCategory {
   return TYPE_TO_CATEGORY[level.type];
@@ -81,7 +92,7 @@ export function buildInterleaveQueue(
 ): InterleaveItem[] {
   const sources = completedLevels
     .map((id) => CURRICULUM.find((l) => l.id === id))
-    .filter((l): l is CurriculumLevel => !!l && l.items.length > 0);
+    .filter((l): l is CurriculumLevel => !!l && l.items.length > 0 && !isVisualLevel(l));
   if (sources.length < 2) return [];
 
   const out: InterleaveItem[] = [];

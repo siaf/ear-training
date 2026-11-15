@@ -70,3 +70,32 @@ export function gradeGrid(userCells: boolean[], targetCells: boolean[]): { score
   const passed = score === 1;
   return { score, passed };
 }
+
+/**
+ * Taps graded as above, but first lined up with the rhythm by the one steady shift that
+ * fits best. Touch screens, Bluetooth headphones and slow devices all add a fixed delay
+ * between a note sounding and a tap registering; a learner who is consistently 80 ms late
+ * on every note is still playing the rhythm. Uneven timing still fails.
+ */
+export function gradeTapsSteady(
+  userTapsMs: number[],
+  targetOnsetsMs: number[],
+  toleranceMs = 110,
+  shifts: number[] = Array.from({ length: 25 }, (_, i) => -80 + i * 10), // -80 … +160 ms
+): TapGradeResult & { shiftMs: number } {
+  // Best score first; among equal scores, the shift that lines the taps up most closely.
+  const residual = (r: TapGradeResult, shift: number) =>
+    r.matchedTaps.reduce<number>((a, t, i) => a + (t === null ? 0 : Math.abs(t - shift - targetOnsetsMs[i])), 0);
+  let best = { ...gradeTaps(userTapsMs, targetOnsetsMs, toleranceMs), shiftMs: 0 };
+  let bestResidual = residual(best, 0);
+  for (const shift of shifts) {
+    const r = gradeTaps(userTapsMs.map((t) => t - shift), targetOnsetsMs, toleranceMs);
+    const matched = { ...r, matchedTaps: r.matchedTaps.map((t) => (t === null ? null : t + shift)) };
+    const res = residual(matched, shift);
+    if (r.score > best.score + 1e-9 || (Math.abs(r.score - best.score) < 1e-9 && res < bestResidual - 1e-6)) {
+      best = { ...matched, shiftMs: shift };
+      bestResidual = res;
+    }
+  }
+  return best;
+}

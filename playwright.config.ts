@@ -46,7 +46,9 @@ export default defineConfig({
       // signed-in learner answer it with page.route. Not a port WebKit refuses (like 9).
       command: `npx vite --port ${ACCOUNTS_PORT} --strictPort`,
       url: `http://localhost:${ACCOUNTS_PORT}`,
-      env: { ...offlineEnv, VITE_SUPABASE_URL: 'http://localhost:5199', VITE_SUPABASE_PUBLISHABLE_KEY: 'e2e' },
+      // Courses still being built stay locked here, as learners see them (the main app server
+      // previews them, like local dev).
+      env: { ...offlineEnv, VITE_SUPABASE_URL: 'http://localhost:5199', VITE_SUPABASE_PUBLISHABLE_KEY: 'e2e', VITE_COURSE_PREVIEW: 'off' },
       reuseExistingServer: false,
     },
     {

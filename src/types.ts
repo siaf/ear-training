@@ -1,5 +1,9 @@
 // Core types for the ear training application
 
+import type { VisualKind, VisualPrompt } from './notation/prompt';
+import type { ClefId } from './notation/theory';
+
+
 export type IntervalType = 
   | 'minor_2nd' | 'major_2nd' 
   | 'minor_3rd' | 'major_3rd' 
@@ -32,7 +36,11 @@ export type QuestionType =
   | 'cadence' | 'inversion' | 'progression'
   | 'chord_extension' | 'borrowed_chord' | 'voicing'
   | 'rhythm'
-  | 'melodic_dictation';
+  | 'melodic_dictation'
+  // Visual lessons (Read Music and Guitar paths): the question is something to look at,
+  // a staff or a fretboard, not something to hear. See src/notation/.
+  | 'reading'
+  | 'fretboard';
 
 // Rhythm sub-kinds. Each maps to a different audio playback shape + answer space + UI input mode.
 export type RhythmKind = 'same_diff' | 'tap_back' | 'subdivision' | 'meter' | 'dictation';
@@ -65,7 +73,7 @@ export type DiatonicScale = 'major' | 'natural_minor';
 export type IntervalDirection = 'ascending' | 'descending';
 export type IntervalPresentation = 'harmonic' | 'melodic';
 
-export type ResponseMode = 'select' | 'sing' | 'tap' | 'grid' | 'sequence';
+export type ResponseMode = 'select' | 'sing' | 'tap' | 'grid' | 'sequence' | 'tap_staff' | 'tap_fret' | 'tap_rhythm';
 
 export interface Question {
   id: string;
@@ -90,6 +98,8 @@ export interface Question {
   // --- Melodic dictation ---
   melodySteps?: number[]; // Scale steps from the tonic (see src/lib/melody.ts), kept so Replay plays the same melody.
   melodyScale?: DiatonicScale;
+  // --- Visual lessons ---
+  visual?: VisualPrompt; // What to draw, and for tap answers, where counts as right.
 }
 
 export interface Answer {
@@ -153,6 +163,9 @@ export interface ConfusionPair {
   count: number; // How many times this confusion happened
 }
 
+/** The separate courses a learner can pick between. Each has its own sections and teaching order. */
+export type PathId = 'ear' | 'read' | 'guitar' | 'rhythm' | 'theory' | 'history';
+
 export interface CurriculumLevel {
   id: string;
   name: string;
@@ -212,6 +225,19 @@ export interface CurriculumLevel {
   rhythmBpm?: number; // Default BPM. Defaults to 100.
   rhythmTapToleranceMs?: number; // ± ms a tap can fall around a target onset. Defaults to 130 ms (forgiving for first lessons).
   rhythmPassScore?: number; // 0..1 grader threshold to count as correct. Defaults to 0.7 (tap), 1.0 (grid).
+  // --- Visual lessons (type 'reading' | 'fretboard'). Items name what is shown; see src/notation/questions.ts. ---
+  visualKind?: VisualKind;
+  clefs?: ClefId[]; // Clefs to draw the question in, where the item doesn't say.
+  grandStaff?: boolean; // Draw treble and bass together, joined by a brace.
+  inversions?: boolean; // Chord drills: show inversions as well as root position.
+  allowAccidentals?: boolean; // Interval / chord drills: roots and notes may have sharps and flats.
+  fretRootStrings?: number[]; // Guitar: strings the root (or a chord's lowest note) may sit on. 0 = low E.
+  neck?: 'guitar' | 'bass'; // Fretboard lessons: which instrument's neck. Omitted = guitar.
+  rhythmPool?: string[]; // Rhythm path: the rhythms a lesson draws from, in src/rhythm/model.ts notation ('q e e h').
+  rhythmTime?: string; // Rhythm path: time signature, '4/4' by default.
+  metronome?: boolean; // Rhythm path: keep clicking through the bar while the learner taps.
+  keys?: string[]; // Theory path: major keys to pick from ('Bb' style).
+  ensemble?: 'quartet' | 'orchestra' | 'orchestra_transposed'; // Score reading: which instruments.
 }
 
 export type Mascot = 'fable' | 'noir' | 'major' | 'pulse';
@@ -223,6 +249,11 @@ export interface LessonIntroCopy {
   expectation: string; // What the user will do in this session.
   mascot?: Mascot;
   expression?: MascotExpression;
+  // A picture that teaches, shown instead of the mascot: here, a guitar neck with
+  // labelled dots (s = string, 0 = low E; f = fret). String names show on it.
+  figure?: { neck: Array<{ s: number; f: number; label: string; root?: boolean }>; focusFret?: number; stringNames?: string[]; bass?: boolean };
+  /** A rhythm to show with its counts, in src/rhythm/model.ts notation. */
+  rhythmFigure?: { src: string; time?: string };
 }
 
 // Intros can be a single page or a short sequence. Each page can vary its mascot.
@@ -230,6 +261,7 @@ export type LessonIntro = LessonIntroCopy | LessonIntroCopy[];
 
 export interface CurriculumSegment {
   id: string;
+  pathId?: PathId; // Omitted = 'ear', the original ear-training path.
   name: string;
   description: string;
   icon: string; // Emoji or icon identifier

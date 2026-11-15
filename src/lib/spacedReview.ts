@@ -33,7 +33,7 @@ export interface DueItem {
 // generated items (a rhythm pattern id, 'melody', a sung sequence) and are always kept.
 const ANSWER_IS_ITEM = new Set([
   'interval', 'triad', 'seventh_chord', 'mode', 'scale_degree', 'cadence', 'progression',
-  'inversion', 'chord_extension', 'borrowed_chord', 'voicing',
+  'inversion', 'chord_extension', 'borrowed_chord', 'voicing', 'reading', 'fretboard',
 ]);
 
 /** Whether a saved (lesson, item) pair can still be asked by the current curriculum. */

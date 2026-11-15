@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { audioEngine, INTERVALS, TRIADS, SEVENTH_CHORDS, MODES, SynthType } from './audioEngine';
-import { CURRICULUM, getCurrentLevel, canUnlockNextLevel, getDisplayName, isProLesson, isSingOnlyLevel } from './curriculum';
+import { CURRICULUM, DEFAULT_PATH, PATHS, getCurrentLevel, canUnlockNextLevel, getDisplayName, isPathId, isProLesson, isSingOnlyLevel, pathOfLevel } from './curriculum';
+import { buildVisualQuestion } from './notation/questions';
 import { AnalyticsEngine } from './analytics';
 import { Answer, Question } from './types';
 import { filterDiatonicItems } from './scaleContext';
 import { realizeDiatonicSequence, sequenceStartDegreeForQuestion } from './lib/diatonic';
 import { pickTapPattern, pickDictationPattern, gridToOnsets, encodeGrid, nudgeOneOnset } from './lib/rhythmPatterns';
 import { isOwnerEmail } from './lib/owner';
+import { DEV_COURSE_PREVIEW, isLevelOpen, isPathOpen } from './lib/courseAccess';
 import { degreeOf, encodeMelody, makeMelody } from './lib/melody';
 import {
   loadMastery,
@@ -23,6 +25,7 @@ import {
   buildInterleaveQueue,
   categoriesInQueue,
   categoryForLevel,
+  isVisualLevel,
   type InterleaveCategory,
   type InterleaveItem,
 } from './lib/interleaving';
@@ -85,7 +88,7 @@ import { parseRouteFromUrl, syncUrl, usePopStateRoute } from './lib/routing';
 import { ThemePreference, loadThemePreference, useTheme } from './lib/theme';
 
 import type { Route } from './lib/routing';
-import type { AcousticKind, CurriculumLevel } from './types';
+import type { AcousticKind, CurriculumLevel, PathId } from './types';
 
 // Acoustic kinds that don't rely on a tonal center — they compare two raw pitches,
 // so establishing a key with a scale reference would be misleading.
@@ -103,8 +106,9 @@ const NON_TONAL_ACOUSTIC_KINDS: AcousticKind[] = [
 // These don't need a separate scale-reference preamble.
 const SELF_KEYED_TYPES = new Set(['cadence', 'progression', 'chord_extension', 'borrowed_chord', 'voicing', 'inversion', 'melodic_dictation']);
 
-// Rhythm levels are non-tonal — no scale reference, no key label.
-const NON_TONAL_TYPES = new Set(['rhythm']);
+// Rhythm levels are non-tonal — no scale reference, no key label. Reading and fretboard
+// lessons are something to look at, so they have no key to establish either.
+const NON_TONAL_TYPES = new Set(['rhythm', 'reading', 'fretboard']);
 
 type PrimerKind = NonNullable<CurriculumLevel['primerKind']>;
 
@@ -258,7 +262,9 @@ function readStartParam(): string | null {
   try {
     const id = new URLSearchParams(window.location.search).get('start');
     const level = id ? CURRICULUM.find((l) => l.id === id) : undefined;
-    return level && !isProLesson(level) ? level.id : null;
+    // Courses still being built stay closed to links too (the owner's account isn't known
+    // this early, so only local dev gets in this way).
+    return level && !isProLesson(level) && isLevelOpen(level.id, DEV_COURSE_PREVIEW) ? level.id : null;
   } catch {
     return null;
   }
@@ -352,6 +358,8 @@ export default function App() {
     return () => { live = false; };
   }, [userEmail]);
   const devToolsAllowed = Boolean(import.meta.env.DEV) || isOwner;
+  // Courses not yet released (see courseAccess.ts) open for the owner and in local dev.
+  const coursePreview = DEV_COURSE_PREVIEW || isOwner;
   const unlockAll = debugMode && devToolsAllowed;
   const [showAuth, setShowAuth] = useState(false);
   const [paywallNotice, setPaywallNotice] = useState<PaywallNotice | null>(null);
@@ -443,13 +451,19 @@ export default function App() {
     if (!source) return null;
     return { ...source, items: customItemsKey.split(',') };
   }, [customItemsKey, queueActiveLevelId]);
+  // Which course the path screen shows. A course that isn't open to this learner falls back
+  // to ear training (the choice is kept, for when it opens).
+  const chosenPath: PathId = isPathId(settings.activePath) ? settings.activePath : DEFAULT_PATH;
+  const activePath: PathId = isPathOpen(chosenPath, coursePreview) ? chosenPath : DEFAULT_PATH;
+  // The next lesson on the path the learner is looking at: what "continue" starts.
+  const pathLevel = getCurrentLevel(completedLevels, proActive, { skipSinging: settings.skipSinging, path: activePath });
   const currentLevel = customLevel
     ? customLevel
     : queueActiveLevelId
-    ? CURRICULUM.find((l) => l.id === queueActiveLevelId) ?? getCurrentLevel(completedLevels, proActive, { skipSinging: settings.skipSinging })
+    ? CURRICULUM.find((l) => l.id === queueActiveLevelId) ?? pathLevel
     : selectedLevelId
-    ? CURRICULUM.find((l) => l.id === selectedLevelId) ?? getCurrentLevel(completedLevels, proActive, { skipSinging: settings.skipSinging })
-    : getCurrentLevel(completedLevels, proActive, { skipSinging: settings.skipSinging });
+    ? CURRICULUM.find((l) => l.id === selectedLevelId) ?? pathLevel
+    : pathLevel;
   const lessonCfg = getLessonConfig(currentLevel);
   const stats = analytics.getSessionStats();
   // The hum check runs once, before the first lesson that asks the learner to sing.
@@ -482,13 +496,14 @@ export default function App() {
   // mic would hear the drone's steady tonic and credit it as their note.
   const singingNow = currentQuestion?.responseMode === 'sing';
   useEffect(() => {
-    if (route === 'practice' && settings.drone && !singingNow) {
+    if (route === 'practice' && settings.drone && !singingNow && !isVisualLevel(currentLevel)) {
       audioEngine.toggleDrone(currentScaleRoot, true);
       return () => {
         audioEngine.toggleDrone(currentScaleRoot, false);
       };
     }
-  }, [route, settings.drone, currentScaleRoot, singingNow]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [route, settings.drone, currentScaleRoot, singingNow, currentLevel.type]);
 
   // Unlock all lessons (Ctrl/Cmd + K): local dev, or the owner signed in online.
   useEffect(() => {
@@ -611,9 +626,19 @@ export default function App() {
     [analytics, hasEverPracticed, isSignedIn, proActive, completedLevels],
   );
 
+  // Starting a lesson from another path (a deep link, a recommendation) switches the path
+  // screen to it, so "back" lands where the lesson lives.
+  const rememberPath = useCallback((levelId: string) => {
+    const path = pathOfLevel(levelId);
+    setSettings((s) => (s.activePath === path ? s : { ...s, activePath: path }));
+  }, []);
+
   // Wrap startSession to enforce the anonymous lesson cap.
   const guardedStartSession = useCallback(
     (levelId: string) => {
+      // Lessons in courses that aren't open yet never start, whatever asked for them.
+      if (!isLevelOpen(levelId, coursePreview)) return;
+      rememberPath(levelId);
       // Pro lessons open the plans on the free plan, whichever button asked for them.
       const level = CURRICULUM.find((l) => l.id === levelId);
       if (level && isProLesson(level) && !proActive) {
@@ -627,13 +652,14 @@ export default function App() {
       }
       void startSession(levelId);
     },
-    [isSignedIn, completedLevels.length, startSession, proActive],
+    [isSignedIn, completedLevels.length, startSession, proActive, rememberPath, coursePreview],
   );
 
   useEffect(() => {
     if (!deepLinkStart) return;
     setHasOnboarded(true);
     phCapture('deep_link_start', { level_id: deepLinkStart, shared: sharedFrom });
+    rememberPath(deepLinkStart);
     if (!isSignedIn && completedLevels.length >= ANON_LESSON_LIMIT) return;
     void startSession(deepLinkStart, { deferAudio: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -644,8 +670,10 @@ export default function App() {
    * level of the first item as a starting point, and flips into review mode where each question
    * is forced to the next due-item value (cursor advances on handleNext).
    */
-  const startReviewSession = useCallback(async () => {
-    const due = getDueItems(masteryRef.current, completedLevels, Date.now(), 10);
+  const startReviewSession = useCallback(async (path?: PathId) => {
+    // From the path screen, review only the course on show; elsewhere, everything due.
+    const lessons = path ? completedLevels.filter((id) => pathOfLevel(id) === path) : completedLevels;
+    const due = getDueItems(masteryRef.current, lessons, Date.now(), 10);
     if (due.length === 0) return;
     setReviewSession({ queue: due, cursor: 0 });
     // Reuse startSession to set up the practice route + audio + analytics; the levelId is just
@@ -751,6 +779,30 @@ export default function App() {
     if (rotatedSynth) {
       audioEngine.preloadSynths(ROTATION_POOL);
       audioEngine.setSynthType(rotatedSynth);
+    }
+
+    // Reading and fretboard lessons: something to look at, nothing to play. The item fixes
+    // what's tested; buildVisualQuestion picks the rest (octave, root, position).
+    if (level.type === 'reading' || level.type === 'fretboard') {
+      const item = pickItem(level.items);
+      const built = buildVisualQuestion(level, item);
+      recentItemTypesRef.current = [...recentItemTypesRef.current, item].slice(-3);
+      seenThisSessionRef.current.add(`${level.id}::${item}`);
+      setCurrentQuestion({
+        id: `q_${Date.now()}`,
+        type: level.type,
+        correctAnswer: built.correctAnswer,
+        itemType: item,
+        rootNote: built.rootNote,
+        playedNotes: built.visual.sound,
+        timestamp: Date.now(),
+        responseMode: built.responseMode,
+        visual: built.visual,
+      });
+      setSelectedAnswer(null);
+      setShowFeedback(false);
+      setQuestionStartTime(Date.now());
+      return;
     }
 
     if (level.type === 'scale_degree') {
@@ -1249,6 +1301,29 @@ export default function App() {
   const replaySound = async () => {
     if (!currentQuestion) return;
     try {
+      // Visual questions: play what's on the staff or the neck.
+      if (currentQuestion.visual) {
+        const { sound, together, rhythmPlay, chords, passage } = currentQuestion.visual;
+        if (passage) {
+          await audioEngine.playPassage(passage.events, passage.bpm);
+          return;
+        }
+        if (rhythmPlay) {
+          await audioEngine.playRhythmBar(rhythmPlay);
+          return;
+        }
+        if (chords) {
+          for (const chord of chords) {
+            await audioEngine.playNotesTogether(chord);
+            await new Promise((r) => setTimeout(r, 850));
+          }
+          return;
+        }
+        if (!sound.length) return;
+        if (together) await audioEngine.playNotesTogether(sound);
+        else await audioEngine.playSequence(sound, 0.55, 0.1);
+        return;
+      }
       switch (currentQuestion.type) {
         case 'melodic_dictation':
           await audioEngine.playMelody(currentQuestion.rootNote, currentQuestion.melodySteps ?? [], currentQuestion.melodyScale ?? 'major');
@@ -1408,7 +1483,7 @@ export default function App() {
     // varies across the scale. For type=scale_degree (degree IS the answer), mode (no per-question root),
     // and the new self-keyed types (cadence/progression/etc., where rootNote == currentScaleRoot by construction),
     // computing it would always yield 0 — meaningless.
-    const NO_DEGREE_TYPES = new Set(['scale_degree', 'mode', 'cadence', 'progression', 'chord_extension', 'borrowed_chord', 'voicing', 'inversion', 'rhythm', 'melodic_dictation']);
+    const NO_DEGREE_TYPES = new Set(['scale_degree', 'mode', 'cadence', 'progression', 'chord_extension', 'borrowed_chord', 'voicing', 'inversion', 'rhythm', 'melodic_dictation', 'reading', 'fretboard']);
     if (!NO_DEGREE_TYPES.has(currentQuestion.type)) {
       const chromatic = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
       const rootIdx = chromatic.indexOf(currentQuestion.rootNote);
@@ -1500,7 +1575,7 @@ export default function App() {
   // The learner's next lesson in teaching order (TEACHING_ORDER), skipping Pro lessons on
   // the free plan. Null once there's nothing new left for them.
   const nextLessonForLearner = (() => {
-    const next = getCurrentLevel(completedLevels, proActive, { skipSinging: settings.skipSinging });
+    const next = getCurrentLevel(completedLevels, proActive, { skipSinging: settings.skipSinging, path: pathOfLevel(currentLevel) });
     if (completedLevels.includes(next.id) || (!proActive && isProLesson(next))) return null;
     return next;
   })();
@@ -1840,6 +1915,8 @@ export default function App() {
 
   // path
   void statsTick; // re-render when stats mutate
+  // The lesson the path screen highlights: the one just played if it's on this path, else the next one here.
+  const pathScreenLevelId = pathOfLevel(currentLevel) === activePath ? currentLevel.id : pathLevel.id;
   const streakDays = getStreakDays();
   const sinceMs = timeSinceLastSession();
   const hoursSince = sinceMs / 3_600_000;
@@ -1849,7 +1926,13 @@ export default function App() {
     <>
       <Path
         completedLevels={completedLevels}
-        currentLevelId={currentLevel.id}
+        currentLevelId={pathScreenLevelId}
+        activePath={activePath}
+        openPaths={PATHS.map((p) => p.id).filter((p) => isPathOpen(p, coursePreview))}
+        onSwitchPath={(path) => {
+          setSelectedLevelId(null);
+          setSettings((s) => ({ ...s, activePath: path }));
+        }}
         debugMode={unlockAll}
         onStart={guardedStartSession}
         onNavigate={(r) => setRoute(r)}
@@ -1861,11 +1944,11 @@ export default function App() {
         bottomPadding={isMobile ? 88 : 0}
         isPro={proActive}
         isSignedIn={isSignedIn}
-        dueCount={countDueItems(masteryRef.current, completedLevels)}
-        onStartReview={() => { void startReviewSession(); }}
+        dueCount={countDueItems(masteryRef.current, completedLevels.filter((id) => pathOfLevel(id) === activePath))}
+        onStartReview={() => { void startReviewSession(activePath); }}
         onStartInterleave={() => { void startInterleaveSession(); }}
         onOpenCustom={() => setRoute('custom')}
-        recommendation={getCrossSegmentRecommendation(completedLevels, currentLevel.id, proActive)}
+        recommendation={getCrossSegmentRecommendation(completedLevels, pathScreenLevelId, proActive)}
         onStartCheckpoint={(cp) => { void startCheckpointSession(cp); }}
       />
       {isMobile && tabsActive && <BottomTabs active={tabsActive} onChange={(r) => setRoute(r)} />}
