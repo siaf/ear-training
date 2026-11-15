@@ -66,7 +66,7 @@ test('a mastered lesson can be shared as a picture, on X, on Reddit as a text po
   await sheet.getByRole('button', { name: 'Post on X' }).click();
   const x = new URL((await opened(page))[0]);
   expect(x.origin + x.pathname).toBe('https://x.com/intent/post');
-  expect(x.searchParams.get('text')).toBe('Just mastered Higher or Lower on Fifths, a free ear training app 🎧');
+  expect(x.searchParams.get('text')).toBe('I can hear two notes and tell which is higher. Just mastered "Higher or Lower" in my ear training 🎧');
   expect(x.searchParams.get('url')).toBe('https://fifths.io/lessons/higher-or-lower/?utm_source=share&utm_medium=x&utm_campaign=medal');
 
   // Reddit: the picture is saved to add to the post, and the post is text, not a bare link.

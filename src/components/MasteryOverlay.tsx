@@ -6,9 +6,9 @@ import { CURRICULUM, CURRICULUM_SEGMENTS } from '../curriculum';
 import { mascotForPalette, segmentColor, segmentPaletteName } from '../lib/segmentColors';
 import { cardArt } from '../lib/cardArt';
 import ShareSheet from './ShareSheet';
-import { lessonCard, toPngBlob } from '../lib/shareCards';
+import { achievementCard, toPngBlob } from '../lib/shareCards';
 import { lessonPageUrl, SITE_URL } from '../lib/lessonPages';
-import type { SharePayload } from '../lib/share';
+import { firstPersonClaim, type SharePayload } from '../lib/share';
 import { medalLabel } from '../lib/medalLabel';
 
 interface Props {
@@ -141,10 +141,13 @@ export default function MasteryOverlay({ level, onClose, onContinue, next = null
   const [sharing, setSharing] = useState(false);
   sharingRef.current = sharing;
   // Ear-training lessons have a page on fifths.io; anything else links to the home page.
+  const claim = firstPersonClaim(level.description, level.name);
   const share: SharePayload = {
     kind: 'medal',
     title: `Just mastered "${level.name}" in my ear training`,
-    text: `Just mastered ${level.name} on Fifths, a free ear training app 🎧`,
+    text: claim.startsWith('I can ')
+      ? `${claim} Just mastered "${level.name}" in my ear training 🎧`
+      : `Just mastered "${level.name}" in my ear training 🎧`,
     url: (target) => {
       const utm = { source: 'share', medium: target, campaign: 'medal' };
       return idx >= 0 ? lessonPageUrl(level, utm) : `${SITE_URL}/?utm_source=share&utm_medium=${target}&utm_campaign=medal`;
@@ -275,14 +278,13 @@ export default function MasteryOverlay({ level, onClose, onContinue, next = null
           fileName={`fifths-${level.id}-medal`}
           makeImage={() => {
             const paletteName = segmentPaletteName(level.segmentId ?? 'purple', idx);
-            return lessonCard({
+            return achievementCard({
               name: level.name,
               lines: medalLabel(level.name),
               palette: paletteName,
-              kicker: 'I just mastered',
-              banner: 'mastered',
-              description: level.description,
-              cta: 'Can you? Try it free  →  fifths.io',
+              claim,
+              sub: claim.startsWith('I can ') ? level.name : level.description,
+              date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
               facts: [accuracy !== undefined ? `${Math.round(accuracy)}% right` : '', CURRICULUM_SEGMENTS.find((sg) => sg.levels.some((l) => l.id === level.id))?.name ?? ''],
               art: cardArt(mascotForPalette(paletteName)),
             }).then(toPngBlob);

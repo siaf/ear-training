@@ -396,6 +396,98 @@ export async function lessonCard(opts: {
   return c;
 }
 
+/**
+ * A learner's own medal: about them first. "I can hear two notes and tell which is higher."
+ * with the date, their score and the lesson, and only a quiet mention of Fifths underneath,
+ * so it reads as their achievement rather than an advert.
+ */
+export async function achievementCard(opts: {
+  name: string;
+  lines: string[];
+  palette: PaletteName;
+  /** "I can hear two notes and tell which is higher." (firstPersonClaim in share.ts) */
+  claim: string;
+  /** Under the claim: the lesson ("Higher or Lower"), or its description when the claim names it. */
+  sub: string;
+  /** "Nov 15, 2026" */
+  date: string;
+  facts?: string[];
+  art?: CardArt;
+}): Promise<HTMLCanvasElement> {
+  await fontsReady();
+  const [mascot, logo] = await Promise.all([loadImage(opts.art?.mascot), loadImage(opts.art?.logo)]);
+  const { c, ctx } = canvas();
+  const p = PALETTES[opts.palette];
+  blob(ctx, 1170, 20, 150, p.soft);
+  blob(ctx, 640, 640, 120, PALETTES.lav.soft);
+  chunky(ctx, PANEL.x, PANEL.y, PANEL.w, PANEL.h, PANEL.r, CARD);
+
+  const cx = 290;
+  const cy = 236;
+  const r = 158;
+  const short = opts.lines.join(' ').replace(/\s*\([^)]*\)?/g, '').trim();
+  ctx.save();
+  rounded(ctx, PANEL.x + 2, PANEL.y + 2, PANEL.w - 4, PANEL.h - 4, PANEL.r - 2);
+  ctx.clip();
+  blob(ctx, cx, cy + 20, 215, p.soft);
+  confetti(ctx, cx, cy - 10, 190);
+  ribbons(ctx, cx, cy, r, p);
+  awardMedal(ctx, cx, cy, r, p, short.charAt(0).toUpperCase() + short.slice(1), 'MASTERED');
+  if (mascot) ctx.drawImage(mascot, cx + 112, cy + 92, 170, 170);
+  ctx.restore();
+
+  // The claim is the headline, in the learner's voice.
+  const x = 610;
+  const width = 500;
+  ctx.textAlign = 'left';
+  let size = 54;
+  let claim: string[] = [];
+  for (; size >= 34; size -= 4) {
+    ctx.font = `italic 400 ${size}px ${SERIF}`;
+    claim = wrap(ctx, opts.claim, width, 4);
+    if (!claim[claim.length - 1].endsWith('…')) break;
+  }
+  ctx.font = `600 26px ${SANS}`;
+  const sub = wrap(ctx, opts.sub, width, 2);
+  const facts = opts.facts?.filter(Boolean) ?? [];
+  const lineH = size * 1.1;
+  const height = 26 + 18 + claim.length * lineH + 14 + sub.length * 34 + (facts.length ? 24 + 44 : 0);
+  let y = PANEL.y + (PANEL.h - height) / 2;
+
+  ctx.fillStyle = p.ink;
+  ctx.font = `700 20px ${SANS}`;
+  spacing(ctx, 3);
+  ctx.fillText(`MASTERED · ${opts.date.toUpperCase()}`, x, y + 20);
+  spacing(ctx, 0);
+  y += 26 + 18;
+  ctx.fillStyle = INK;
+  ctx.font = `italic 400 ${size}px ${SERIF}`;
+  claim.forEach((line, i) => ctx.fillText(line, x, y + size * 0.8 + i * lineH));
+  y += claim.length * lineH + 14;
+  ctx.fillStyle = INK_2;
+  ctx.font = `600 26px ${SANS}`;
+  sub.forEach((line, i) => ctx.fillText(line, x, y + 26 + i * 34));
+  y += sub.length * 34 + 24;
+  let fx = x;
+  for (const fact of facts) {
+    ctx.font = `600 20px ${SANS}`;
+    const w = ctx.measureText(fact).width + 32;
+    chunky(ctx, fx, y, w, 42, 21, p.soft, 3, 2);
+    ctx.fillStyle = INK;
+    ctx.textAlign = 'left';
+    ctx.fillText(fact, fx + 16, y + 28);
+    fx += w + 12;
+  }
+
+  // Quiet: the logo, and where it happened, without a sales button.
+  if (logo) ctx.drawImage(logo, 44, FOOT_Y - 4, (logo.width / logo.height) * 66, 66);
+  ctx.textAlign = 'right';
+  ctx.fillStyle = INK_2;
+  ctx.font = `500 24px ${SANS}`;
+  ctx.fillText('ear training on fifths.io', PANEL.x + PANEL.w - 8, FOOT_Y + 40);
+  return c;
+}
+
 const barColor = (accuracy: number) => (accuracy >= 80 ? PALETTES.mint.bg : accuracy >= 60 ? PALETTES.butter.bg : PALETTES.coral.bg);
 
 /** "My week": the headline improvement, a chart of the seven days, and the numbers. */

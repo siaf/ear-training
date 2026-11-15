@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('./posthog', () => ({ phCapture: vi.fn() }));
-import { redditShareUrl, xShareUrl, type SharePayload } from './share';
+import { firstPersonClaim, redditShareUrl, xShareUrl, type SharePayload } from './share';
 import { lessonPageUrl, lessonSlug } from './lessonPages';
 
 const payload: SharePayload = {
@@ -32,5 +32,20 @@ describe('share links', () => {
     expect(url.searchParams.get('title')).toBe(payload.title);
     expect(url.searchParams.get('text')).toBe(`${payload.text}\n\nhttps://fifths.io/lessons/harmonic-sixths/?utm_source=share&utm_medium=reddit&utm_campaign=medal`);
     expect(url.searchParams.has('url')).toBe(false);
+  });
+});
+
+describe('what a shared medal says', () => {
+  it('turns the lesson into a first-person claim', () => {
+    expect(firstPersonClaim('Hear two notes and tell which is higher', 'Higher or Lower')).toBe('I can hear two notes and tell which is higher.');
+    expect(firstPersonClaim('Identify ascending perfect 4ths, 5ths and octaves', 'x')).toBe('I can identify ascending perfect 4ths, 5ths and octaves.');
+    expect(firstPersonClaim('Sing do-re-do — the smallest melodic motion', 'x')).toBe('I can sing do-re-do.');
+    expect(firstPersonClaim('Listen, then sing the note back', 'x')).toBe('I can listen, then sing the note back.');
+  });
+
+  it('says "I mastered" when the description isn’t something you do', () => {
+    expect(firstPersonClaim('Same chord, different vertical layouts — tell them apart', 'Voicings')).toBe('I mastered Voicings.');
+    expect(firstPersonClaim('8ths, 16ths, triplets, or dotted-eighth + sixteenth?', 'Subdivisions')).toBe('I mastered Subdivisions.');
+    expect(firstPersonClaim('Hear a four-chord progression — V→I or IV→I?', 'Cadences')).toBe('I can hear a four-chord progression.');
   });
 });

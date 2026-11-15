@@ -34,3 +34,17 @@ export function redditShareUrl(p: SharePayload): string {
 export function trackShare(event: 'share_opened' | 'share_clicked' | 'share_completed', kind: ShareKind, target?: ShareTarget) {
   phCapture(event, target ? { kind, target } : { kind });
 }
+
+const CAN_VERBS = ['hear', 'identify', 'recognize', 'distinguish', 'detect', 'sing', 'place', 'listen', 'write', 'tell', 'name'];
+
+/**
+ * The learner's claim, in the first person: "I can hear two notes and tell which is higher."
+ * Built from the lesson's description when it starts with a doing word; otherwise
+ * "I mastered Voicings (…)." What follows a dash is a teaching note, so it's left off.
+ */
+export function firstPersonClaim(description: string, name: string): string {
+  const d = description.split(' — ')[0].replace(/[.\s]+$/, '');
+  const first = d.split(/[\s,]/)[0].toLowerCase();
+  if (!d.includes('?') && CAN_VERBS.includes(first)) return `I can ${d.charAt(0).toLowerCase()}${d.slice(1)}.`;
+  return `I mastered ${name}.`;
+}
