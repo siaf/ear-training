@@ -81,7 +81,7 @@ const PLANS: Plan[] = [
       'Cadences, progressions and jazz harmony',
       'All seven modes, bright to dark',
       'Melodic dictation',
-      'Custom practice: pick exactly what to drill',
+      'Custom drills: save your own, or drill what you just missed',
       'Advanced rhythm: subdivisions, meter, dictation',
       'Your full stats history',
     ],

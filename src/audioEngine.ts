@@ -151,7 +151,11 @@ const SAMPLER_CONFIGS: Partial<Record<SynthType, SamplerConfig>> = {
 };
 
 class AudioEngine {
-  private voice: Tone.PolySynth | Tone.Sampler;
+  // Built at start-up when possible. Null if that failed: Tone has thrown while the browser's
+  // audio context was still coming up (a slow WebKit), which used to stop the whole app
+  // loading. Then it is built on first use instead (see ensureVoice).
+  private voice: Tone.PolySynth | Tone.Sampler | null = null;
+  private limiter: Tone.Limiter | null = null;
   // Stands in for a sampler until its samples have downloaded.
   private fallbackVoice: Tone.PolySynth | Tone.Sampler | null = null;
   private initialized: boolean = false;
@@ -181,11 +185,47 @@ class AudioEngine {
   // downloaded, which left questions silent on slow connections, so use a plain synth
   // until it's ready.
   private get synth(): Tone.PolySynth | Tone.Sampler {
-    if (this.voice instanceof Tone.Sampler && !this.voice.loaded) {
+    const voice = this.ensureVoice();
+    if (voice instanceof Tone.Sampler && !voice.loaded) {
       if (!this.fallbackVoice) this.fallbackVoice = this.createSynth('triangle');
       return this.fallbackVoice;
     }
-    return this.voice;
+    return voice;
+  }
+
+  /**
+   * The output chain, the instrument and the drone. Safe to call again: it builds only what
+   * is missing. Returns false (and leaves the rest for later) if Tone throws.
+   */
+  private buildNodes(): boolean {
+    try {
+      if (!this.limiter) {
+        // Master limiter prevents clipping when multiple scale notes overlap (release tails
+        // stack). -1 dB ceiling leaves a touch of headroom; brick-wall style.
+        const limiter = new Tone.Limiter(-1);
+        Tone.getDestination().chain(limiter);
+        this.limiter = limiter;
+      }
+      if (!this.voice) this.voice = this.createSynth(this.currentSynthType);
+      if (!this.droneSynth) {
+        // A separate synth for the drone, with a warm pad sound.
+        this.droneSynth = new Tone.Synth({
+          oscillator: { type: 'sine' },
+          envelope: { attack: 0.5, decay: 0, sustain: 1, release: 1 },
+          volume: -12, // Quieter than main synth
+        }).toDestination();
+      }
+      return true;
+    } catch (err) {
+      console.warn('[audio] set-up failed; trying again on first use', err);
+      return false;
+    }
+  }
+
+  /** The instrument, built now if start-up couldn't. Throws only if it still can't be. */
+  private ensureVoice(): Tone.PolySynth | Tone.Sampler {
+    if (!this.voice && !this.buildNodes()) throw new Error('Audio could not start');
+    return this.voice!;
   }
 
   private markPlayback(durationSec: number) {
@@ -215,25 +255,8 @@ class AudioEngine {
   }
 
   constructor() {
-    // Master limiter prevents clipping when multiple scale notes overlap (release tails stack).
-    // -1 dB ceiling leaves a touch of headroom; brick-wall style.
-    const limiter = new Tone.Limiter(-1);
-    Tone.getDestination().chain(limiter);
-
-    this.voice = this.createSynth('sine');
-    // Create a separate synth for the drone with a warm pad sound
-    this.droneSynth = new Tone.Synth({
-      oscillator: {
-        type: 'sine',
-      },
-      envelope: {
-        attack: 0.5,
-        decay: 0,
-        sustain: 1,
-        release: 1,
-      },
-      volume: -12, // Quieter than main synth
-    }).toDestination();
+    // Never throws: this runs as the app loads, and a failure here used to leave a blank page.
+    this.buildNodes();
   }
 
   private createSynth(type: SynthType): Tone.PolySynth | Tone.Sampler {
@@ -309,19 +332,28 @@ class AudioEngine {
     // so samples don't re-download on every toggle.
     const prev = this.currentSynthType;
     const prevIsSampler = this.samplerCache.has(prev);
-    if (!prevIsSampler && this.voice) {
-      this.voice.dispose();
-    }
-    this.voice = this.createSynth(type);
     this.currentSynthType = type;
+    // Not built yet (start-up failed): it will be built with this type on first use.
+    if (!this.voice) return;
+    if (!prevIsSampler) this.voice.dispose();
+    this.voice = null;
+    try {
+      this.voice = this.createSynth(type);
+    } catch (err) {
+      console.warn('[audio] could not switch instrument yet; trying again on first use', err);
+    }
     console.log(`🎛 synth: ${prev} → ${type}`);
   }
 
   // Start downloading samples ahead of time, so an instrument is ready when it's needed.
   preloadSynths(types: readonly SynthType[]) {
-    types.forEach((type) => {
-      if (SAMPLER_CONFIGS[type]) this.createSynth(type);
-    });
+    try {
+      types.forEach((type) => {
+        if (SAMPLER_CONFIGS[type]) this.createSynth(type);
+      });
+    } catch (err) {
+      console.warn('[audio] preloading failed; instruments load when used instead', err);
+    }
   }
 
   getSynthType(): SynthType {
@@ -340,11 +372,14 @@ class AudioEngine {
       await Tone.context.resume();
       console.log('🎵 Audio context resumed');
     }
+    // If start-up couldn't build the instrument, the running context can now.
+    this.ensureVoice();
+    this.buildNodes(); // and the drone, if it was the part that failed
   }
 
   // Stop all currently playing sounds
   stopAll() {
-    this.voice.releaseAll();
+    this.voice?.releaseAll();
     this.fallbackVoice?.releaseAll();
     this.isPlaying = false;
     Tone.Transport.cancel(); // Cancel all scheduled events
