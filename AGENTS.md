@@ -39,8 +39,9 @@ python3 -m http.server 5181 --directory site # marketing site and tools
 | `npm run build` | The app under `/ear-training/`, for the old GitHub Pages copy. Not for app.fifths.io. |
 | `npm run build:mobile` | The app for Capacitor. `npm run cap:sync` then copies it into the native projects. |
 | `npm run build:tools` | Every free tool's bundle, from `_src/` into a `.js` file next to its page. The bundles are committed. |
-| `npm run build:blog` | Blog pages and `site/sitemap.xml`, from `content/blog/`. |
-| `npm run predeploy:site` | Brand files, blog and all tools. Run before every site deploy. |
+| `npm run build:lessons` | A public page per ear-training lesson (`site/lessons/<slug>/`, with its preview picture), the `/lessons/` index and `site/llms.txt`, from the curriculum. Needs Playwright's Chromium for the pictures. |
+| `npm run build:blog` | Blog pages and `site/sitemap.xml` (including the lesson pages), from `content/blog/`. |
+| `npm run predeploy:site` | Brand files, lesson pages, blog and all tools. Run before every site deploy. |
 
 Edit a tool's `_src/` or shared code, never its built `.js`, and run `npm run build:tools` afterwards. The browser tests run the built bundles.
 
@@ -71,7 +72,9 @@ Run all three before deploying. Nothing runs them for you: there's no CI for tes
 | `pro.spec.ts` | Pro features as a signed-in subscriber (`asPro` in `fixtures.ts`, on the accounts server): saved drills, melodic dictation, all-time stats; and drills leading free learners to the plans |
 | `repeat.spec.ts` | "Repeat lesson" after a lesson, "drill what you missed" (free and Pro), and replaying a finished lesson from the path |
 | `singing.spec.ts` | The voice check before the first singing lesson, and "Find Home" never playing its answer. `fakeMic` in `fixtures.ts` stands in for the microphone; headless WebKit refuses a made-up mic stream, so the hum test runs in Chromium only |
-| `blog.spec.ts` | The best-apps post's updated date and lesson buttons, and the three-question ear test (`site/ear-quiz.js`) |
+| `blog.spec.ts` | The best-apps post's updated date and lesson buttons, and the three-question ear test (`site/ear-quiz.js`) with its score sharing |
+| `lessons.spec.ts` | The public lesson pages: index, a free page that starts its lesson, a Pro page, preview pictures, the sitemap and `llms.txt` |
+| `share.spec.ts` | Sharing a medal, "your week" on the stats screen and the 7-day streak prompt: the picture, X, Reddit as a text post, and Escape |
 
 Useful forms: `npx playwright test e2e/audio.spec.ts --project=webkit`, `npx playwright test -g "paywall"`, `npx playwright show-trace test-results/<folder>/trace.zip`.
 
@@ -91,6 +94,7 @@ Rules for browser tests:
 Saved progress is stored by lesson id: the completed list (in the browser and in Supabase `profiles.completed_levels`), per-item mastery and review dates (`lessonId::item`), and session history. A curriculum change never edits that data, so:
 
 - **Never rename or reuse a lesson id.** Change its name, items or position freely. A removed id just stops counting.
+- **A lesson's public page address comes from its name** (`fifths.io/lessons/<slug>/`, see `src/lib/lessonPages.ts`), and shared medals link there. Renaming a lesson moves its page, so add the old slug to `OLD_SLUGS` there and the old address forwards to the new one.
 - **Completed lessons stay completed** even if you add prerequisites. Adding a prerequisite can only lock a lesson someone hasn't finished yet.
 - **Removing an answer from a lesson is safe:** `isStillAskable` in `src/lib/spacedReview.ts` drops saved items the lesson no longer asks, so reviews can't get stuck on them.
 - **Teaching order lives in `TEACHING_ORDER`** in `src/curriculum.ts`. It decides what "continue" and "next lesson" offer, across sections. Every new lesson goes into it after its prerequisites; `src/curriculum.test.ts` fails otherwise.
@@ -101,9 +105,19 @@ Whenever something moves between free and Pro, or the price changes, check every
 
 - What's actually Pro: `tier: 'pro'` on lessons in `src/curriculum.ts`, the Pro-only screens (`src/routes/CustomPractice.tsx`), and the `isPro` checks in `src/routes/Stats.tsx`.
 - In the app: the plan cards and headlines in `src/routes/Paywall.tsx`, the free-plan card in `src/routes/Settings.tsx`, the Pro card in `src/components/UpsellCard.tsx`, the banner in `src/routes/Stats.tsx`, and the price in `PRODUCT_VALUE_USD` in `src/lib/billing.ts`.
+- In `llms.txt`: the plans paragraph in `scripts/build-lessons.mjs`.
 - On fifths.io: the pricing blocks, FAQs and meta descriptions in `site/index.html`, `site/jazz/`, `site/classical/`, `site/transcribing/` and `site/returning/`, the pricing clause in `site/terms/index.html`, and the "Pricing:" lines and comparison tables in `content/blog/*.md`.
 
 `grep -rn '4.99' src site content` finds most of them. Pro is one monthly plan: list price $9.99, shown crossed out beside the $4.99 launch discount. Don't say the price will go up later: early subscribers keep $4.99. For the crossed-out price to be real, Pro should be set up at $9.99 in RevenueCat with $4.99 as the discount.
+
+## Sharing
+
+Learners can share a medal (the "mastered" screen), their week (the stats screen, and a prompt at 7, 14, 30… day streaks) and their ear-test score (blog). The pictures are drawn by `src/lib/shareCards.ts`, which also draws each lesson page's preview picture at build time, and the links point to the lesson's page on fifths.io.
+
+- Nothing personal goes in a shared link or picture: no name, email or account id.
+- Reddit gets a text post with the picture saved for the learner to add, never a bare link, and they pick the community. Reddit flags domains that many accounts drop links to, and removes posts that read like ads.
+- Never reward sharing (Pro days, streak freezes): it breaks Reddit's spam rules and makes the posts look bought.
+- PostHog: `share_opened`, `share_clicked` and `share_completed` with `kind` (medal, week, streak) and `target`; `blog_quiz_shared` on the site.
 
 ## Deploy
 

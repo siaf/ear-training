@@ -38,4 +38,14 @@ test('the ear test plays three questions and ends on a lesson link', async ({ pa
     .toHaveAttribute('href', /app\.fifths\.io\/.*utm_campaign=best-ear-training-apps.*utm_content=quiz/);
   // Each question is a four-chord cadence plus the target note, two oscillators per note.
   expect(await page.evaluate(() => (window as unknown as { __notes: number }).__notes)).toBeGreaterThan(3 * 2 * 10);
+
+  // The score can be shared, linking back to this post's test. Reddit gets a text post.
+  const share = page.getByLabel('Share your score');
+  const x = new URL((await share.getByRole('link', { name: 'Post on X' }).getAttribute('href'))!);
+  expect(x.searchParams.get('text')).toMatch(/^I got [0-3] of 3 on a 30-second ear test/);
+  expect(x.searchParams.get('url')).toBe(`${POST}?utm_source=share&utm_medium=x&utm_campaign=ear-test`);
+  const reddit = new URL((await share.getByRole('link', { name: 'Post on Reddit' }).getAttribute('href'))!);
+  expect(reddit.searchParams.get('type')).toBe('TEXT');
+  expect(reddit.searchParams.get('title')).toMatch(/^I got [0-3]\/3 on a 30-second ear test/);
+  expect(reddit.searchParams.get('text')).toContain(`${POST}?utm_source=share&utm_medium=reddit&utm_campaign=ear-test`);
 });

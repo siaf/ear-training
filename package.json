@@ -27,7 +27,8 @@
     "android:run": "npm run build:mobile && cap sync android && cap run android",
     "sync:site-brand": "rsync -a --delete public/brand/ site/brand/",
     "build:blog": "node scripts/build-blog.mjs",
-    "predeploy:site": "npm run sync:site-brand && npm run build:blog && npm run build:tools",
+    "build:lessons": "node scripts/build-lessons.mjs",
+    "predeploy:site": "npm run sync:site-brand && npm run build:lessons && npm run build:blog && npm run build:tools",
     "deploy:site": "wrangler pages deploy"
   },
   "dependencies": {

@@ -5,6 +5,7 @@ import { Bean, Brand, ColorPill, ProgressBar } from '../components/primitives';
 import { CurriculumLevel, SessionStats } from '../types';
 import { getDisplayName } from '../curriculum';
 import DesktopSidebar, { SidebarTab } from '../components/DesktopSidebar';
+import WeekShareCard from '../components/WeekShareCard';
 
 interface Props {
   level: CurriculumLevel;
@@ -23,6 +24,9 @@ interface Props {
   repeatLabel?: string;
   /** A drill of what this session's mix-ups were (Pro). Null when they don't make one. */
   missedDrill?: MissedDrill | null;
+  /** The streak this session reached, when it's a milestone: offers to share the week. */
+  streakMilestone?: number | null;
+  onDismissMilestone?: () => void;
 }
 
 export interface MissedDrill {
@@ -81,6 +85,8 @@ export default function Results({
   nextLevel = null,
   repeatLabel = 'repeat lesson',
   missedDrill = null,
+  streakMilestone = null,
+  onDismissMilestone,
 }: Props) {
   const mobile = useBreakpoint() !== 'desktop';
 
@@ -155,6 +161,8 @@ export default function Results({
           <span style={{ fontStyle: 'italic', color: 'var(--coral-ink)' }}>{sessionLabel ?? level.name}</span>
           {stats.accuracy >= 75 ? ' is starting to click.' : '.'}
         </h1>
+
+        {streakMilestone && <WeekShareCard mobile={mobile} milestone={streakMilestone} onDismiss={onDismissMilestone} />}
 
         {/* Scorecards */}
         <div style={{ display: 'grid', gap: mobile ? 10 : 14, gridTemplateColumns: mobile ? '1fr 1fr' : 'repeat(4, 1fr)', marginBottom: mobile ? 14 : 24 }}>

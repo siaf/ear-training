@@ -41,11 +41,15 @@ const TAILWIND_TO_PALETTE: Record<string, keyof typeof PLAYFUL> = {
   stone:  'butter',
 };
 
+export type PaletteName = keyof typeof PLAYFUL;
+
+/** Which palette a segment colour maps to (by name, for drawing outside CSS). */
+export function segmentPaletteName(tailwindColor: string, fallbackIndex = 0): PaletteName {
+  return TAILWIND_TO_PALETTE[tailwindColor] ?? ROTATION[fallbackIndex % ROTATION.length];
+}
+
 export function segmentColor(tailwindColor: string, fallbackIndex = 0): SegmentPalette {
-  const mapped = TAILWIND_TO_PALETTE[tailwindColor];
-  if (mapped) return PLAYFUL[mapped];
-  const fallback = ROTATION[fallbackIndex % ROTATION.length];
-  return PLAYFUL[fallback];
+  return PLAYFUL[segmentPaletteName(tailwindColor, fallbackIndex)];
 }
 
 export function playfulToken(name: keyof typeof PLAYFUL): SegmentPalette {

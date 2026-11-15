@@ -4,6 +4,7 @@ import { Flame } from 'lucide-react';
 import { useBreakpoint } from '../lib/useBreakpoint';
 import { Bean, Blob, Brand, ColorPill } from '../components/primitives';
 import DesktopSidebar, { SidebarTab } from '../components/DesktopSidebar';
+import WeekShareCard from '../components/WeekShareCard';
 import {
   DailyStat,
   MasteryCell,
@@ -789,6 +790,8 @@ export default function Stats({
         >
           Stats — <span style={{ fontStyle: 'italic', color: 'var(--coral-ink)' }}>{isPro ? 'all time' : '7-day window'}</span>
         </h1>
+
+        <WeekShareCard mobile={mobile} />
 
         {!isPro && onOpenPaywall && (
           <button

@@ -60,6 +60,9 @@ import {
 import { supabaseEnabled } from './lib/supabase';
 
 const SIGNUP_PROMPTED_KEY = 'fifths.signupPrompted';
+/** Streaks worth celebrating with a "share your week" card on the results screen. */
+const STREAK_MILESTONES = [7, 14, 30, 50, 100, 200, 365];
+
 function readFlag(key: string): boolean {
   try { return localStorage.getItem(key) === '1'; } catch { return false; }
 }
@@ -681,6 +684,7 @@ export default function App() {
 
   // What the last finished session was, so the results screen can describe it and
   // "keep going" can repeat a custom session rather than its source lesson.
+  const [streakMilestone, setStreakMilestone] = useState<number | null>(null);
   const [lastSessionKind, setLastSessionKind] = useState<'lesson' | 'review' | 'global' | 'checkpoint' | 'custom'>('lesson');
   const lastCustomSelRef = useRef<CustomSelection | null>(null);
   // The saved drill being played: its name titles the session, and its card shows the score.
@@ -1115,6 +1119,15 @@ export default function App() {
     if (firstUnlock) {
       setMasteryLevelId(currentLevel.id);
       haptics.heavy();
+    }
+    // A streak milestone offers to share the week, once per milestone.
+    const streakNow = getStreakDays();
+    const milestoneKey = `fifths.share.streak.${streakNow}`;
+    if (STREAK_MILESTONES.includes(streakNow) && !readFlag(milestoneKey)) {
+      writeFlag(milestoneKey);
+      setStreakMilestone(streakNow);
+    } else {
+      setStreakMilestone(null);
     }
     setRoute('results');
   }, [analytics, completedLevels, currentLevel.id, currentLevel.type, sessionStartedAt, hasEverPracticed, isSignedIn, proActive, settings.synth]);
@@ -1670,6 +1683,8 @@ export default function App() {
           onNextLesson={handleNextLesson}
           nextLevel={nextLessonForLearner}
           repeatLabel={lastSessionKind === 'lesson' ? 'repeat lesson' : lastSessionKind === 'custom' ? 'repeat drill' : 'keep going →'}
+          streakMilestone={streakMilestone}
+          onDismissMilestone={() => setStreakMilestone(null)}
           missedDrill={missedSel && {
             name: autoName(missedSel),
             detail: variantSummary(missedSel),

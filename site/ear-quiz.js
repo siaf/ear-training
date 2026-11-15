@@ -186,7 +186,48 @@
           lessonLink('Keep training free in Fifths →'),
           el('button', { type: 'button', class: 'btn-link', onclick: start, text: 'Try three more' }),
         ]),
+        shareRow(),
       ]);
+    }
+
+    // "I got 2 of 3. Can you beat it?" Each share invites someone else to take the test.
+    // Reddit gets a text post the reader finishes in their own words, never a bare link.
+    function shareRow() {
+      var page = location.origin + location.pathname;
+      var link = function (medium) {
+        return page + '?utm_source=share&utm_medium=' + medium + '&utm_campaign=ear-test';
+      };
+      var text = score === QUESTIONS
+        ? 'I got ' + score + ' of ' + QUESTIONS + ' on a 30-second ear test: hear a key, then name the note. Can you?'
+        : 'I got ' + score + ' of ' + QUESTIONS + ' on a 30-second ear test: hear a key, then name the note. Can you beat it?';
+      var title = 'I got ' + score + '/' + QUESTIONS + ' on a 30-second ear test. How do you do?';
+      var shared = function (target) { track('blog_quiz_shared', { campaign: campaign, score: score, target: target }); };
+      var buttons = [];
+      if (typeof navigator.share === 'function') {
+        buttons.push(el('button', { type: 'button', class: 'btn btn-soft', text: 'Share your score', onclick: function () {
+          shared('native');
+          navigator.share({ title: title, text: text, url: link('native') }).catch(function () {});
+        } }));
+      }
+      buttons.push(el('a', {
+        class: 'btn-link', target: '_blank', rel: 'noopener', text: 'Post on X',
+        href: 'https://x.com/intent/post?text=' + encodeURIComponent(text) + '&url=' + encodeURIComponent(link('x')),
+        onclick: function () { shared('x'); },
+      }));
+      buttons.push(el('a', {
+        class: 'btn-link', target: '_blank', rel: 'noopener', text: 'Post on Reddit',
+        href: 'https://www.reddit.com/submit?type=TEXT&selftext=true&title=' + encodeURIComponent(title) +
+          '&text=' + encodeURIComponent(text + '\n\n' + link('reddit')),
+        onclick: function () { shared('reddit'); },
+      }));
+      var copy = el('button', { type: 'button', class: 'btn-link', text: 'Copy link', onclick: function () {
+        shared('copy');
+        if (navigator.clipboard) navigator.clipboard.writeText(link('copy')).then(function () { copy.textContent = 'Link copied'; }, function () {});
+      } });
+      buttons.push(copy);
+      return el('div', { class: 'ear-quiz-share', 'aria-label': 'Share your score' }, [
+        el('span', { class: 'ear-quiz-share-label', text: 'Share your score:' }),
+      ].concat(buttons));
     }
 
     intro();

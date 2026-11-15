@@ -8,6 +8,8 @@ site/brand/
 # Generated blog HTML — built from content/blog/*.md by `npm run build:blog`.
 # Source of truth lives in content/blog/. Re-built by `predeploy:site`.
 site/blog/
+site/lessons/
+site/llms.txt
 
 # Editor
 .DS_Store

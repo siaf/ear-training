@@ -8,23 +8,16 @@ import { fileURLToPath } from 'node:url';
 import matter from 'gray-matter';
 import MarkdownIt from 'markdown-it';
 import footnote from 'markdown-it-footnote';
+import { SITE_URL, escape, head, navHeader, siteFooter } from './site-template.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
 const SRC = path.join(ROOT, 'content', 'blog');
 const OUT = path.join(ROOT, 'site', 'blog');
-const SITE_URL = 'https://fifths.io';
 
 const md = new MarkdownIt({ html: false, linkify: true, typographer: true });
 md.use(footnote);
 
-const escape = (s = '') =>
-  String(s)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
 
 const fmtDate = (d) => {
   const date = new Date(d);
@@ -39,56 +32,8 @@ const isoDate = (d) => (typeof d === 'string' ? d : new Date(d).toISOString().sl
 // visible "Updated" date and the sitemap, so only set it when the content really changed.
 const lastModified = (data) => (data.updated ? isoDate(data.updated) : isoDate(data.date));
 
-const head = ({ title, description, canonical, ogImage, articleDate, modifiedDate }) => `<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${escape(title)}</title>
-<meta name="description" content="${escape(description)}">
-<link rel="canonical" href="${canonical}">
-<meta property="og:type" content="${articleDate ? 'article' : 'website'}">
-<meta property="og:title" content="${escape(title)}">
-<meta property="og:description" content="${escape(description)}">
-<meta property="og:url" content="${canonical}">
-<meta property="og:image" content="${ogImage}">
-${articleDate ? `<meta property="article:published_time" content="${articleDate}">` : ''}
-${modifiedDate ? `<meta property="article:modified_time" content="${modifiedDate}">` : ''}
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="${ogImage}">
-<link rel="icon" type="image/png" sizes="32x32" href="/brand/favicons/favicon-32.png">
-<link rel="icon" type="image/png" sizes="192x192" href="/brand/favicons/favicon-192.png">
-<link rel="apple-touch-icon" sizes="180x180" href="/brand/favicons/favicon-180.png">
-<meta name="theme-color" content="#fff8ef">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap">
-<link rel="stylesheet" href="/styles.css">
-<script defer src="https://cloud.umami.is/script.js" data-website-id="8cc10640-f114-49ab-8572-036552f64527"></script>
-<script defer src="/posthog.js"></script>
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-LJYKXFDR9L"></script>
-<script>
-window.dataLayer = window.dataLayer || [];
-function gtag(){dataLayer.push(arguments);}
-gtag('js', new Date());
-gtag('config', 'G-LJYKXFDR9L');
-gtag('config', 'AW-17007845333');
-</script>`;
 
-const navHeader = `<header class="nav">
-  <a href="/" class="brand" aria-label="Fifths"><img src="/brand/logos/logo-horizontal-light.png" alt="Fifths" width="120" height="28"/></a>
-  <nav class="nav-links">
-    <a href="/blog/">Blog</a>
-    <a href="/#how">How it works</a>
-    <a href="/#features">Features</a>
-    <a href="/#faq">FAQ</a>
-  </nav>
-</header>`;
 
-const siteFooter = `<footer class="site-foot">
-  <p><a href="/">Home</a> · <a href="/blog/">Blog</a> · <a href="/privacy/">Privacy</a> · <a href="/terms/">Terms</a></p>
-  <p class="site-foot-mark">fifths.io · 2026</p>
-</footer>`;
 
 function articlePage(post) {
   const { title, description, slug, date, author = 'Fifths', tags = [], image, top_cta: topCta, top_quiz: topQuiz } = post.data;
@@ -256,7 +201,7 @@ const STATIC_PAGES = [
   { url: '/terms/', priority: '0.3', changefreq: 'yearly' },
 ];
 
-function sitemap(posts) {
+function sitemap(posts, lessonPages = []) {
   const today = new Date().toISOString().slice(0, 10);
   const sorted = [...posts].sort((a, b) => (a.data.date < b.data.date ? 1 : -1));
   const latestPost = posts.map((p) => lastModified(p.data)).sort().pop() || today;
@@ -282,10 +227,22 @@ function sitemap(posts) {
     )
     .join('\n');
 
+  const lessonEntries = lessonPages
+    .map(
+      (url) => `  <url>
+    <loc>${SITE_URL}${url}</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>${url === '/lessons/' ? '0.85' : '0.6'}</priority>
+  </url>`,
+    )
+    .join('\n');
+
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${staticEntries}
 ${postEntries}
+${lessonEntries}
 </urlset>
 `;
 }
@@ -370,7 +327,14 @@ async function main() {
 
   await fs.writeFile(path.join(OUT, 'index.html'), indexPage(posts));
   await fs.writeFile(path.join(OUT, 'feed.xml'), rssFeed(posts));
-  await fs.writeFile(path.join(ROOT, 'site', 'sitemap.xml'), sitemap(posts));
+  // Lesson pages come from build-lessons.mjs, which runs first and lists them here.
+  let lessonPages = [];
+  try {
+    lessonPages = JSON.parse(await fs.readFile(path.join(ROOT, 'site', 'lessons', 'pages.json'), 'utf8'));
+  } catch {
+    console.warn('! No site/lessons/pages.json: run `npm run build:lessons` first to list lesson pages in the sitemap.');
+  }
+  await fs.writeFile(path.join(ROOT, 'site', 'sitemap.xml'), sitemap(posts, lessonPages));
 
   console.log(
     `✓ Built ${posts.length} blog post${posts.length === 1 ? '' : 's'} → site/blog/ (+ sitemap.xml, feed.xml)`,

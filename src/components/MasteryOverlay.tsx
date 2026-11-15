@@ -1,9 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
-import { RotateCcw } from 'lucide-react';
+import { RotateCcw, Share2 } from 'lucide-react';
 import { Bean } from './primitives';
 import { CurriculumLevel } from '../types';
 import { CURRICULUM } from '../curriculum';
-import { segmentColor } from '../lib/segmentColors';
+import { segmentColor, segmentPaletteName } from '../lib/segmentColors';
+import ShareSheet from './ShareSheet';
+import { lessonCard, toPngBlob } from '../lib/shareCards';
+import { lessonPageUrl, SITE_URL } from '../lib/lessonPages';
+import type { SharePayload } from '../lib/share';
 import { medalLabel } from '../lib/medalLabel';
 
 interface Props {
@@ -119,11 +123,13 @@ export default function MasteryOverlay({ level, onClose, onContinue, next = null
   const [mounted, setMounted] = useState(false);
   const ref = useRef<HTMLDivElement | null>(null);
   const reduced = prefersReducedMotion();
+  // Escape closes the share sheet first, not the medal behind it.
+  const sharingRef = useRef(false);
 
   useEffect(() => {
     setMounted(true);
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape' && !sharingRef.current) onClose();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -131,6 +137,18 @@ export default function MasteryOverlay({ level, onClose, onContinue, next = null
 
   const idx = CURRICULUM.findIndex((l) => l.id === level.id);
   const palette = segmentColor(level.segmentId ?? 'purple', idx);
+  const [sharing, setSharing] = useState(false);
+  sharingRef.current = sharing;
+  // Ear-training lessons have a page on fifths.io; anything else links to the home page.
+  const share: SharePayload = {
+    kind: 'medal',
+    title: `Just mastered "${level.name}" in my ear training`,
+    text: `Just mastered ${level.name} on Fifths, a free ear training app 🎧`,
+    url: (target) => {
+      const utm = { source: 'share', medium: target, campaign: 'medal' };
+      return idx >= 0 ? lessonPageUrl(level, utm) : `${SITE_URL}/?utm_source=share&utm_medium=${target}&utm_campaign=medal`;
+    },
+  };
 
   return (
     <div
@@ -212,23 +230,60 @@ export default function MasteryOverlay({ level, onClose, onContinue, next = null
             </Bean>
           )}
         </div>
-        <button
-          type="button"
-          onClick={onClose}
-          style={{
-            marginTop: 12,
-            background: 'none',
-            border: 'none',
-            padding: 6,
-            cursor: 'pointer',
-            fontSize: 13,
-            fontWeight: 600,
-            color: 'var(--ink-3)',
-          }}
-        >
-          savor it · see results
-        </button>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 6, marginTop: 12, flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            onClick={() => setSharing(true)}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              background: 'none',
+              border: 'none',
+              padding: 6,
+              cursor: 'pointer',
+              fontSize: 13,
+              fontWeight: 700,
+              color: 'var(--coral-ink)',
+            }}
+          >
+            <Share2 size={15} strokeWidth={2.5} aria-hidden /> share your medal
+          </button>
+          <span aria-hidden style={{ color: 'var(--ink-4)' }}>·</span>
+          <button
+            type="button"
+            onClick={onClose}
+            style={{
+              background: 'none',
+              border: 'none',
+              padding: 6,
+              cursor: 'pointer',
+              fontSize: 13,
+              fontWeight: 600,
+              color: 'var(--ink-3)',
+            }}
+          >
+            savor it · see results
+          </button>
+        </div>
       </div>
+      {sharing && (
+        <ShareSheet
+          heading="Share your medal"
+          payload={share}
+          fileName={`fifths-${level.id}-medal`}
+          makeImage={() =>
+            lessonCard({
+              name: level.name,
+              lines: medalLabel(level.name),
+              palette: segmentPaletteName(level.segmentId ?? 'purple', idx),
+              kicker: 'mastered',
+              note: 'ear training · fifths.io',
+            }).then(toPngBlob)
+          }
+          onClose={() => setSharing(false)}
+        />
+      )}
     </div>
   );
 }
