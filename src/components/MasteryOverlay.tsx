@@ -4,6 +4,7 @@ import { Bean } from './primitives';
 import { CurriculumLevel } from '../types';
 import { CURRICULUM } from '../curriculum';
 import { segmentColor } from '../lib/segmentColors';
+import { medalLabel } from '../lib/medalLabel';
 
 interface Props {
   level: CurriculumLevel;
@@ -71,7 +72,8 @@ function Confetti() {
   );
 }
 
-function Medallion({ color, inkColor, label }: { color: string; inkColor: string; label: string }) {
+function Medallion({ color, inkColor, lines }: { color: string; inkColor: string; lines: string[] }) {
+  const twoLines = lines.length > 1;
   return (
     <svg width="240" height="240" viewBox="0 0 240 240" aria-hidden>
       <defs>
@@ -95,16 +97,19 @@ function Medallion({ color, inkColor, label }: { color: string; inkColor: string
       <text x="120" y="140" textAnchor="middle" fill={inkColor} style={{ font: '400 26px "DM Serif Display", Georgia, serif' }}>
         unlocked
       </text>
-      <text
-        x="120"
-        y="170"
-        textAnchor="middle"
-        fill={inkColor}
-        opacity="0.75"
-        style={{ font: '500 12px Outfit, system-ui' }}
-      >
-        {label}
-      </text>
+      {lines.map((line, i) => (
+        <text
+          key={i}
+          x="120"
+          y={twoLines ? 164 + i * 14 : 170}
+          textAnchor="middle"
+          fill={inkColor}
+          opacity="0.75"
+          style={{ font: `500 ${twoLines ? 11 : 12}px Outfit, system-ui` }}
+        >
+          {line}
+        </text>
+      ))}
     </svg>
   );
 }
@@ -167,7 +172,7 @@ export default function MasteryOverlay({ level, onClose, onContinue, next = null
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'center' }}>
-          <Medallion color={palette.bg} inkColor={palette.ink} label={level.name.toLowerCase()} />
+          <Medallion color={palette.bg} inkColor={palette.ink} lines={medalLabel(level.name)} />
         </div>
         <h2
           style={{
