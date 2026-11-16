@@ -54,8 +54,15 @@ export default function AuthSheet({ onClose, reason = 'sync' }: Props) {
       await signInWithMagicLink(trimmed);
       setStatus('sent');
     } catch (err) {
+      const message = err instanceof Error ? err.message : 'unknown';
+      phCapture('auth_failed', { provider: 'magic_link', reason: message });
+      // Asking twice within a few seconds: Supabase refuses the second, but the first link
+      // is on its way, so say that rather than show its error (or report it as one).
+      if (/only request this after \d+ seconds/i.test(message)) {
+        setStatus('sent');
+        return;
+      }
       reportError('auth', err, { provider: 'magic_link' });
-      phCapture('auth_failed', { provider: 'magic_link', reason: err instanceof Error ? err.message : 'unknown' });
       setStatus('error');
       setErrorMsg(err instanceof Error ? err.message : 'Could not send the link.');
     }

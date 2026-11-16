@@ -124,3 +124,39 @@ test('signed-in learners never see the wall, however many lessons they have', as
   await expect(page).toHaveURL(/practice/);
   await expect(wall(page)).toBeHidden();
 });
+
+// Production bug, 16 Nov 2026: "next lesson" on the results screen hit the wall, but the
+// results screen didn't draw the sign-in sheet, so the button looked dead.
+test('finishing the second lesson, "next lesson" opens the sign-in sheet on the results screen', async ({ page }) => {
+  test.setTimeout(120_000);
+  await page.addInitScript(() => {
+    Math.random = () => 0;
+    localStorage.setItem('fifths.signupPrompted', '1'); // saw the soft ask after lesson one
+  });
+  await openApp(page, `${ACCOUNTS_APP}/?start=found_same_diff`, ['found_higher_lower']);
+  const next = page.getByRole('button', { name: /^next/i });
+  const go = page.getByRole('button', { name: /let's go/i });
+  await expect(next.or(go).first()).toBeVisible({ timeout: 20_000 });
+  if (await next.isVisible()) await next.click();
+  await go.click();
+  for (let q = 1; q <= 30 && !/results/.test(page.url()); q++) {
+    const answer = page.getByRole('button', { name: /^same/i });
+    await expect(answer).toBeEnabled({ timeout: 20_000 });
+    await answer.click();
+    await page.keyboard.press('Enter');
+    const counter = page.getByText(new RegExp(`^${q}/\\d+$`));
+    await expect.poll(async () => /results/.test(page.url()) || await counter.isVisible(), { timeout: 10_000 }).toBe(true);
+    if (/results/.test(page.url())) break;
+    await page.keyboard.press('Enter');
+  }
+  await expect(page).toHaveURL(/results/);
+  // Passing it opens the medal, whose "keep going" is "next lesson".
+  const mastered = page.getByRole('dialog', { name: /mastery/i });
+  await mastered.getByRole('button', { name: /keep going/ }).click();
+  const wall = page.getByRole('dialog', { name: /sign in/i });
+  await expect(wall).toContainText('Save your progress to keep going.');
+  // And the results screen's own button, after "not now".
+  await wall.getByRole('button', { name: 'not now' }).click();
+  await page.getByRole('button', { name: /next lesson/ }).click();
+  await expect(wall).toContainText('Save your progress to keep going.');
+});

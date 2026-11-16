@@ -1835,6 +1835,8 @@ export default function App() {
             }}
           />
         )}
+        {/* The sign-in wall, when "next lesson" or "repeat" is past the free lessons. */}
+        {showAuth && <AuthSheet reason={authReason} onClose={closeAuth} />}
       </>
     );
   }
@@ -1944,6 +1946,7 @@ export default function App() {
           onOpenPaywall={() => setRoute('paywall')}
         />
         {isMobile && tabsActive && <BottomTabs active={tabsActive} onChange={(r) => setRoute(r)} />}
+        {showAuth && <AuthSheet reason={authReason} onClose={closeAuth} />}
       </>
     );
   }
