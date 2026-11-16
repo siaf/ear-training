@@ -5,7 +5,7 @@ import { Bean, Brand, ColorPill } from '../components/primitives';
 import DesktopSidebar, { SidebarTab } from '../components/DesktopSidebar';
 import { SYNTH_CATALOG, SynthType } from '../audioEngine';
 import { ThemePreference } from '../lib/theme';
-import type { SyncState } from '../lib/syncEngine';
+import type { DeleteAccountResult, SyncState } from '../lib/syncEngine';
 import { DegreeNotation, DEFAULT_DEGREE_NOTATION, DEGREE_NOTATION_LABELS } from '../lib/degreeNotation';
 import { isAnalyticsOptedOut, setAnalyticsOptOut } from '../lib/posthog';
 
@@ -135,6 +135,7 @@ interface Props {
   onOpenAuth?: () => void;
   onSignOut?: () => void;
   onSyncNow?: () => void;
+  onDeleteAccount?: () => Promise<DeleteAccountResult>;
   isPro?: boolean;
 }
 
@@ -170,6 +171,7 @@ export default function Settings({
   onOpenAuth,
   onSignOut,
   onSyncNow,
+  onDeleteAccount,
   isPro = false,
 }: Props) {
   const mobile = useBreakpoint() !== 'desktop';
@@ -718,9 +720,86 @@ export default function Settings({
               </Bean>
             </div>
           )}
+          {onDeleteAccount && (
+            <DeleteAccount
+              signedIn={syncState !== 'signed_out' && syncState !== 'disabled'}
+              email={userEmail}
+              isPro={isPro}
+              onDelete={onDeleteAccount}
+              onOpenPaywall={onOpenPaywall}
+            />
+          )}
         </div>
       </div>
       </div>
+    </div>
+  );
+}
+
+type DeleteStatus = 'idle' | 'armed' | 'working' | DeleteAccountResult;
+
+/**
+ * "Delete account": the account, the progress saved to it and our email list entry, via
+ * functions/api/delete-account.js. A renewing Pro subscription has to be cancelled first,
+ * since deleting the account doesn't stop the store charging.
+ */
+function DeleteAccount({ signedIn, email, isPro, onDelete, onOpenPaywall }: {
+  signedIn: boolean;
+  email: string | null;
+  isPro: boolean;
+  onDelete: () => Promise<DeleteAccountResult>;
+  onOpenPaywall?: () => void;
+}) {
+  const [status, setStatus] = useState<DeleteStatus>('idle');
+  if (status === 'deleted') {
+    return (
+      <div role="status" style={{ marginTop: 16, paddingTop: 14, borderTop: '1px solid var(--hairline)', fontSize: 13, color: 'var(--ink-1)' }}>
+        Your account and everything saved to it are deleted.
+      </div>
+    );
+  }
+  if (!signedIn) return null;
+
+  const blockedByPro = isPro || status === 'subscription_active';
+  const run = async () => {
+    setStatus('working');
+    setStatus(await onDelete());
+  };
+
+  return (
+    <div style={{ marginTop: 16, paddingTop: 14, borderTop: '1px solid var(--hairline)' }}>
+      <div style={{ fontSize: 13, color: 'var(--ink-2)', marginBottom: 12 }}>
+        {blockedByPro
+          ? 'your Pro subscription is still active. cancel it first, or it keeps charging, then you can delete your account.'
+          : status === 'armed' || status === 'working'
+            ? `this deletes ${email ? `the account for ${email}` : 'your account'} and the progress saved to it on every device, and clears this device too. it can't be undone.`
+            : 'deletes your account, the progress saved to it, and your email from our list.'}
+      </div>
+      {status === 'failed' && (
+        <div role="alert" style={{ fontSize: 13, color: 'var(--coral-ink)', marginBottom: 12 }}>
+          Couldn't delete your account just now. Try again, or email <a href="mailto:hello@fifths.io" style={{ color: 'inherit' }}>hello@fifths.io</a>.
+        </div>
+      )}
+      {blockedByPro ? (
+        onOpenPaywall && (
+          <Bean tone="soft" size="md" onClick={onOpenPaywall}>
+            manage plan
+          </Bean>
+        )
+      ) : status === 'armed' || status === 'working' ? (
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <Bean tone="coral" size="md" disabled={status === 'working'} onClick={() => { void run(); }}>
+            {status === 'working' ? 'deleting…' : 'yes — delete my account'}
+          </Bean>
+          <Bean tone="soft" size="md" disabled={status === 'working'} onClick={() => setStatus('idle')}>
+            cancel
+          </Bean>
+        </div>
+      ) : (
+        <Bean tone="soft" size="md" onClick={() => setStatus('armed')}>
+          delete account
+        </Bean>
+      )}
     </div>
   );
 }

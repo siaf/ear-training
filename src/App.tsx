@@ -53,6 +53,8 @@ import { clearAllSessions, getStreakDays, getTodayMinutes, hasHistory, recordSes
 import {
   flushSoon,
   resetCloudProgress,
+  deleteAccount,
+  type DeleteAccountResult,
   startSyncEngine,
   subscribeSyncState,
   signOut as syncSignOut,
@@ -83,7 +85,7 @@ function writeFlag(key: string): void {
 }
 import { PRODUCT_IDS, checkoutIsOpen, isPro, purchaseProduct, purchasesNeedAccount, reportSandboxCheckoutAttempt, restorePurchases, subscribeBilling } from './lib/billing';
 import { trackEngagedAnon } from './lib/attribution';
-import { phCapture } from './lib/posthog';
+import { phCapture, phReset } from './lib/posthog';
 import { sharedArrival } from './lib/share';
 import LessonIntro from './components/LessonIntro';
 import MasteryOverlay from './components/MasteryOverlay';
@@ -1635,7 +1637,7 @@ export default function App() {
     setRoute('path');
   };
 
-  const handleResetProgress = () => {
+  const clearLocalProgress = () => {
     setCompletedLevels([]);
     setSelectedLevelId(null);
     analytics.clearAnswers();
@@ -1643,7 +1645,22 @@ export default function App() {
     masteryRef.current = {};
     saveMastery(masteryRef.current);
     setStatsTick((n) => n + 1);
+  };
+
+  const handleResetProgress = () => {
+    clearLocalProgress();
     void resetCloudProgress();
+  };
+
+  // The server removes the account and its cloud copy; this device's copy goes too, and
+  // analytics stops linking this browser to the deleted account.
+  const handleDeleteAccount = async (): Promise<DeleteAccountResult> => {
+    const result = await deleteAccount();
+    if (result === 'deleted') {
+      clearLocalProgress();
+      phReset();
+    }
+    return result;
   };
 
   /* ---------- Render ---------- */
@@ -1867,6 +1884,7 @@ export default function App() {
           onOpenAuth={() => setShowAuth(true)}
           onSignOut={() => { void syncSignOut(); }}
           onSyncNow={() => { void flushNow(); }}
+          onDeleteAccount={handleDeleteAccount}
           isPro={proActive}
         />
         {isMobile && tabsActive && <BottomTabs active={tabsActive} onChange={(r) => setRoute(r)} />}

@@ -49,6 +49,8 @@ let billingAccountId: string | null = null;
 // Sessions never change once recorded, so each one only needs uploading once.
 const syncedSessionIds = new Set<string>();
 let started = false;
+// Set while an account is being deleted, so a debounced push can't write its rows back.
+let deleting = false;
 
 export type SyncState = 'disabled' | 'signed_out' | 'syncing' | 'idle' | 'error';
 
@@ -321,7 +323,7 @@ export async function resetCloudProgress(): Promise<void> {
 }
 
 export function flushSoon() {
-  if (!currentUser) return;
+  if (!currentUser || deleting) return;
   if (pendingFlushId) clearTimeout(pendingFlushId);
   pendingFlushId = setTimeout(() => {
     pendingFlushId = null;
@@ -330,7 +332,7 @@ export function flushSoon() {
 }
 
 export async function flushNow() {
-  if (!supabase || !currentUser) return;
+  if (!supabase || !currentUser || deleting) return;
   setState('syncing');
   try {
     await pushProfile();
@@ -399,6 +401,53 @@ export async function signInWithGoogle(): Promise<void> {
     options: { redirectTo },
   });
   if (error) throw error;
+}
+
+/** functions/api/delete-account.js, on the marketing site, which holds the server keys. */
+export const DELETE_ACCOUNT_URL = 'https://fifths.io/api/delete-account';
+
+export type DeleteAccountResult = 'deleted' | 'subscription_active' | 'failed';
+
+/**
+ * Deletes the signed-in account and everything stored with it (see the server function),
+ * then signs this device out. Pushes are held off meanwhile, so nothing gets written back.
+ * The caller clears the progress kept on this device.
+ */
+export async function deleteAccount(): Promise<DeleteAccountResult> {
+  if (!supabase || !currentUser) return 'failed';
+  deleting = true;
+  if (pendingFlushId) { clearTimeout(pendingFlushId); pendingFlushId = null; }
+  try {
+    const { data } = await supabase.auth.getSession();
+    const token = data.session?.access_token;
+    if (!token) throw new Error('No session to delete');
+    const res = await fetch(DELETE_ACCOUNT_URL, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string,
+      },
+    });
+    if (res.status === 409) return 'subscription_active';
+    if (!res.ok) {
+      const body = (await res.json().catch(() => ({}))) as { step?: string };
+      throw new Error(`delete-account returned ${res.status}${body.step ? ` at ${body.step}` : ''}`);
+    }
+    phCapture('account_deleted');
+    syncedSessionIds.clear();
+    // The account is gone on the server, so only this device's copy needs clearing.
+    await supabase.auth.signOut({ scope: 'local' }).catch(() => undefined);
+    currentUser = null;
+    billingAccountId = null;
+    setState('signed_out');
+    void stopBilling();
+    return 'deleted';
+  } catch (e) {
+    reportError('sync', e, { step: 'delete_account' });
+    return 'failed';
+  } finally {
+    deleting = false;
+  }
 }
 
 export async function signOut(): Promise<void> {

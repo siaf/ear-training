@@ -67,7 +67,7 @@ Run all three before deploying. Nothing runs them for you: there's no CI for tes
 | `lesson.spec.ts` | Onboarding, deep links, a full 12-question lesson with no samples available, Replay during a rhythm |
 | `screens.spec.ts` | Path, stats, settings, paywall, Pro lessons staying locked |
 | `billing.spec.ts` | RevenueCat hearing only about signed-in accounts that Supabase's server confirms (nothing for visitors, no anonymous IDs), and recovering after a failed load |
-| `accounts.spec.ts` | Sign-in prompts, on a third app server with a fake Supabase address; the sign-in wall after two lessons (`ANON_LESSON_LIMIT` in `App.tsx`), including mixed practice and shared links, and never for signed-in learners; a faked signed-in learner hitting closed checkout |
+| `accounts.spec.ts` | Sign-in prompts, on a third app server with a fake Supabase address; the sign-in wall after two lessons (`ANON_LESSON_LIMIT` in `App.tsx`), including mixed practice and shared links, and never for signed-in learners; a faked signed-in learner hitting closed checkout; deleting an account from settings, and its failure and live-subscription answers |
 | `tools.spec.ts` | Every free tool loads, and sample files arrive |
 | `pro.spec.ts` | Pro features as a signed-in subscriber (`asPro` in `fixtures.ts`, on the accounts server): saved drills, melodic dictation, all-time stats; and drills leading free learners to the plans |
 | `repeat.spec.ts` | "Repeat lesson" after a lesson, "drill what you missed" (free and Pro), and replaying a finished lesson from the path |
@@ -126,6 +126,12 @@ Learners can share a medal (the "mastered" screen), their week (the stats screen
 - Never reward sharing (Pro days, streak freezes): it breaks Reddit's spam rules and makes the posts look bought.
 - PostHog: `share_opened`, `share_clicked` and `share_completed` with `kind` (medal, week, streak) and `target`; `blog_quiz_shared` on the site.
 
+## Deleting accounts
+
+Signed-in learners delete their account from Settings (`DeleteAccount` in `src/routes/Settings.tsx`, `deleteAccount` in `src/lib/syncEngine.ts`). The app calls `functions/api/delete-account.js` on fifths.io, which removes the RevenueCat customer, the Loops contact, the D1 waitlist row, the `sessions` and `profiles` rows, and then the Supabase account, in that order, so a failed run can be retried. It refuses (409) while a subscription will still renew, because deleting the customer doesn't stop the store charging. The app then signs out locally and clears this device's progress. Apple requires this inside the iOS app.
+
+It needs `SUPABASE_SERVICE_ROLE_KEY` as a secret on `fifths-marketing` (the Supabase secret key), and `REVENUECAT_SECRET_KEY` (RevenueCat's v1 secret key) once checkout is open; without that one it skips RevenueCat. Add any new table holding a learner's data to the function, and say so in `site/privacy/index.html`.
+
 ## Deploy
 
 Both deploys go live immediately. Run them from the repo root, not from inside `site/`, because `functions/` and `wrangler.toml` are read from there.
@@ -181,7 +187,7 @@ Then watch Sentry for new issues. To roll back, promote an earlier deployment in
 |---|---|---|
 | Sentry | Errors | Org `ketabian-llc`, project `fifths-web`. Resolve fixed bugs so they reopen if they return. Archive only expected noise, like people refusing the mic. |
 | PostHog | Analytics | The same project covers the site and the app. |
-| Supabase | Accounts and sync | Project ref `azsedefwatnqjogotudi`. |
+| Supabase | Accounts and sync | Project ref `azsedefwatnqjogotudi`. The secret key is only on `fifths-marketing`, for deleting accounts. |
 | RevenueCat | Payments | The web SDK is a lazy import in `src/lib/billing.ts`. On the web and Android it starts only for a signed-in account that Supabase's server has confirmed (`syncEngine.ts`), configured with that account's id: visitors send RevenueCat nothing. The iOS app is the exception, because Apple doesn't allow requiring an account to buy: it bills an anonymous ID from launch, moves it to the account with `logIn` once confirmed, and its paywall has "restore purchases". |
 | Loops | Email | The key exists only as a Cloudflare secret, on `fifths-marketing`. So server code that writes to Loops lives in `functions/` and is served from fifths.io, like `functions/api/wants-pro.js`, which the app calls cross-origin. Tests for files in `functions/` go under `src/`, because Cloudflare turns every file in `functions/` into a route. |
 | Cloudflare D1 | Waitlist | Database `fifths`, used by `functions/waitlist.js`. |

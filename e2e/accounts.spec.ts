@@ -160,3 +160,57 @@ test('finishing the second lesson, "next lesson" opens the sign-in sheet on the 
   await page.getByRole('button', { name: /next lesson/ }).click();
   await expect(wall).toContainText('Save your progress to keep going.');
 });
+
+// "Delete account" in settings (functions/api/delete-account.js does the deleting).
+async function fakeDeleteAccount(page: import('@playwright/test').Page, answer: { status: number; json: unknown }) {
+  const calls: { auth?: string; apikey?: string }[] = [];
+  await page.route('https://fifths.io/api/delete-account', (route) => {
+    const h = route.request().headers();
+    if (route.request().method() === 'POST') calls.push({ auth: h.authorization, apikey: h.apikey });
+    return route.fulfill({ ...answer, headers: { 'access-control-allow-origin': '*', 'access-control-allow-headers': 'Authorization, apikey' } });
+  });
+  return calls;
+}
+
+test('a signed-in learner can delete their account, which signs them out and clears this device', async ({ page }) => {
+  await signedIn(page);
+  const calls = await fakeDeleteAccount(page, { status: 200, json: { ok: true } });
+  await openApp(page, `${ACCOUNTS_APP}/settings`, ['found_higher_lower']);
+
+  await page.getByRole('button', { name: 'delete account' }).click();
+  await expect(page.getByText(/this deletes the account for learner@example\.com/)).toBeVisible();
+  expect(calls).toEqual([]); // nothing happens before they confirm
+  await page.getByRole('button', { name: 'yes — delete my account' }).click();
+
+  await expect(page.getByRole('status')).toHaveText('Your account and everything saved to it are deleted.');
+  expect(calls).toEqual([{ auth: 'Bearer e2e-access-token', apikey: 'e2e' }]);
+  await expect(page.getByRole('button', { name: 'sign in' })).toBeVisible();
+  expect(await page.evaluate(() => localStorage.getItem('sb-localhost-auth-token'))).toBeNull();
+  await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('fifths.v1') ?? '{}').completedLevels)).toEqual([]);
+});
+
+test('deleting an account says so when it fails, and asks to cancel a live subscription first', async ({ page }) => {
+  await signedIn(page);
+  let answer = { status: 502, json: { error: 'Server error', step: 'loops' } };
+  await page.route('https://fifths.io/api/delete-account', (route) =>
+    route.fulfill({ ...answer, headers: { 'access-control-allow-origin': '*', 'access-control-allow-headers': 'Authorization, apikey' } }));
+  await openApp(page, `${ACCOUNTS_APP}/settings`);
+
+  await page.getByRole('button', { name: 'delete account' }).click();
+  await page.getByRole('button', { name: 'yes — delete my account' }).click();
+  await expect(page.getByRole('alert')).toContainText("Couldn't delete your account just now.");
+  await expect(page.getByRole('button', { name: 'sign out' })).toBeVisible(); // still signed in
+
+  answer = { status: 409, json: { error: 'Cancel your subscription first', code: 'subscription_active' } };
+  await page.getByRole('button', { name: 'delete account' }).click();
+  await page.getByRole('button', { name: 'yes — delete my account' }).click();
+  await expect(page.getByText(/your Pro subscription is still active/)).toBeVisible();
+  await expect(page.getByRole('button', { name: 'delete account' })).toBeHidden();
+  await expect(page.getByRole('button', { name: 'sign out' })).toBeVisible();
+});
+
+test('signed out, settings offers no account to delete', async ({ page }) => {
+  await openApp(page, `${ACCOUNTS_APP}/settings`);
+  await expect(page.getByRole('button', { name: 'reset progress' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'delete account' })).toHaveCount(0);
+});
