@@ -1,6 +1,7 @@
 import posthog from 'posthog-js'
 import { isNative, platform } from './native'
 import { redactAuthDeep } from './redactAuth'
+import { INTERNAL_HOSTS, isInternalDevice, markInternalDevice } from './internalDevice'
 
 const OPT_OUT_KEY = 'fifths.posthog.optOut'
 
@@ -32,6 +33,8 @@ export function initPostHog(): void {
     autocapture: {
       css_selector_allowlist: ['[data-ph-track]'],
     },
+    // Our own local and preview builds mark their visitors internal (see internalDevice.ts).
+    internal_or_test_user_hostname: INTERNAL_HOSTS,
     // Sign-in returns with tokens in the address. Runs on every event, recordings included.
     before_send: (event) => (event ? redactAuthDeep(event) : event),
     loaded: (ph) => {
@@ -42,6 +45,8 @@ export function initPostHog(): void {
         ...(release ? { release } : {}),
       })
       if (localStorage.getItem(OPT_OUT_KEY) === '1') ph.opt_out_capturing()
+      // The owner's devices, and any opened with ?internal=1, stay out of the numbers.
+      if (isInternalDevice()) ph.setInternalOrTestUser()
     },
   })
   initialised = true
@@ -85,3 +90,9 @@ export function phReset(): void {
 }
 
 export { posthog }
+
+/** The owner signed in here: keep this device's visits, on the app and fifths.io, out of analytics. */
+export function markThisDeviceInternal(): void {
+  markInternalDevice()
+  if (initialised) posthog.setInternalOrTestUser()
+}

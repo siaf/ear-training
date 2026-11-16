@@ -8,6 +8,12 @@
 
 !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}p=t.createElement("script"),p.type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init Ee Vs Ds Es Cs Os Ss Os qs hs us xs ws Is js gs Gs Js cs ps Hs Bs Ms Fs Ws Ys Ks zs Zs Qs Xs ea ta na ra ia oa sa aa ua la ca da fa pa ka ya".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
 
+// Our own devices stay out of the numbers (same rules as src/lib/internalDevice.ts): the app
+// sets this cookie on .fifths.io when the owner signs in on the device.
+var fifthsInternal = (function () {
+  try { return document.cookie.split(/;\s*/).indexOf('fifths_internal=1') !== -1; } catch (e) { return false; }
+})();
+
 posthog.init('phc_vy9ynWCmqQ27B9FRAvXN6SNay28XjaGHHo3NCvszDF3h', {
   api_host: 'https://us.i.posthog.com',
   defaults: '2026-01-30',
@@ -19,7 +25,10 @@ posthog.init('phc_vy9ynWCmqQ27B9FRAvXN6SNay28XjaGHHo3NCvszDF3h', {
   cross_subdomain_cookie: true,
   persistence: 'localStorage+cookie',
   autocapture: { css_selector_allowlist: ['[data-ph-track]'] },
+  // Local and preview copies of the site count as internal.
+  internal_or_test_user_hostname: /^(localhost|127\.0\.0\.1)$|\.pages\.dev$/,
   loaded: function (ph) {
+    if (fifthsInternal && typeof ph.setInternalOrTestUser === 'function') ph.setInternalOrTestUser();
     ph.register({
       $source: 'web',
       $is_native: false,

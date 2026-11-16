@@ -8,6 +8,7 @@ import { filterDiatonicItems } from './scaleContext';
 import { realizeDiatonicSequence, sequenceStartDegreeForQuestion } from './lib/diatonic';
 import { pickTapPattern, pickDictationPattern, gridToOnsets, encodeGrid, nudgeOneOnset } from './lib/rhythmPatterns';
 import { isOwnerEmail } from './lib/owner';
+import { markThisDeviceInternal } from './lib/posthog';
 import { DEV_COURSE_PREVIEW, isLevelOpen, isPathOpen } from './lib/courseAccess';
 import { degreeOf, encodeMelody, makeMelody } from './lib/melody';
 import {
@@ -362,7 +363,12 @@ export default function App() {
   const [isOwner, setIsOwner] = useState(false);
   useEffect(() => {
     let live = true;
-    void isOwnerEmail(userEmail).then((v) => { if (live) setIsOwner(v); });
+    void isOwnerEmail(userEmail).then((v) => {
+      if (!live) return;
+      setIsOwner(v);
+      // The owner's devices stay out of analytics, signed in or not, on the app and fifths.io.
+      if (v) markThisDeviceInternal();
+    });
     return () => { live = false; };
   }, [userEmail]);
   const devToolsAllowed = Boolean(import.meta.env.DEV) || isOwner;

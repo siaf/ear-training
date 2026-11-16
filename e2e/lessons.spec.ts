@@ -46,3 +46,4 @@ test('the sitemap lists the lesson pages, and llms.txt describes Fifths for AI a
   expect(llms).toMatch(/\d+ lessons, \d+ of them free/);
   expect(llms).toContain('$4.99');
 });
+
