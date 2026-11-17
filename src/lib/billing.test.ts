@@ -186,6 +186,21 @@ describe('purchaseProduct on the web', () => {
     expect(rc.state.purchase).toHaveBeenCalledWith(expect.objectContaining({ discountCode: 'LAUNCH' }));
   });
 
+  it('pre-fills the checkout with the signed-in email, and only while signed in', async () => {
+    const { startBilling, stopBilling, purchaseProduct } = await loadBilling('rcb_live_key');
+    await startBilling('user', 'learner@example.com');
+    rc.state.getOfferings.mockResolvedValue(offering('fifths_pro_monthly_999'));
+    rc.state.purchase.mockResolvedValue({ customerInfo: PRO });
+    expect(await purchaseProduct('fifths_pro_monthly_999')).toBe('purchased');
+    expect(rc.state.purchase).toHaveBeenCalledWith(expect.objectContaining({ customerEmail: 'learner@example.com' }));
+
+    await stopBilling();
+    await startBilling('other');
+    rc.state.purchase.mockClear();
+    await purchaseProduct('fifths_pro_monthly_999');
+    expect(rc.state.purchase.mock.calls[0][0]).not.toHaveProperty('customerEmail');
+  });
+
   it('reports a product missing from the offering', async () => {
     const { startBilling, purchaseProduct } = await loadBilling('rcb_sb_test');
     await startBilling('user');

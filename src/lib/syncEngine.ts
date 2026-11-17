@@ -170,7 +170,7 @@ async function startBillingForConfirmedAccount(user: User, attempt = 0): Promise
   if (currentUser?.id !== user.id || billingAccountId === user.id) return; // signed out or switched meanwhile
   if (confirmed && confirmed.id === user.id && isEstablishedAccount(confirmed)) {
     billingAccountId = user.id;
-    void startBilling(user.id);
+    void startBilling(user.id, confirmed.email);
     return;
   }
   if (networkFailure && attempt < BILLING_CONFIRM_RETRY_MS.length) {

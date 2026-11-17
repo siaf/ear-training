@@ -76,6 +76,8 @@ export function startBillingWithoutAccount(): Promise<void> {
 let provider: BillingProvider | null = null;
 /** The confirmed account billing should serve, or null when nobody is signed in. */
 let accountId: string | null = null;
+/** That account's email, pre-filled in the web checkout so buyers don't type it again. */
+let accountEmail: string | null = null;
 /** Customer info has loaded for accountId. */
 let loaded = false;
 let starting: Promise<void> | null = null;
@@ -114,9 +116,13 @@ const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
  * confirmed the account: its id is what RevenueCat stores, and purchases attach to it.
  * Tries a few times before reporting, since one failed request is usually the network.
  */
-export function startBilling(userId: string): Promise<void> {
-  if (accountId === userId && (loaded || starting)) return starting ?? Promise.resolve();
+export function startBilling(userId: string, email?: string | null): Promise<void> {
+  if (accountId === userId && (loaded || starting)) {
+    if (email) accountEmail = email;
+    return starting ?? Promise.resolve();
+  }
   accountId = userId;
+  accountEmail = email ?? null;
   loaded = false;
   // One start at a time, so the SDK is never configured twice (in the iOS app, launch
   // starts anonymous billing and a sign-in can follow straight away).
@@ -155,6 +161,7 @@ export async function stopBilling(): Promise<void> {
   setCustomerInfo(null);
   if (!purchasesNeedAccount()) { await startBilling(ANONYMOUS); return; }
   accountId = null;
+  accountEmail = null;
   loaded = false;
   if (!provider) return;
   try { await provider.stop(); } catch (err) { console.warn('[billing] stop failed', err); }
@@ -276,6 +283,8 @@ async function initWeb(userId: string): Promise<BillingProvider | null> {
       const result = await inst.purchase({
         rcPackage: pkg,
         ...(LAUNCH_DISCOUNT_CODE ? { discountCode: LAUNCH_DISCOUNT_CODE } : {}),
+        // Without it, the checkout asks for an email; the receipt and Stripe customer use it.
+        ...(accountEmail ? { customerEmail: accountEmail } : {}),
       });
       setCustomerInfo(result.customerInfo);
       const granted = Boolean(result.customerInfo.entitlements.active[PRO_ENTITLEMENT]);
