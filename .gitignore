@@ -43,6 +43,7 @@ android/app/src/main/assets/capacitor.config.json
 .env
 .env.local
 .env.*.local
+.env.*.local
 
 # Claude Code session lock
 .claude/scheduled_tasks.lock
