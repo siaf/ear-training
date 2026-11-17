@@ -1,4 +1,4 @@
-import { defineConfig, type PluginOption } from 'vite'
+import { defineConfig, loadEnv, type PluginOption } from 'vite'
 import react from '@vitejs/plugin-react'
 
 // Mobile (Capacitor) loads assets from the app bundle, so base must be `./`.
@@ -23,7 +23,30 @@ function staticDirIndex(): PluginOption {
   }
 }
 
+// A build for app.fifths.io without its service keys still loads and plays lessons, so
+// nothing looks wrong: but sign-in, sync, analytics, error reports and checkout are all
+// silently off. That shipped once (17 Nov 2026, from a checkout missing .env.local), so
+// `npm run build:web` refuses to build without them, or with the sandbox RevenueCat key.
+const RELEASE_KEYS = ['VITE_SUPABASE_URL', 'VITE_SUPABASE_PUBLISHABLE_KEY', 'VITE_POSTHOG_KEY', 'VITE_SENTRY_DSN', 'VITE_REVENUECAT_WEB_KEY']
+function requireReleaseKeys(): PluginOption {
+  return {
+    name: 'require-release-keys',
+    apply: 'build',
+    configResolved(config) {
+      if (!isWebAppBuild) return
+      const env = loadEnv(config.mode, process.cwd(), 'VITE_')
+      const missing = RELEASE_KEYS.filter((key) => !env[key])
+      if (missing.length) {
+        throw new Error(`build:web is missing ${missing.join(', ')}. Copy .env.local and .env.production.local into this checkout first.`)
+      }
+      if (env.VITE_REVENUECAT_WEB_KEY.startsWith('rcb_sb_')) {
+        throw new Error('build:web has the sandbox RevenueCat key (rcb_sb_…). The production key belongs in .env.production.local.')
+      }
+    },
+  }
+}
+
 export default defineConfig({
-  plugins: [react(), staticDirIndex()],
+  plugins: [react(), staticDirIndex(), requireReleaseKeys()],
   base: isMobileBuild ? './' : isWebAppBuild ? '/' : '/ear-training/',
 })
