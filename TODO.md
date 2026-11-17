@@ -87,7 +87,7 @@ Google and magic-link sign-in returned to the app with the session tokens in the
 Web (Stripe) is already shipped. To add native platforms once dev accounts are approved:
 - [ ] In RevenueCat: add iOS app, connect App Store Connect (API key).
 - [ ] In RevenueCat: add Android app, connect Play Console (service account JSON).
-- [ ] App Store Connect: create `fifths_pro_monthly` ($4.99/mo launch price). Pro is monthly only since 2026-11-10; `fifths_pro_annual` and `fifths_lifetime` aren't sold any more, so don't create them.
+- [ ] App Store Connect: create `fifths_pro_monthly_999` ($9.99/mo, with a $4.99 promotional offer to match the web's launch price). Pro is monthly only since 2026-11-10; `fifths_pro_annual` and `fifths_lifetime` aren't sold any more, so don't create them.
 - [ ] Play Console: same three products.
 - [ ] Map StoreKit/Play products to RevenueCat (RC dashboard).
 - [ ] Drop iOS + Android API keys into [`.env.local`](./.env.local) (`VITE_REVENUECAT_IOS_KEY`, `VITE_REVENUECAT_ANDROID_KEY`).
@@ -119,7 +119,7 @@ Web (Stripe) is already shipped. To add native platforms once dev accounts are a
   - Brand color: `#2a1d3a` (neutral dark) or whatever's already set if other Ketabian products are using it.
   - Accent color: leave default or pick a neutral.
 - [ ] **Per-product overrides** (Stripe → Products → each Fifths product → Statement descriptor field):
-  - Set statement descriptor to `FIFTHS` for `fifths_pro_monthly`. Max 22 chars, all caps. Appears on the cardholder's bank statement so they recognize the charge as Fifths and not just generic Ketabian.
+  - Set statement descriptor to `FIFTHS` for `fifths_pro_monthly_999`. Max 22 chars, all caps. Appears on the cardholder's bank statement so they recognize the charge as Fifths and not just generic Ketabian.
 - [ ] Confirm product display names in Stripe / RevCat include the Fifths prefix (e.g., `Fifths Pro Monthly`) so the line item on the receipt is unambiguous.
 
 ### RevCat sandbox cleanup (cosmetic, optional)

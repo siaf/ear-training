@@ -123,22 +123,38 @@ describe('sandbox checkout attempts', () => {
 
   it('alerts us when someone picks a plan on the sandbox key', async () => {
     const { reportSandboxCheckoutAttempt } = await loadBilling('rcb_sb_test');
-    reportSandboxCheckoutAttempt('fifths_pro_monthly', false);
+    reportSandboxCheckoutAttempt('fifths_pro_monthly_999', false);
     expect(sentry.captureMessage).toHaveBeenCalledTimes(1);
     const [, context] = sentry.captureMessage.mock.calls[0];
     expect(context.level).toBe('error');
     expect(context.fingerprint).toEqual(['sandbox-checkout-attempt']);
-    expect(context.tags).toMatchObject({ product: 'fifths_pro_monthly', signed_in: 'false' });
+    expect(context.tags).toMatchObject({ product: 'fifths_pro_monthly_999', signed_in: 'false' });
   });
 
   it('stays quiet and opens checkout once the live key is in', async () => {
     const { checkoutIsOpen, reportSandboxCheckoutAttempt } = await loadBilling('rcb_live_key');
-    reportSandboxCheckoutAttempt('fifths_pro_monthly', true);
+    reportSandboxCheckoutAttempt('fifths_pro_monthly_999', true);
     expect(sentry.captureMessage).not.toHaveBeenCalled();
     expect(checkoutIsOpen()).toBe(true);
   });
 
   it('keeps checkout closed on the sandbox key', async () => {
+    const { checkoutIsOpen } = await loadBilling('rcb_sb_test');
+    expect(checkoutIsOpen()).toBe(false);
+  });
+
+  it('opens sandbox checkout in local dev when asked, and stays quiet about it', async () => {
+    vi.stubEnv('DEV', true);
+    vi.stubEnv('VITE_SANDBOX_CHECKOUT', 'open');
+    const { checkoutIsOpen, reportSandboxCheckoutAttempt } = await loadBilling('rcb_sb_test');
+    expect(checkoutIsOpen()).toBe(true);
+    reportSandboxCheckoutAttempt('fifths_pro_monthly_999', true);
+    expect(sentry.captureMessage).not.toHaveBeenCalled();
+  });
+
+  it('ignores the sandbox switch outside local dev', async () => {
+    vi.stubEnv('DEV', false);
+    vi.stubEnv('VITE_SANDBOX_CHECKOUT', 'open');
     const { checkoutIsOpen } = await loadBilling('rcb_sb_test');
     expect(checkoutIsOpen()).toBe(false);
   });
@@ -151,12 +167,23 @@ describe('purchaseProduct on the web', () => {
   it('treats closing the checkout as a cancel, not a failure', async () => {
     const { startBilling, purchaseProduct } = await loadBilling('rcb_sb_test');
     await startBilling('user');
-    rc.state.getOfferings.mockResolvedValue(offering('fifths_pro_monthly'));
+    rc.state.getOfferings.mockResolvedValue(offering('fifths_pro_monthly_999'));
     rc.state.purchase.mockRejectedValue({ errorCode: 1 });
 
-    expect(await purchaseProduct('fifths_pro_monthly')).toBe('cancelled');
-    expect(phCapture).toHaveBeenCalledWith('purchase_cancelled', { product_id: 'fifths_pro_monthly' });
+    expect(await purchaseProduct('fifths_pro_monthly_999')).toBe('cancelled');
+    expect(phCapture).toHaveBeenCalledWith('purchase_cancelled', { product_id: 'fifths_pro_monthly_999' });
     expect(reportError).not.toHaveBeenCalled();
+  });
+
+  it('applies the launch discount code at checkout', async () => {
+    const { startBilling, purchaseProduct, LAUNCH_DISCOUNT_CODE } = await loadBilling('rcb_live_key');
+    await startBilling('user');
+    rc.state.getOfferings.mockResolvedValue(offering('fifths_pro_monthly_999'));
+    rc.state.purchase.mockResolvedValue({ customerInfo: PRO });
+
+    expect(await purchaseProduct('fifths_pro_monthly_999')).toBe('purchased');
+    expect(LAUNCH_DISCOUNT_CODE).toBe('LAUNCH');
+    expect(rc.state.purchase).toHaveBeenCalledWith(expect.objectContaining({ discountCode: 'LAUNCH' }));
   });
 
   it('reports a product missing from the offering', async () => {
@@ -164,7 +191,7 @@ describe('purchaseProduct on the web', () => {
     await startBilling('user');
     rc.state.getOfferings.mockResolvedValue(offering('something_else'));
 
-    expect(await purchaseProduct('fifths_pro_monthly')).toBe('failed');
+    expect(await purchaseProduct('fifths_pro_monthly_999')).toBe('failed');
     expect(reportError).toHaveBeenCalledTimes(1);
   });
 });
@@ -175,11 +202,11 @@ describe('billing only for signed-in accounts', () => {
 
   it('sends nothing to RevenueCat for someone who isn’t signed in, not even to buy', async () => {
     const { purchaseProduct, restorePurchases, isPro } = await loadBilling('rcb_live_key');
-    expect(await purchaseProduct('fifths_pro_monthly')).toBe('failed');
+    expect(await purchaseProduct('fifths_pro_monthly_999')).toBe('failed');
     expect(await restorePurchases()).toBe(false);
     expect(isPro()).toBe(false);
     expect(rc.state.imported).toBe(false);
-    expect(phCapture).toHaveBeenCalledWith('purchase_failed', { product_id: 'fifths_pro_monthly', reason: 'not_signed_in' });
+    expect(phCapture).toHaveBeenCalledWith('purchase_failed', { product_id: 'fifths_pro_monthly_999', reason: 'not_signed_in' });
   });
 
   it('starts with the account’s own id: no anonymous id, nothing to alias', async () => {
@@ -212,9 +239,9 @@ describe('billing only for signed-in accounts', () => {
     rc.state.getCustomerInfo.mockRejectedValue(new Error('offline'));
     await startBilling('account-1');
     rc.state.getCustomerInfo.mockResolvedValue(FREE);
-    rc.state.getOfferings.mockResolvedValue(offering('fifths_pro_monthly'));
+    rc.state.getOfferings.mockResolvedValue(offering('fifths_pro_monthly_999'));
     rc.state.purchase.mockResolvedValue({ customerInfo: PRO });
-    expect(await purchaseProduct('fifths_pro_monthly')).toBe('purchased');
+    expect(await purchaseProduct('fifths_pro_monthly_999')).toBe('purchased');
     expect(new Set(rc.state.customerInfoFor)).toEqual(new Set(['account-1']));
   });
 
@@ -304,7 +331,7 @@ describe('the Android app and the web keep the account rule', () => {
       expect(billing.purchasesNeedAccount()).toBe(true);
       await billing.startBillingWithoutAccount();
       expect(native.imported || rc.state.imported).toBe(false);
-      expect(await billing.purchaseProduct('fifths_pro_monthly')).toBe('failed');
+      expect(await billing.purchaseProduct('fifths_pro_monthly_999')).toBe('failed');
 
       await billing.startBilling('account-1');
       await billing.stopBilling();

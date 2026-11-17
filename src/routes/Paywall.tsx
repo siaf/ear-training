@@ -66,9 +66,9 @@ const PLANS: Plan[] = [
   },
   {
     // One plan: monthly, cancel any time. The list price is $9.99, shown crossed out
-    // beside the $4.99 launch discount (the user's call, 2026-11-10). For the crossed-out
-    // price to be a real one, Pro should be set up at $9.99 in RevenueCat with $4.99 as
-    // the discount. See "Free and Pro copy" in AGENTS.md.
+    // beside the $4.99 launch price (the user's call, 2026-11-10). It's real: the product
+    // is $9.99 in RevenueCat and checkout applies LAUNCH_DISCOUNT_CODE (billing.ts), $5.00
+    // off forever. Ending the launch price changes both. See "Free and Pro copy" in AGENTS.md.
     id: 'pro',
     name: 'Pro',
     price: '$4.99',

@@ -11,18 +11,29 @@ export const PRO_ENTITLEMENT = 'pro';
 // IAP product IDs — these must match exactly in App Store Connect, Play
 // Console, and RevenueCat Web Billing (Stripe). See [TODO.md](../../TODO.md).
 export const PRODUCT_IDS = {
-  proMonthly: 'fifths_pro_monthly',
+  // Pro at its $9.99 list price. RevenueCat can't change a Web Billing product's price
+  // once saved, so the original fifths_pro_monthly ($4.99, never sold) stays unused.
+  proMonthly: 'fifths_pro_monthly_999',
 } as const;
 // fifths_pro_annual and fifths_lifetime still exist in RevenueCat and the stores but are
 // no longer sold. Pro is monthly only.
+
+/**
+ * RevenueCat Web Billing discount code applied at checkout without the learner typing it:
+ * $5.00 off, forever, on the monthly product, so launch subscribers pay $4.99 for as long
+ * as they stay. It's what makes the crossed-out $9.99 on the paywall a real price. To end
+ * the launch price, set this to '' and drop the crossed-out price and "launch discount"
+ * badge from the Paywall and fifths.io in the same change. Earlier subscribers keep theirs.
+ */
+export const LAUNCH_DISCOUNT_CODE = 'LAUNCH';
 
 type CustomerInfoLike = {
   entitlements?: { active?: Record<string, unknown> };
 };
 
 const PRODUCT_VALUE_USD: Record<string, number> = {
-  // What a subscriber pays: the $4.99 launch discount on the $9.99 list price. Change it here,
-  // on the Paywall card and on fifths.io together.
+  // What a subscriber pays: the $9.99 list price less LAUNCH_DISCOUNT_CODE's $5.00. Change
+  // it here, on the Paywall card and on fifths.io together.
   [PRODUCT_IDS.proMonthly]: 4.99,
 };
 
@@ -159,10 +170,15 @@ async function readyProvider(): Promise<BillingProvider | null> {
 /**
  * False while the web key is RevenueCat's sandbox key: its checkout can't take real money,
  * so buyers get a message instead. Opens by itself once the live key is in.
+ *
+ * To test a purchase against the sandbox (Stripe test mode, card 4242 4242 4242 4242),
+ * run `VITE_SANDBOX_CHECKOUT=open npm run dev`. Local dev only: a build ignores it, and so
+ * does the browser tests' server, which checks the closed-checkout message.
  */
 export function checkoutIsOpen(): boolean {
   const key = import.meta.env.VITE_REVENUECAT_WEB_KEY as string | undefined;
-  return isNative() || !key?.startsWith('rcb_sb_');
+  if (isNative() || !key?.startsWith('rcb_sb_')) return true;
+  return Boolean(import.meta.env.DEV) && import.meta.env.VITE_SANDBOX_CHECKOUT === 'open';
 }
 
 /**
@@ -257,7 +273,10 @@ async function initWeb(userId: string): Promise<BillingProvider | null> {
         reportError('billing', new Error(`No web package for ${productId}`), { step: 'purchase', productId });
         return false;
       }
-      const result = await inst.purchase({ rcPackage: pkg });
+      const result = await inst.purchase({
+        rcPackage: pkg,
+        ...(LAUNCH_DISCOUNT_CODE ? { discountCode: LAUNCH_DISCOUNT_CODE } : {}),
+      });
       setCustomerInfo(result.customerInfo);
       const granted = Boolean(result.customerInfo.entitlements.active[PRO_ENTITLEMENT]);
       if (granted) {

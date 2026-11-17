@@ -33,12 +33,12 @@ const PRO_CUSTOMER = {
       pro: {
         expires_date: '2099-01-01T00:00:00Z',
         grace_period_expires_date: null,
-        product_identifier: 'fifths_pro_monthly',
+        product_identifier: 'fifths_pro_monthly_999',
         purchase_date: '2026-11-01T00:00:00Z',
       },
     },
     subscriptions: {
-      fifths_pro_monthly: {
+      fifths_pro_monthly_999: {
         auto_resume_date: null,
         billing_issues_detected_at: null,
         expires_date: '2099-01-01T00:00:00Z',

@@ -31,6 +31,8 @@ python3 -m http.server 5181 --directory site # marketing site and tools
 
 `npm run dev` uses the keys in `.env.local`, so it talks to the real Supabase, PostHog and Sentry.
 
+While the RevenueCat key in `.env.local` is the sandbox one (`rcb_sb_…`), the app keeps checkout closed and shows "Pro opens soon". To test a purchase against the sandbox, run `VITE_SANDBOX_CHECKOUT=open npm run dev` and pay with Stripe's test card 4242 4242 4242 4242. Only local dev honours the switch; a build never does.
+
 ## Build
 
 | Command | Builds |
@@ -115,7 +117,7 @@ Whenever something moves between free and Pro, or the price changes, check every
 - In `llms.txt`: the plans paragraph in `scripts/build-lessons.mjs`.
 - On fifths.io: the pricing blocks, FAQs and meta descriptions in `site/index.html`, `site/jazz/`, `site/classical/`, `site/transcribing/` and `site/returning/`, the pricing clause in `site/terms/index.html`, and the "Pricing:" lines and comparison tables in `content/blog/*.md`.
 
-`grep -rn '4.99' src site content` finds most of them. Pro is one monthly plan: list price $9.99, shown crossed out beside the $4.99 launch discount. Don't say the price will go up later: early subscribers keep $4.99. For the crossed-out price to be real, Pro should be set up at $9.99 in RevenueCat with $4.99 as the discount.
+`grep -rn '4.99' src site content` finds most of them. Pro is one monthly plan: list price $9.99, shown crossed out beside the $4.99 launch discount. Don't say the price will go up later: early subscribers keep $4.99. The crossed-out price is real: the product (`fifths_pro_monthly_999`) is $9.99 in RevenueCat, and checkout applies the `LAUNCH` discount code ($5.00 off, forever) from `LAUNCH_DISCOUNT_CODE` in `src/lib/billing.ts`. Ending the launch price means blanking that code and removing the crossed-out price and badge together. RevenueCat can't change a Web Billing product's price once saved, so a new price is a new product swapped into the offering; existing subscribers stay on theirs.
 
 ## Sharing
 
