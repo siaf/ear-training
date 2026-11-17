@@ -25,7 +25,7 @@ These are the known gaps before the app is ready for TestFlight / Play Store rev
 - [`syncEngine.ts`](src/lib/syncEngine.ts): pull-on-sign-in, debounced 2s push on any local mutation, last-write-wins on profile, append-only sessions deduped on `(user_id, id)`.
 - End-to-end smoketest passed: signup → profile row → session row landed correctly with RLS enforcement.
 
-### RevenueCat + Stripe Web Billing (LIVE in sandbox)
+### RevenueCat + Stripe Web Billing (LIVE, real charges since 2026-11-17)
 - Both SDKs installed: `@revenuecat/purchases-capacitor@^9.2.2` (native) + `@revenuecat/purchases-js` (web).
 - [`billing.ts`](src/lib/billing.ts) is platform-aware: same public API (`initBilling`, `isPro`, `purchaseProduct`, `restorePurchases`, `subscribeBilling`, `identifyUser`) routes to web SDK in browser and Capacitor SDK on iOS/Android. Both SDKs lazy-loaded via dynamic import.
 - `initBilling()` fires from [`main.tsx`](src/main.tsx) on every platform. No-op when API key is missing.
@@ -94,42 +94,16 @@ Web (Stripe) is already shipped. To add native platforms once dev accounts are a
 - [ ] Sandbox-test a full purchase on a TestFlight build with an Apple sandbox tester.
 - [ ] License-test on the Play internal track.
 
-### Stripe live mode — FINAL STEP before launch (do AFTER Phase 3 UX testing passes)
-**Stripe is already verified, in live mode, and bank-connected at the Ketabian LLC account level** (from prior apps). The orphan Stripe accounts that were created for Fifths have been deleted. No business-verification paperwork needed.
-
-**When checkout opens, email the people who were waiting.** While the web key is RevenueCat's sandbox key, a signed-in learner who taps subscribe is told "Pro opens soon. We'll email you at …" and `functions/api/wants-pro.js` sets `wantsPro = true` on their Loops contact. On launch day, send a Loops campaign to contacts where `wantsPro` is true. PostHog's `pro_interest_registered` event lists them too, in case a Loops call failed (those also show in Sentry as `step: wants_pro`).
-
-**Order matters:** all Phase 3 testing must happen in Stripe **sandbox** with `4242` test cards. If RC is flipped to live mode first, every test purchase costs real money.
-
-- [ ] **In RevCat:** Project settings → Apps → **Ketabian LLC (Web Billing)** → if Stripe connection currently points at a now-deleted orphan account, click **Disconnect**, then **Connect with Stripe** → Stripe OAuth → select the Ketabian LLC account → authorize. (If Stripe doesn't show an account picker, log out of Stripe in the browser first, then redo.)
-- [ ] Confirm RevCat's Stripe connection panel now shows the Ketabian LLC account name.
-- [ ] Copy the production `rcb_…` Web Billing API key (NOT the `rcb_sb_…` sandbox key) from RevCat → Project settings → API Keys → Web Billing.
-- [ ] Paste it; I swap `VITE_REVENUECAT_WEB_KEY` in `.env.local` and redeploy `app.fifths.io`.
-- [ ] One real-card smoketest: buy Pro Monthly ($4.99) with your own card, verify entitlement lands in RC + the charge appears in Stripe Live mode, refund yourself within 14 days (per [Terms](https://fifths.io/terms)). Stripe charges no refund fee — costs $0.
-
-**Stripe receipt branding (do in the same Stripe dashboard session, Option C — Ketabian LLC account-level + per-product differentiation):**
-- [ ] **Stripe → Settings → Public details:** confirm or set:
-  - Public business name: `Ketabian LLC`
-  - Legal business name: `Ketabian LLC`
-  - Support email: pick one — `hello@fifths.io` if Ketabian uses Fifths' inbox as primary support, or a Ketabian-generic address if one exists. (This is shared across products in the account.)
-  - Public address: required for activation; Ketabian LLC's registered address.
-  - Public phone: optional.
-- [ ] **Stripe → Settings → Branding:**
-  - Logo: a Ketabian wordmark if one exists; otherwise leave blank or use a neutral mark. Don't use Fifths-specific logo since the account hosts multiple products.
-  - Brand color: `#2a1d3a` (neutral dark) or whatever's already set if other Ketabian products are using it.
-  - Accent color: leave default or pick a neutral.
-- [ ] **Per-product overrides** (Stripe → Products → each Fifths product → Statement descriptor field):
-  - Set statement descriptor to `FIFTHS` for `fifths_pro_monthly_999`. Max 22 chars, all caps. Appears on the cardholder's bank statement so they recognize the charge as Fifths and not just generic Ketabian.
-- [ ] Confirm product display names in Stripe / RevCat include the Fifths prefix (e.g., `Fifths Pro Monthly`) so the line item on the receipt is unambiguous.
-
-### RevCat sandbox cleanup (cosmetic, optional)
-Earlier test purchases left orphaned anonymous RC users in the dashboard (one per page-load before the persistent anon ID landed).
-- [ ] RevenueCat dashboard → **Customers** → filter by `$RCAnonymousID:*` → bulk-delete the orphans (keep the most recent one tied to your live testing).
-- Skip if you don't care about a tidy customer list — sandbox data doesn't affect production.
-
-### Free trial (deferred indefinitely — revisit only if conversion data demands it)
-The free tier already gives users 22+ lessons + last-7-days analytics, which functions as a perpetual evaluation period. Adding a 7-day trial would add complexity (trial-end notifications, cancellation flow, abuse via repeat-trial emails) without solving a problem we currently have. Skipped intentionally for launch.
-- If revisiting later: add trial period to `fifths_pro_monthly` + `fifths_pro_annual` in RevenueCat, change Paywall CTA copy back to "start 7-day trial", regenerate the deleted `trial-ending` and `trial-converted` MJML templates from the brand pattern in `loops-templates/`.
+### Stripe live mode — DONE 2026-11-17
+Pro checkout on app.fifths.io takes real money since the `deploy/app/2026-11-17-183f8fa-live` deploy. What's live:
+- RevenueCat config "Ketabian LLC (RevenueCat Billing)" (the old "Ketabian LLC (Web Billing)" app couldn't change Stripe account once it had sandbox purchases, so it was replaced and deleted), connected to the Ketabian LLC Stripe account, app name "Fifths", support email hello@fifths.io, terms consent on.
+- Product `fifths_pro_monthly_999` at $9.99/month, with the `LAUNCH` discount ($5.00 off, forever, everyone) applied by the app, so buyers pay $4.99. Web Billing prices can't be edited once saved: a future price is a new product swapped into the `default` offering; existing subscribers keep theirs.
+- The production key lives in `.env.production.local` (git-ignored; Vite reads it only for builds). `.env.local` keeps the sandbox key, so `npm run dev` can't charge a card. `VITE_SANDBOX_CHECKOUT=open` opens the sandbox checkout locally.
+- `REVENUECAT_SECRET_KEY` (v1) is set on `fifths-marketing`, so deleting an account refuses while a subscription renews.
+- Verified with two real $4.99 purchases on the owner's card (both refunded from the RevenueCat customer page). A receipt said "[Sandbox]" only when the customer record still carried sandbox history; a fresh record got a clean subject.
+- The 1,374 anonymous customers from the old always-on SDK were deleted; customers are now signed-in accounts only.
+- No tax is collected: RevenueCat Billing adds tax only once tax collection is enabled in the config (Stripe Tax) and Stripe has a live registration for the buyer's location. Revisit with an accountant when EU sales appear (no VAT threshold there) or Stripe's threshold monitoring flags a US state.
+- Still to check in Stripe: the account-level statement descriptor (was `SENTIPUS.COM`, invalid; should be `KETABIAN LLC`) and the "action required" banner.
 
 ### RevenueCat → Loops webhook bridge (do AFTER Stripe live activation)
 The `payment-failed` and `cancelled` Loops transactional templates are uploaded with their `transactionalId`s, but **no trigger pipeline exists yet** — when a Stripe charge fails or a user cancels, nothing fires those emails today. To wire them up:
