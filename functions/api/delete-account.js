@@ -14,7 +14,7 @@
 //
 // Secrets on the fifths-marketing project:
 //   SUPABASE_SERVICE_ROLE_KEY  required (Supabase > Project settings > API keys, secret key)
-//   REVENUECAT_SECRET_KEY      optional until checkout opens (RevenueCat > API keys, v1 secret)
+//   REVENUECAT_SECRET_KEY      required since checkout opened 2026-11-17 (RevenueCat > API keys, v1 secret)
 //   LOOPS_API_KEY              already set, for wants-pro
 
 const SUPABASE_URL = "https://azsedefwatnqjogotudi.supabase.co";

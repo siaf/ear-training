@@ -132,7 +132,7 @@ Learners can share a medal (the "mastered" screen), their week (the stats screen
 
 Signed-in learners delete their account from Settings (`DeleteAccount` in `src/routes/Settings.tsx`, `deleteAccount` in `src/lib/syncEngine.ts`). The app calls `functions/api/delete-account.js` on fifths.io, which removes the RevenueCat customer, the Loops contact, the D1 waitlist row, the `sessions` and `profiles` rows, and then the Supabase account, in that order, so a failed run can be retried. It refuses (409) while a subscription will still renew, because deleting the customer doesn't stop the store charging. The app then signs out locally and clears this device's progress. Apple requires this inside the iOS app.
 
-It needs `SUPABASE_SERVICE_ROLE_KEY` as a secret on `fifths-marketing` (the Supabase secret key), and `REVENUECAT_SECRET_KEY` (RevenueCat's v1 secret key), both set since 17 Nov 2026. Without the RevenueCat key it would skip RevenueCat and couldn't refuse while a subscription renews, so keep it set while checkout is open. Add any new table holding a learner's data to the function, and say so in `site/privacy/index.html`.
+It needs `SUPABASE_SERVICE_ROLE_KEY` as a secret on `fifths-marketing` (the Supabase secret key), and `REVENUECAT_SECRET_KEY` (RevenueCat's v1 secret key, set 2026-11-17); without that one it would skip RevenueCat and let a renewing subscriber delete their account. Add any new table holding a learner's data to the function, and say so in `site/privacy/index.html`.
 
 ## Deploy
 

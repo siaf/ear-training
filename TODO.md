@@ -25,17 +25,11 @@ These are the known gaps before the app is ready for TestFlight / Play Store rev
 - [`syncEngine.ts`](src/lib/syncEngine.ts): pull-on-sign-in, debounced 2s push on any local mutation, last-write-wins on profile, append-only sessions deduped on `(user_id, id)`.
 - End-to-end smoketest passed: signup → profile row → session row landed correctly with RLS enforcement.
 
-### RevenueCat + Stripe Web Billing (LIVE in sandbox)
-- Both SDKs installed: `@revenuecat/purchases-capacitor@^9.2.2` (native) + `@revenuecat/purchases-js` (web).
-- [`billing.ts`](src/lib/billing.ts) is platform-aware: same public API (`initBilling`, `isPro`, `purchaseProduct`, `restorePurchases`, `subscribeBilling`, `identifyUser`) routes to web SDK in browser and Capacitor SDK on iOS/Android. Both SDKs lazy-loaded via dynamic import.
-- `initBilling()` fires from [`main.tsx`](src/main.tsx) on every platform. No-op when API key is missing.
-- Anonymous web user IDs persist in `localStorage` (`fifths.rc.anon_id`) so entitlements survive page reloads.
-- Sync engine's Supabase auth handler calls `identifyUser(supabase.user.id)` — anonymous purchases merge into the email-identified RC account on sign-in.
-- RevCat dashboard configured: Stripe (Web Billing) connected, 3 products (`fifths_pro_monthly` / `fifths_pro_annual` / `fifths_lifetime`), `pro` entitlement, `default` offering with 3 packages.
-- [`Paywall.tsx`](src/routes/Paywall.tsx) wired: Pro → `purchaseProduct(proMonthly)`, Pro Annual → `proAnnual`. Prices match RevCat ($4.99/mo, $39.99/yr).
-- [`Settings.tsx`](src/routes/Settings.tsx) + [`Path.tsx`](src/routes/Path.tsx) gate upsells on `isPro` — Pro users see "Fifths Pro · active" instead of upsell.
-- **Sandbox key in `.env.local`** (`rcb_sb_…`) → all purchases route through Stripe TEST mode. Verified end-to-end: `4242 4242 4242 4242` → entitlement granted → `isPro()` returns true → UI flips → survives reload.
-- **Going live:** Ketabian LLC's Stripe account is **already verified, in live mode, and bank-connected** (from prior apps). No business-verification paperwork needed for Fifths. Final step: reconnect RevCat's Stripe OAuth to the Ketabian account, swap `rcb_sb_…` → production `rcb_…` key, redeploy. See "Stripe live mode" section below.
+### RevenueCat + Stripe Web Billing (LIVE, real charges since 2026-11-17)
+- Both SDKs installed: `@revenuecat/purchases-capacitor` (native) + `@revenuecat/purchases-js` (web), lazy-loaded from [`billing.ts`](src/lib/billing.ts).
+- On the web, RevenueCat only hears about signed-in accounts that Supabase's server has confirmed, configured with the account id (no anonymous IDs since 2026-11-15). The iOS app will be the exception, billing anonymously until sign-in, because Apple doesn't allow requiring an account to buy.
+- [`Paywall.tsx`](src/routes/Paywall.tsx) sells one plan, Pro Monthly; [`Settings.tsx`](src/routes/Settings.tsx) and [`Path.tsx`](src/routes/Path.tsx) gate upsells on `isPro`.
+- Setup, keys, product, discount and what was verified: see "Stripe live mode — DONE" below.
 
 ### OAuth, error monitoring, and analytics (deployed 2026-04-26)
 - **Google OAuth** wired via Supabase Auth → `signInWithGoogle` button in [`AuthSheet.tsx`](src/components/AuthSheet.tsx). Google Cloud OAuth client + Supabase provider published; consent screen verified.
@@ -94,42 +88,16 @@ Web (Stripe) is already shipped. To add native platforms once dev accounts are a
 - [ ] Sandbox-test a full purchase on a TestFlight build with an Apple sandbox tester.
 - [ ] License-test on the Play internal track.
 
-### Stripe live mode — FINAL STEP before launch (do AFTER Phase 3 UX testing passes)
-**Stripe is already verified, in live mode, and bank-connected at the Ketabian LLC account level** (from prior apps). The orphan Stripe accounts that were created for Fifths have been deleted. No business-verification paperwork needed.
-
-**When checkout opens, email the people who were waiting.** While the web key is RevenueCat's sandbox key, a signed-in learner who taps subscribe is told "Pro opens soon. We'll email you at …" and `functions/api/wants-pro.js` sets `wantsPro = true` on their Loops contact. On launch day, send a Loops campaign to contacts where `wantsPro` is true. PostHog's `pro_interest_registered` event lists them too, in case a Loops call failed (those also show in Sentry as `step: wants_pro`).
-
-**Order matters:** all Phase 3 testing must happen in Stripe **sandbox** with `4242` test cards. If RC is flipped to live mode first, every test purchase costs real money.
-
-- [ ] **In RevCat:** Project settings → Apps → **Ketabian LLC (Web Billing)** → if Stripe connection currently points at a now-deleted orphan account, click **Disconnect**, then **Connect with Stripe** → Stripe OAuth → select the Ketabian LLC account → authorize. (If Stripe doesn't show an account picker, log out of Stripe in the browser first, then redo.)
-- [ ] Confirm RevCat's Stripe connection panel now shows the Ketabian LLC account name.
-- [ ] Copy the production `rcb_…` Web Billing API key (NOT the `rcb_sb_…` sandbox key) from RevCat → Project settings → API Keys → Web Billing.
-- [ ] Paste it; I swap `VITE_REVENUECAT_WEB_KEY` in `.env.local` and redeploy `app.fifths.io`.
-- [ ] One real-card smoketest: buy Pro Monthly ($4.99) with your own card, verify entitlement lands in RC + the charge appears in Stripe Live mode, refund yourself within 14 days (per [Terms](https://fifths.io/terms)). Stripe charges no refund fee — costs $0.
-
-**Stripe receipt branding (do in the same Stripe dashboard session, Option C — Ketabian LLC account-level + per-product differentiation):**
-- [ ] **Stripe → Settings → Public details:** confirm or set:
-  - Public business name: `Ketabian LLC`
-  - Legal business name: `Ketabian LLC`
-  - Support email: pick one — `hello@fifths.io` if Ketabian uses Fifths' inbox as primary support, or a Ketabian-generic address if one exists. (This is shared across products in the account.)
-  - Public address: required for activation; Ketabian LLC's registered address.
-  - Public phone: optional.
-- [ ] **Stripe → Settings → Branding:**
-  - Logo: a Ketabian wordmark if one exists; otherwise leave blank or use a neutral mark. Don't use Fifths-specific logo since the account hosts multiple products.
-  - Brand color: `#2a1d3a` (neutral dark) or whatever's already set if other Ketabian products are using it.
-  - Accent color: leave default or pick a neutral.
-- [ ] **Per-product overrides** (Stripe → Products → each Fifths product → Statement descriptor field):
-  - Set statement descriptor to `FIFTHS` for `fifths_pro_monthly_999`. Max 22 chars, all caps. Appears on the cardholder's bank statement so they recognize the charge as Fifths and not just generic Ketabian.
-- [ ] Confirm product display names in Stripe / RevCat include the Fifths prefix (e.g., `Fifths Pro Monthly`) so the line item on the receipt is unambiguous.
-
-### RevCat sandbox cleanup (cosmetic, optional)
-Earlier test purchases left orphaned anonymous RC users in the dashboard (one per page-load before the persistent anon ID landed).
-- [ ] RevenueCat dashboard → **Customers** → filter by `$RCAnonymousID:*` → bulk-delete the orphans (keep the most recent one tied to your live testing).
-- Skip if you don't care about a tidy customer list — sandbox data doesn't affect production.
-
-### Free trial (deferred indefinitely — revisit only if conversion data demands it)
-The free tier already gives users 22+ lessons + last-7-days analytics, which functions as a perpetual evaluation period. Adding a 7-day trial would add complexity (trial-end notifications, cancellation flow, abuse via repeat-trial emails) without solving a problem we currently have. Skipped intentionally for launch.
-- If revisiting later: add trial period to `fifths_pro_monthly` + `fifths_pro_annual` in RevenueCat, change Paywall CTA copy back to "start 7-day trial", regenerate the deleted `trial-ending` and `trial-converted` MJML templates from the brand pattern in `loops-templates/`.
+### Stripe live mode — DONE 2026-11-17
+Pro checkout on app.fifths.io takes real money since the `deploy/app/2026-11-17-183f8fa-live` deploy. What's live:
+- RevenueCat config "Ketabian LLC (RevenueCat Billing)" (the old "Ketabian LLC (Web Billing)" app couldn't change Stripe account once it had sandbox purchases, so it was replaced and deleted), connected to the Ketabian LLC Stripe account, app name "Fifths", support email hello@fifths.io, terms consent on.
+- Product `fifths_pro_monthly_999` at $9.99/month, with the `LAUNCH` discount ($5.00 off, forever, everyone) applied by the app, so buyers pay $4.99. Web Billing prices can't be edited once saved: a future price is a new product swapped into the `default` offering; existing subscribers keep theirs.
+- The production key lives in `.env.production.local` (git-ignored; Vite reads it only for builds). `.env.local` keeps the sandbox key, so `npm run dev` can't charge a card. `VITE_SANDBOX_CHECKOUT=open` opens the sandbox checkout locally.
+- `REVENUECAT_SECRET_KEY` (v1) is set on `fifths-marketing`, so deleting an account refuses while a subscription renews.
+- Verified with two real $4.99 purchases on the owner's card (both refunded from the RevenueCat customer page). A receipt said "[Sandbox]" only when the customer record still carried sandbox history; a fresh record got a clean subject.
+- The 1,374 anonymous customers from the old always-on SDK were deleted; customers are now signed-in accounts only.
+- No tax is collected: RevenueCat Billing adds tax only once tax collection is enabled in the config (Stripe Tax) and Stripe has a live registration for the buyer's location. Revisit with an accountant when EU sales appear (no VAT threshold there) or Stripe's threshold monitoring flags a US state.
+- Still to check in Stripe: the account-level statement descriptor (was `SENTIPUS.COM`, invalid; should be `KETABIAN LLC`) and the "action required" banner.
 
 ### RevenueCat → Loops webhook bridge (do AFTER Stripe live activation)
 The `payment-failed` and `cancelled` Loops transactional templates are uploaded with their `transactionalId`s, but **no trigger pipeline exists yet** — when a Stripe charge fails or a user cancels, nothing fires those emails today. To wire them up:
@@ -175,7 +143,7 @@ The `payment-failed` and `cancelled` Loops transactional templates are uploaded 
 **Outstanding (do before launching ads):**
 - [ ] **Toggle Enhanced Conversions ON in Google Ads UI.** Tools → Conversions → Settings → Enhanced conversions → ON, method **Google Tag**. Code is already passing hashed email; the toggle just tells Google to use it. (~30 sec.)
 - [ ] **Confirm goal hierarchy.** Tools → Goals → confirm `Purchase` is account default + Primary; `Sign-up` and `Page view` are Secondary.
-- [ ] **Verify `purchase` end-to-end** — gated on the RevCat Stripe reconnect documented at [TODO.md "Stripe live mode" section](#stripe-live-mode--final-step-before-launch-do-after-phase-3-ux-testing-passes). Once RC is reconnected, run a $4.99 sandbox purchase with `4242 4242 4242 4242` and confirm Tag Assistant logs the conversion.
+- [x] **Verify `purchase` end-to-end** — done 2026-11-17 with a real purchase on app.fifths.io (`fifths_purchase` fired; checkout is live). Once RC is reconnected, run a $4.99 sandbox purchase with `4242 4242 4242 4242` and confirm Tag Assistant logs the conversion.
 
 **Account housekeeping (do now, before any campaign):**
 - [ ] **Rename conversion actions** in Tools → Conversions: `purchase` → `fifths_purchase`, `Sign-up` → `fifths_signup`, `engaged_anon` → `fifths_engaged`. Pure UI rename — labels are immutable, no code change. Globally namespaced names keep reports clean once Speak Fluently campaigns ship.
@@ -185,7 +153,7 @@ The `payment-failed` and `cancelled` Loops transactional templates are uploaded 
 **Outstanding (campaign launch — see [docs/google-ads-strategy.md](docs/google-ads-strategy.md) for the full playbook):**
 - [ ] **Brand Defense skipped for Fifths.** At pre-launch awareness, no branded search volume exists worth defending. Revisit in month 4-6 if organic mentions create competitor squatting risk.
 - ~~**Keyword Planner pass** done 2026-04-27. 6 CSVs in [ads-research/](ads-research/) (fifths, seeds, earmaster, completeeartrainer, sonofield, tonegym). Curated launch list: 6 ad groups × 38 keywords (76 total in exact + phrase variants), full plan + bidding strategy + kill criteria in [docs/google-ads-keywords.md](docs/google-ads-keywords.md). Headline picks: `relative pitch` (5k vol, $0 floor, unclaimed), `ear training app` (5k, $0.50), `transcribe music` (5k, $0.50), `tonegym`/`musicca` for competitor-conquest.~~
-- [ ] **Campaign 1: High-intent ear training.** Launch after (a) keyword planner pass, (b) RC Stripe reconnect, (c) `fifths_purchase` end-to-end verified via sandbox buy. $10-15/day, phrase+exact match, conversion goal = Custom Goal: Fifths. Maximize Clicks with bid cap until ≥10 conversions, then Maximize Conversions, then tCPA at ≥30.
+- [ ] **Campaign 1: High-intent ear training.** Launch after the keyword planner pass (done); checkout is live and `fifths_purchase` was verified with a real purchase on 2026-11-17. $10-15/day, phrase+exact match, conversion goal = Custom Goal: Fifths. Maximize Clicks with bid cap until ≥10 conversions, then Maximize Conversions, then tCPA at ≥30.
 - [ ] **Negative keyword list** applied at account level before any campaign launches: `free, youtube, pdf, tutorial, how to, reddit, kids, children, beginner, course, lesson plan, sheet music, guitar tabs, piano tutorial, jobs, apk, crack, mod, download, torrent, review of, vs, cheat, hack, worksheet, exercise sheet, school, classroom`. Apply via Tools → Shared library → Negative keyword lists.
 - [ ] **Campaign 2: Competitor offensive** (week 4+, gated on Campaign 1 profitability). Two angles: (A) **Primary** — sign up for Semrush ($120 one-time, cancel after 1 month), pull PPC keyword reports for earmaster/sonofield/meludia/etc., add validated winners to Campaign 1's ad groups. (B) **Secondary** — separate "alternative" campaign at $5/day on `"earmaster alternative"`, `"sonofield alternative"`, etc. Never use competitor names in ad copy headlines (trademark risk).
 
@@ -417,12 +385,12 @@ These were originally inline product specs in the science-blog drafts; moved to 
 > **Gate:** revisit these once we have at least one paid sale. Until then they're polish; below that bar, they don't move the needle on revenue.
 
 ### RevenueCat checkout + success page branding (Phase 4 polish)
-RevCat's hosted checkout overlay ships in default styling. The "Branding" / "Terms URL" fields proved hard to find in the current dashboard UI (location varies by account). Not blocking — checkout works fine without it. Revisit when the dashboard surfaces a clearer config path or after first paid sale prompts a deeper polish pass.
-- [ ] Re-locate the Branding section (try Project settings → Customer Center, or click into the Web Billing app row directly, or contact RevCat support if still hidden).
+RevCat's checkout overlay ships in default styling. Done 2026-11-17 on the "Ketabian LLC (RevenueCat Billing)" config: app name `Fifths`, support email `hello@fifths.io`, terms consent with `https://fifths.io/terms/`. Still default: colours and logo (the config's Appearance tab). Not blocking.
+- [ ] Appearance: Web (project dashboard) → the RevenueCat Billing config → Appearance.
 - [ ] Page bg `#fff8ef` · form bg `#ffffff` · product info `#fef1dd` · primary button `#ff8a6b` · accent `#ff8a6b` · error `#c64632` · shapes `pill` · font `Outfit` if available else system sans.
 - [ ] Upload logo from [`public/brand/logos/logo-horizontal-light.png`](./public/brand/logos/logo-horizontal-light.png).
-- [ ] Display name `Fifths` (not `Ketabian LLC` — that's only the legal entity).
-- [ ] Support email `hello@fifths.io`.
+- [x] Display name `Fifths` (not `Ketabian LLC` — that's only the legal entity).
+- [x] Support email `hello@fifths.io`.
 - [ ] Privacy policy URL `https://fifths.io/privacy`.
 - [ ] Terms of Service URL `https://fifths.io/terms`.
 
