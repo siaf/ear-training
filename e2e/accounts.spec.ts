@@ -214,3 +214,28 @@ test('signed out, settings offers no account to delete', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'reset progress' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'delete account' })).toHaveCount(0);
 });
+
+// Loops learns who confirmed their email (functions/api/account-confirmed.js).
+test('a confirmed account tells Loops once; one the server rejects tells it nothing', async ({ page }) => {
+  await signedIn(page);
+  const calls: (string | undefined)[] = [];
+  await page.route('https://fifths.io/api/account-confirmed', (route) => {
+    if (route.request().method() === 'POST') calls.push(route.request().headers().authorization);
+    return route.fulfill({ json: { ok: true }, headers: { 'access-control-allow-origin': '*', 'access-control-allow-headers': 'Authorization, apikey' } });
+  });
+  await openApp(page, `${ACCOUNTS_APP}/path`);
+  await expect.poll(() => calls).toEqual(['Bearer e2e-access-token']);
+  await page.reload();
+  await page.waitForLoadState('networkidle');
+  expect(calls).toHaveLength(1); // remembered on this device
+});
+
+test('an account the server does not confirm never reaches Loops', async ({ page }) => {
+  await signedIn(page, { server: 'unconfirmed' });
+  let called = false;
+  await page.route('https://fifths.io/api/account-confirmed', (route) => { called = true; return route.abort(); });
+  await openApp(page, `${ACCOUNTS_APP}/path`);
+  await page.waitForLoadState('networkidle');
+  await page.waitForTimeout(500);
+  expect(called).toBe(false);
+});

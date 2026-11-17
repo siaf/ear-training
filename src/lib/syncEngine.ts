@@ -9,6 +9,7 @@ import {
 import { subscribeMastery } from './itemMastery';
 import { startBilling, stopBilling } from './billing';
 import { isEstablishedAccount } from './establishedAccount';
+import { tellLoopsConfirmed } from './loopsConfirm';
 import { trackAccountSignup } from './attribution';
 import { phCapture } from './posthog';
 import { reportError } from './reportError';
@@ -171,6 +172,8 @@ async function startBillingForConfirmedAccount(user: User, attempt = 0): Promise
   if (confirmed && confirmed.id === user.id && isEstablishedAccount(confirmed)) {
     billingAccountId = user.id;
     void startBilling(user.id, confirmed.email);
+    // The same server check says the email is confirmed, which Loops can't see on its own.
+    void tellLoopsConfirmed(user.id);
     return;
   }
   if (networkFailure && attempt < BILLING_CONFIRM_RETRY_MS.length) {
