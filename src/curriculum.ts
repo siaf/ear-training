@@ -1674,6 +1674,30 @@ export function getCurrentLevel(
   return lastAvailable ?? TAUGHT[TAUGHT.length - 1];
 }
 
+/**
+ * "Next lesson" after finishing `afterId`: the next lesson after it in its course's teaching
+ * order that the learner can start and hasn't passed. Only past the end of the course does
+ * it fall back to the earliest unfinished lesson. So a lesson someone skipped stays on the
+ * path, but doesn't hijack "next" after every lesson they finish.
+ */
+export function getNextLessonAfter(
+  afterId: string,
+  completedLevels: string[],
+  isPro: boolean = true,
+  opts: { skipSinging?: boolean; path?: PathId } = {},
+): CurriculumLevel {
+  const TAUGHT_HERE = TAUGHT_BY_PATH[opts.path ?? DEFAULT_PATH];
+  const done = new Set(completedLevels);
+  const from = TAUGHT_HERE.findIndex((level) => level.id === afterId);
+  const ahead = from < 0 ? [] : TAUGHT_HERE.slice(from + 1);
+  const next = ahead.find((level) =>
+    !done.has(level.id)
+    && !(opts.skipSinging && isSingOnlyLevel(level))
+    && (isPro || !isProLesson(level))
+    && isLevelUnlocked(level, completedLevels, { isPro }));
+  return next ?? getCurrentLevel(completedLevels, isPro, opts);
+}
+
 export function canUnlockNextLevel(currentLevelId: string, accuracy: number): boolean {
   const currentLevel = CURRICULUM.find(level => level.id === currentLevelId);
   if (!currentLevel) return false;

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { audioEngine, INTERVALS, TRIADS, SEVENTH_CHORDS, MODES, SynthType } from './audioEngine';
-import { CURRICULUM, DEFAULT_PATH, PATHS, getCurrentLevel, canUnlockNextLevel, getDisplayName, isPathId, isProLesson, isSingOnlyLevel, pathOfLevel } from './curriculum';
+import { CURRICULUM, DEFAULT_PATH, PATHS, getCurrentLevel, getNextLessonAfter, canUnlockNextLevel, getDisplayName, isPathId, isProLesson, isSingOnlyLevel, pathOfLevel } from './curriculum';
 import { buildVisualQuestion } from './notation/questions';
 import { AnalyticsEngine } from './analytics';
 import { Answer, Question } from './types';
@@ -1614,10 +1614,11 @@ export default function App() {
     signInFirst(() => { void startSession(id); }, 'repeat');
   };
 
-  // The learner's next lesson in teaching order (TEACHING_ORDER), skipping Pro lessons on
-  // the free plan. Null once there's nothing new left for them.
+  // The lesson after this one in teaching order (TEACHING_ORDER) that the learner hasn't
+  // passed, skipping Pro lessons on the free plan. Not the earliest unfinished lesson: one
+  // they skipped would otherwise come back after every lesson. Null once nothing new is left.
   const nextLessonForLearner = (() => {
-    const next = getCurrentLevel(completedLevels, proActive, { skipSinging: settings.skipSinging, path: pathOfLevel(currentLevel) });
+    const next = getNextLessonAfter(currentLevel.id, completedLevels, proActive, { skipSinging: settings.skipSinging, path: pathOfLevel(currentLevel) });
     if (completedLevels.includes(next.id) || (!proActive && isProLesson(next))) return null;
     return next;
   })();

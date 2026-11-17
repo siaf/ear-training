@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CURRICULUM, PATHS, PATH_TEACHING_ORDER, TEACHING_ORDER, getCurrentLevel, isLevelUnlocked, isSingOnlyLevel, lessonsInPath, pathOfLevel } from './curriculum';
+import { CURRICULUM, PATHS, PATH_TEACHING_ORDER, TEACHING_ORDER, getCurrentLevel, getNextLessonAfter, isLevelUnlocked, isSingOnlyLevel, lessonsInPath, pathOfLevel } from './curriculum';
 
 const EAR = lessonsInPath('ear');
 
@@ -161,5 +161,40 @@ describe('separate paths', () => {
     for (const path of ['read', 'guitar'] as const) {
       expect(getCurrentLevel([], false, { path }).prerequisites ?? []).toEqual([]);
     }
+  });
+});
+
+describe('"next lesson" after finishing one', () => {
+  const upTo = (id: string) => TEACHING_ORDER.slice(0, TEACHING_ORDER.indexOf(id) + 1);
+
+  it('moves on from the lesson just finished, not back to one skipped earlier', () => {
+    // Every lesson up to Harmonic 6ths except the rhythm ones, the way one learner skipped them.
+    const done = upTo('int_harmonic_6ths').filter((id) => !id.startsWith('rhy_'));
+    const next = getNextLessonAfter('int_harmonic_6ths', done, false);
+    expect(next.id).not.toBe('rhy_same_diff');
+    expect(TEACHING_ORDER.indexOf(next.id)).toBeGreaterThan(TEACHING_ORDER.indexOf('int_harmonic_6ths'));
+    // The skipped lesson is still where "continue" on the path starts.
+    expect(getCurrentLevel(done, false).id).toBe('rhy_same_diff');
+  });
+
+  it('keeps the teaching order for someone going lesson by lesson', () => {
+    expect(getNextLessonAfter('found_same_diff', upTo('found_same_diff'), false).id).toBe('rhy_same_diff');
+    expect(getNextLessonAfter('rhy_same_diff', upTo('rhy_same_diff'), false).id).toBe('found_beating');
+  });
+
+  it('skips lessons already passed, singing ones when singing is off, and Pro ones on the free plan', () => {
+    const done = [...upTo('found_consonance'), 'ton_stable_unstable'];
+    const next = getNextLessonAfter('found_consonance', done, false, { skipSinging: true });
+    expect(next.id).toBe('ton_is_tonic');
+    for (const id of TEACHING_ORDER) {
+      const n = getNextLessonAfter(id, upTo(id), false);
+      if (!upTo(id).includes(n.id)) expect(n.tier).not.toBe('pro');
+    }
+  });
+
+  it('falls back to the earliest unfinished lesson past the end of a course', () => {
+    const last = TEACHING_ORDER[TEACHING_ORDER.length - 1];
+    const done = TEACHING_ORDER.filter((id) => id !== 'found_beating');
+    expect(getNextLessonAfter(last, done, true).id).toBe('found_beating');
   });
 });
