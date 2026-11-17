@@ -26,16 +26,10 @@ These are the known gaps before the app is ready for TestFlight / Play Store rev
 - End-to-end smoketest passed: signup → profile row → session row landed correctly with RLS enforcement.
 
 ### RevenueCat + Stripe Web Billing (LIVE, real charges since 2026-11-17)
-- Both SDKs installed: `@revenuecat/purchases-capacitor@^9.2.2` (native) + `@revenuecat/purchases-js` (web).
-- [`billing.ts`](src/lib/billing.ts) is platform-aware: same public API (`initBilling`, `isPro`, `purchaseProduct`, `restorePurchases`, `subscribeBilling`, `identifyUser`) routes to web SDK in browser and Capacitor SDK on iOS/Android. Both SDKs lazy-loaded via dynamic import.
-- `initBilling()` fires from [`main.tsx`](src/main.tsx) on every platform. No-op when API key is missing.
-- Anonymous web user IDs persist in `localStorage` (`fifths.rc.anon_id`) so entitlements survive page reloads.
-- Sync engine's Supabase auth handler calls `identifyUser(supabase.user.id)` — anonymous purchases merge into the email-identified RC account on sign-in.
-- RevCat dashboard configured: Stripe (Web Billing) connected, 3 products (`fifths_pro_monthly` / `fifths_pro_annual` / `fifths_lifetime`), `pro` entitlement, `default` offering with 3 packages.
-- [`Paywall.tsx`](src/routes/Paywall.tsx) wired: Pro → `purchaseProduct(proMonthly)`, Pro Annual → `proAnnual`. Prices match RevCat ($4.99/mo, $39.99/yr).
-- [`Settings.tsx`](src/routes/Settings.tsx) + [`Path.tsx`](src/routes/Path.tsx) gate upsells on `isPro` — Pro users see "Fifths Pro · active" instead of upsell.
-- **Sandbox key in `.env.local`** (`rcb_sb_…`) → all purchases route through Stripe TEST mode. Verified end-to-end: `4242 4242 4242 4242` → entitlement granted → `isPro()` returns true → UI flips → survives reload.
-- **Going live:** Ketabian LLC's Stripe account is **already verified, in live mode, and bank-connected** (from prior apps). No business-verification paperwork needed for Fifths. Final step: reconnect RevCat's Stripe OAuth to the Ketabian account, swap `rcb_sb_…` → production `rcb_…` key, redeploy. See "Stripe live mode" section below.
+- Both SDKs installed: `@revenuecat/purchases-capacitor` (native) + `@revenuecat/purchases-js` (web), lazy-loaded from [`billing.ts`](src/lib/billing.ts).
+- On the web, RevenueCat only hears about signed-in accounts that Supabase's server has confirmed, configured with the account id (no anonymous IDs since 2026-11-15). The iOS app will be the exception, billing anonymously until sign-in, because Apple doesn't allow requiring an account to buy.
+- [`Paywall.tsx`](src/routes/Paywall.tsx) sells one plan, Pro Monthly; [`Settings.tsx`](src/routes/Settings.tsx) and [`Path.tsx`](src/routes/Path.tsx) gate upsells on `isPro`.
+- Setup, keys, product, discount and what was verified: see "Stripe live mode — DONE" below.
 
 ### OAuth, error monitoring, and analytics (deployed 2026-04-26)
 - **Google OAuth** wired via Supabase Auth → `signInWithGoogle` button in [`AuthSheet.tsx`](src/components/AuthSheet.tsx). Google Cloud OAuth client + Supabase provider published; consent screen verified.
@@ -149,7 +143,7 @@ The `payment-failed` and `cancelled` Loops transactional templates are uploaded 
 **Outstanding (do before launching ads):**
 - [ ] **Toggle Enhanced Conversions ON in Google Ads UI.** Tools → Conversions → Settings → Enhanced conversions → ON, method **Google Tag**. Code is already passing hashed email; the toggle just tells Google to use it. (~30 sec.)
 - [ ] **Confirm goal hierarchy.** Tools → Goals → confirm `Purchase` is account default + Primary; `Sign-up` and `Page view` are Secondary.
-- [ ] **Verify `purchase` end-to-end** — gated on the RevCat Stripe reconnect documented at [TODO.md "Stripe live mode" section](#stripe-live-mode--final-step-before-launch-do-after-phase-3-ux-testing-passes). Once RC is reconnected, run a $4.99 sandbox purchase with `4242 4242 4242 4242` and confirm Tag Assistant logs the conversion.
+- [x] **Verify `purchase` end-to-end** — done 2026-11-17 with a real purchase on app.fifths.io (`fifths_purchase` fired; checkout is live). Once RC is reconnected, run a $4.99 sandbox purchase with `4242 4242 4242 4242` and confirm Tag Assistant logs the conversion.
 
 **Account housekeeping (do now, before any campaign):**
 - [ ] **Rename conversion actions** in Tools → Conversions: `purchase` → `fifths_purchase`, `Sign-up` → `fifths_signup`, `engaged_anon` → `fifths_engaged`. Pure UI rename — labels are immutable, no code change. Globally namespaced names keep reports clean once Speak Fluently campaigns ship.
@@ -159,7 +153,7 @@ The `payment-failed` and `cancelled` Loops transactional templates are uploaded 
 **Outstanding (campaign launch — see [docs/google-ads-strategy.md](docs/google-ads-strategy.md) for the full playbook):**
 - [ ] **Brand Defense skipped for Fifths.** At pre-launch awareness, no branded search volume exists worth defending. Revisit in month 4-6 if organic mentions create competitor squatting risk.
 - ~~**Keyword Planner pass** done 2026-04-27. 6 CSVs in [ads-research/](ads-research/) (fifths, seeds, earmaster, completeeartrainer, sonofield, tonegym). Curated launch list: 6 ad groups × 38 keywords (76 total in exact + phrase variants), full plan + bidding strategy + kill criteria in [docs/google-ads-keywords.md](docs/google-ads-keywords.md). Headline picks: `relative pitch` (5k vol, $0 floor, unclaimed), `ear training app` (5k, $0.50), `transcribe music` (5k, $0.50), `tonegym`/`musicca` for competitor-conquest.~~
-- [ ] **Campaign 1: High-intent ear training.** Launch after (a) keyword planner pass, (b) RC Stripe reconnect, (c) `fifths_purchase` end-to-end verified via sandbox buy. $10-15/day, phrase+exact match, conversion goal = Custom Goal: Fifths. Maximize Clicks with bid cap until ≥10 conversions, then Maximize Conversions, then tCPA at ≥30.
+- [ ] **Campaign 1: High-intent ear training.** Launch after the keyword planner pass (done); checkout is live and `fifths_purchase` was verified with a real purchase on 2026-11-17. $10-15/day, phrase+exact match, conversion goal = Custom Goal: Fifths. Maximize Clicks with bid cap until ≥10 conversions, then Maximize Conversions, then tCPA at ≥30.
 - [ ] **Negative keyword list** applied at account level before any campaign launches: `free, youtube, pdf, tutorial, how to, reddit, kids, children, beginner, course, lesson plan, sheet music, guitar tabs, piano tutorial, jobs, apk, crack, mod, download, torrent, review of, vs, cheat, hack, worksheet, exercise sheet, school, classroom`. Apply via Tools → Shared library → Negative keyword lists.
 - [ ] **Campaign 2: Competitor offensive** (week 4+, gated on Campaign 1 profitability). Two angles: (A) **Primary** — sign up for Semrush ($120 one-time, cancel after 1 month), pull PPC keyword reports for earmaster/sonofield/meludia/etc., add validated winners to Campaign 1's ad groups. (B) **Secondary** — separate "alternative" campaign at $5/day on `"earmaster alternative"`, `"sonofield alternative"`, etc. Never use competitor names in ad copy headlines (trademark risk).
 
@@ -391,12 +385,12 @@ These were originally inline product specs in the science-blog drafts; moved to 
 > **Gate:** revisit these once we have at least one paid sale. Until then they're polish; below that bar, they don't move the needle on revenue.
 
 ### RevenueCat checkout + success page branding (Phase 4 polish)
-RevCat's hosted checkout overlay ships in default styling. The "Branding" / "Terms URL" fields proved hard to find in the current dashboard UI (location varies by account). Not blocking — checkout works fine without it. Revisit when the dashboard surfaces a clearer config path or after first paid sale prompts a deeper polish pass.
-- [ ] Re-locate the Branding section (try Project settings → Customer Center, or click into the Web Billing app row directly, or contact RevCat support if still hidden).
+RevCat's checkout overlay ships in default styling. Done 2026-11-17 on the "Ketabian LLC (RevenueCat Billing)" config: app name `Fifths`, support email `hello@fifths.io`, terms consent with `https://fifths.io/terms/`. Still default: colours and logo (the config's Appearance tab). Not blocking.
+- [ ] Appearance: Web (project dashboard) → the RevenueCat Billing config → Appearance.
 - [ ] Page bg `#fff8ef` · form bg `#ffffff` · product info `#fef1dd` · primary button `#ff8a6b` · accent `#ff8a6b` · error `#c64632` · shapes `pill` · font `Outfit` if available else system sans.
 - [ ] Upload logo from [`public/brand/logos/logo-horizontal-light.png`](./public/brand/logos/logo-horizontal-light.png).
-- [ ] Display name `Fifths` (not `Ketabian LLC` — that's only the legal entity).
-- [ ] Support email `hello@fifths.io`.
+- [x] Display name `Fifths` (not `Ketabian LLC` — that's only the legal entity).
+- [x] Support email `hello@fifths.io`.
 - [ ] Privacy policy URL `https://fifths.io/privacy`.
 - [ ] Terms of Service URL `https://fifths.io/terms`.
 
