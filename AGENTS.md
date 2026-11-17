@@ -145,7 +145,7 @@ VITE_RELEASE_SHA=$(git rev-parse --short HEAD) npm run build:web
 npx wrangler pages deploy dist --project-name=fifths-app --branch=main --commit-dirty=true
 ```
 
-Setting `VITE_RELEASE_SHA` tags Sentry errors with the release.
+Setting `VITE_RELEASE_SHA` tags Sentry errors with the release. `build:web` refuses to build without the Supabase, PostHog, Sentry and production RevenueCat keys (`requireReleaseKeys` in `vite.config.ts`): a build without them still plays lessons, so nothing looks broken, but sign-in, sync, analytics, error reports and checkout are silently off. Building from another checkout or worktree means copying `.env.local` and `.env.production.local` into it first.
 
 **Site:**
 
