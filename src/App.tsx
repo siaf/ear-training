@@ -86,6 +86,7 @@ function writeFlag(key: string): void {
 import { PRODUCT_IDS, checkoutIsOpen, isPro, purchaseProduct, purchasesNeedAccount, reportSandboxCheckoutAttempt, restorePurchases, subscribeBilling } from './lib/billing';
 import { trackEngagedAnon } from './lib/attribution';
 import { phCapture, phReset } from './lib/posthog';
+import { startFreshVersion } from './lib/freshVersion';
 import { sharedArrival } from './lib/share';
 import LessonIntro from './components/LessonIntro';
 import MasteryOverlay from './components/MasteryOverlay';
@@ -321,6 +322,18 @@ export default function App() {
   // app on fifths.io, and a second sales page lost most of them in seconds.
   const defaultRoute: Route = !initial.hasOnboarded && !deepLinkStart ? 'onboarding' : 'path';
   const [route, setRouteState] = useState<Route>(parseRouteFromUrl(defaultRoute));
+
+  // Long-lived copies of the app (home-screen web apps on iPhone) reload into the live
+  // build, but only on screens where a reload loses nothing. See freshVersion.ts.
+  const routeRef = useRef(route);
+  routeRef.current = route;
+  const freshVersionRef = useRef<ReturnType<typeof startFreshVersion> | null>(null);
+  useEffect(() => {
+    const f = startFreshVersion({ canReload: () => ['path', 'stats', 'settings'].includes(routeRef.current) });
+    freshVersionRef.current = f;
+    return () => f.stop();
+  }, []);
+  useEffect(() => { freshVersionRef.current?.tryReload(); }, [route]);
   const setRoute = (r: Route) => {
     setRouteState(r);
     syncUrl(r);
