@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Check } from 'lucide-react';
 import { audioEngine } from '../audioEngine';
-import { gradeTaps, type TapGradeResult } from '../lib/rhythmGrader';
+import { gradeTapsSteady, type TapGradeResult } from '../lib/rhythmGrader';
 
 /**
  * Tap-back rhythm input.
@@ -13,7 +13,9 @@ import { gradeTaps, type TapGradeResult } from '../lib/rhythmGrader';
  *                 Tap times are captured (performance.now()) and graded against the audio's onset times.
  *   4. done     — onComplete fires with the grade.
  *
- * The grader uses a ±toleranceMs window. Pass = score >= passScore (default 0.7).
+ * The grader uses a ±toleranceMs window after lining the taps up by the one steady delay
+ * that fits best (gradeTapsSteady): touch screens, Bluetooth and reaction time make every
+ * tap a little late, and that's still the rhythm. Pass = score >= passScore (default 0.7).
  */
 export interface RhythmTapPadProps {
   targetOnsetsBeats: number[]; // pattern onsets in fractional beats
@@ -47,6 +49,11 @@ export default function RhythmTapPad({
   const playStartRef = useRef<number>(0);
   const onsetTimesRef = useRef<number[]>([]);
   const reportedRef = useRef(false);
+  // The parent passes a new onComplete on every render. Kept in a ref so the timer below
+  // isn't torn down and restarted each time: the lesson screen redraws more often than the
+  // timer ticks, and the pad then never left "Listen".
+  const onCompleteRef = useRef(onComplete);
+  onCompleteRef.current = onComplete;
 
   // Listen phase: play once on mount.
   useEffect(() => {
@@ -76,15 +83,15 @@ export default function RhythmTapPad({
           setPhase('ready');
         } else if (phase === 'tap' && !reportedRef.current) {
           reportedRef.current = true;
-          const grade = gradeTaps(tapsRef.current, onsetTimesRef.current, toleranceMs);
+          const grade = gradeTapsSteady(tapsRef.current, onsetTimesRef.current, toleranceMs);
           const passed = grade.score >= passScore;
           setPhase('done');
-          onComplete({ ...grade, passed });
+          onCompleteRef.current({ ...grade, passed });
         }
       }
     }, 30);
     return () => window.clearInterval(id);
-  }, [phase, totalDurMs, toleranceMs, passScore, onComplete]);
+  }, [phase, totalDurMs, toleranceMs, passScore]);
 
   async function startTap() {
     tapsRef.current = [];

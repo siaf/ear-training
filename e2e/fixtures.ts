@@ -124,12 +124,17 @@ export const test = base.extend<Fixtures>({
         return route.abort();
       });
       await page.addInitScript(() => {
-        const w = window as unknown as { __sounds: { synth: number; sample: number } };
+        const w = window as unknown as { __sounds: { synth: number; sample: number }; __soundTimes: number[] };
         w.__sounds = { synth: 0, sample: 0 };
+        // When each sound actually starts, on the page's clock (performance.now()), so a test
+        // can play along with what a learner hears rather than with what the app scheduled.
+        w.__soundTimes = [];
         const count = (proto: { start: (...args: never[]) => void }, key: 'synth' | 'sample') => {
           const start = proto.start;
-          proto.start = function (...args: never[]) {
+          proto.start = function (this: AudioScheduledSourceNode, ...args: never[]) {
             w.__sounds[key]++;
+            const when = Number(args[0]) || 0;
+            w.__soundTimes.push(performance.now() + Math.max(0, when - this.context.currentTime) * 1000);
             return start.apply(this, args);
           };
         };

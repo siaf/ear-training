@@ -129,6 +129,30 @@ test('the moved-hits rhythm lesson opens after the first one and plays over the 
   await expect.poll(async () => (await sounds(page)).synth, { timeout: 10_000 }).toBeGreaterThanOrEqual(22);
 });
 
+// Tap Back the Rhythm: nobody had ever passed it, mostly on phones. A learner taps a little
+// after each sound they hear (touch screens, reaction, Bluetooth). Someone who is steadily
+// 80 ms behind every sound is still playing the rhythm, and must pass.
+for (const lateMs of [0, 80, 150]) {
+  test(`tapping along ${lateMs} ms after each sound passes Tap Back the Rhythm`, async ({ page }) => {
+    await openApp(page, '/?start=rhy_tap_back', ['found_higher_lower', 'rhy_same_diff']);
+    await pastIntro(page);
+    const start = page.getByRole('button', { name: 'Start tap-back' });
+    await expect(start).toBeEnabled({ timeout: 20_000 });
+    await page.evaluate(() => { (window as unknown as { __soundTimes: number[] }).__soundTimes = []; });
+    await start.click();
+    // The pattern is scheduled at once; tap with space a fixed time after each sound starts.
+    await expect.poll(() => page.evaluate(() => (window as unknown as { __soundTimes: number[] }).__soundTimes.length)).toBeGreaterThan(2);
+    await page.evaluate((late) => {
+      for (const t of (window as unknown as { __soundTimes: number[] }).__soundTimes) {
+        setTimeout(() => window.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', code: 'Space' })), t + late - performance.now());
+      }
+    }, lateMs);
+    // One question answered, and answered right.
+    await expect(page.getByText('1/8', { exact: true })).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText('100%', { exact: true })).toBeVisible();
+  });
+}
+
 const BASICS = ['found_higher_lower', 'found_same_diff', 'found_beating', 'found_consonance'];
 
 async function openSingingLesson(page: import('@playwright/test').Page) {
