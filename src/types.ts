@@ -95,6 +95,7 @@ export interface Question {
   rhythmBpm?: number; // BPM the pattern was played at (also used for tap-back grading).
   targetOnsets?: number[]; // For tap_back: expected beat-position onsets in fractional beats (0..N). User taps timed against these.
   targetGrid?: boolean[]; // For dictation: 16-cell on/off pattern (1 bar of 16th notes).
+  rhythmPair?: { a: number[]; b: number[] }; // For same_diff: both patterns, so Replay plays the same question.
   // --- Melodic dictation ---
   melodySteps?: number[]; // Scale steps from the tonic (see src/lib/melody.ts), kept so Replay plays the same melody.
   melodyScale?: DiatonicScale;

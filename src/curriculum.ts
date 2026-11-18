@@ -1318,15 +1318,15 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
         rhythmBpm: 100,
         items: ['same', 'different'],
         unlockRequirement: 80,
-        description: 'Two short patterns play in a row. Are they identical?',
+        description: 'Two short patterns, a bar apart, over a steady click. Are they identical?',
         segmentId: 'rhythm',
         prerequisites: ['found_higher_lower'],
         maxQuestions: 10,
         intro: [
           {
-            idea: 'Two short rhythmic patterns, one after the other.',
+            idea: 'Two short rhythmic patterns over a steady click: four clicks to count you in, the first pattern, a bar of just the click, then the second.',
             purpose: "Hearing whether two rhythms match is the rhythmic equivalent of same-or-different pitch matching — the ground floor of every rhythm skill that follows.",
-            expectation: "Listen to both patterns. Tap same or different.",
+            expectation: "Feel the click, then compare. If a hit is added, missing or in a different place, they're different. Replay as often as you like.",
           },
         ],
       },

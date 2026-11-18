@@ -1411,6 +1411,23 @@ class AudioEngine {
     return { startMs, onsetTimesMs: unique.map((o) => startMs + o * beatSec * 1000), duration };
   }
 
+  /**
+   * A same-or-different rhythm question: a bar of count-in clicks, pattern A, a bar of
+   * clicks alone, then pattern B, with a quiet click on every beat throughout. The steady
+   * beat gives each hit something to be early or late against, and the empty bar keeps
+   * the two patterns from running together.
+   */
+  async playSameDiffPair(a: number[], b: number[], bpm = 100, bOffset = 8) {
+    return this.playRhythmBar({
+      onsets: [...a, ...b.map((o) => o + bOffset)],
+      bpm,
+      countIn: 4,
+      bars: (bOffset + 4) / 4,
+      beatsPerBar: 4,
+      metronome: true,
+    });
+  }
+
   async playCorrectChime() {
     await this.initialize();
     const synth = this.getFeedbackSynth();

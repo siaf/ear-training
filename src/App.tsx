@@ -6,7 +6,7 @@ import { AnalyticsEngine } from './analytics';
 import { Answer, Question } from './types';
 import { filterDiatonicItems } from './scaleContext';
 import { realizeDiatonicSequence, sequenceStartDegreeForQuestion } from './lib/diatonic';
-import { pickTapPattern, pickDictationPattern, gridToOnsets, encodeGrid, nudgeOneOnset } from './lib/rhythmPatterns';
+import { pickTapPattern, pickDictationPattern, gridToOnsets, encodeGrid, sameDiffPair, SAME_DIFF_B_OFFSET } from './lib/rhythmPatterns';
 import { isOwnerEmail } from './lib/owner';
 import { markThisDeviceInternal } from './lib/posthog';
 import { DEV_COURSE_PREVIEW, isLevelOpen, isPathOpen } from './lib/courseAccess';
@@ -785,6 +785,7 @@ export default function App() {
     let acousticSemis: number | undefined;
     let pendingRhythmOnsets: number[] | undefined;
     let pendingRhythmGrid: boolean[] | undefined;
+    let pendingRhythmPair: { a: number[]; b: number[] } | undefined;
     let melodySteps: number[] | undefined;
 
     // Review / interleave mode override: when a queue-driven session is active, the queue
@@ -988,21 +989,14 @@ export default function App() {
       const kind = level.rhythmKind ?? 'same_diff';
       try {
         if (kind === 'same_diff') {
-          // Two patterns played in sequence — same or different. Use the same pattern bank.
-          const pattern = pickTapPattern();
-          const willDiffer = Math.random() < 0.5;
-          // For "different" mode, move one onset by a sixteenth.
-          const second = willDiffer ? nudgeOneOnset(pattern.onsets) : pattern.onsets.slice();
-          itemType = willDiffer ? 'different' : 'same';
+          // Pattern A, a bar of clicks, then pattern B: the same, or different in one way
+          // (another pattern, a hit added, dropped or moved an eighth). See sameDiffPair.
+          const { a, b } = sameDiffPair();
+          itemType = a.join() === b.join() ? 'same' : 'different';
           correctAnswer = itemType;
-          // Play first pattern, then second after a 1-bar gap.
-          const beatSec = 60 / bpm;
-          const offsetBeats = 4.5; // one bar of rest then next pattern
-          const allOnsets = [...pattern.onsets, ...second.map((o) => o + offsetBeats)];
-          const r = await audioEngine.playRhythmOnsets(allOnsets, bpm, [0, offsetBeats]);
+          pendingRhythmPair = { a, b };
+          await audioEngine.playSameDiffPair(a, b, bpm, SAME_DIFF_B_OFFSET);
           playedNotes = [];
-          void r;
-          void beatSec;
         } else if (kind === 'tap_back') {
           // No audio here — RhythmTapPad plays the pattern itself (listen → ready → replay+tap).
           // We just persist the pattern data on the Question so the pad can use it.
@@ -1101,13 +1095,14 @@ export default function App() {
         : undefined;
 
     // Rhythm-specific question fields.
-    type RhythmExtras = { rhythmKind?: typeof level.rhythmKind; rhythmBpm?: number; targetOnsets?: number[]; targetGrid?: boolean[] };
+    type RhythmExtras = { rhythmKind?: typeof level.rhythmKind; rhythmBpm?: number; targetOnsets?: number[]; targetGrid?: boolean[]; rhythmPair?: { a: number[]; b: number[] } };
     const rhythmExtras: RhythmExtras = level.type === 'rhythm'
       ? {
           rhythmKind: level.rhythmKind,
           rhythmBpm: level.rhythmBpm ?? 100,
           targetOnsets: typeof pendingRhythmOnsets !== 'undefined' ? pendingRhythmOnsets : undefined,
           targetGrid: typeof pendingRhythmGrid !== 'undefined' ? pendingRhythmGrid : undefined,
+          rhythmPair: typeof pendingRhythmPair !== 'undefined' ? pendingRhythmPair : undefined,
         }
       : {};
 
@@ -1464,8 +1459,8 @@ export default function App() {
             await audioEngine.playSubdivisionPattern(currentQuestion.itemType as 'eighths' | 'sixteenths' | 'triplets' | 'dotted', bpm);
           } else if (k === 'meter') {
             await audioEngine.playMeterPattern(currentQuestion.itemType as '2/4' | '3/4' | '4/4' | '6/8' | '5/4', bpm);
-          } else if (k === 'same_diff') {
-            // Replay full A vs B sequence — not stored on Question; skip for now (not user-critical).
+          } else if (k === 'same_diff' && currentQuestion.rhythmPair) {
+            await audioEngine.playSameDiffPair(currentQuestion.rhythmPair.a, currentQuestion.rhythmPair.b, bpm, SAME_DIFF_B_OFFSET);
           }
           break;
         }

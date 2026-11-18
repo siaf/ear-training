@@ -102,6 +102,25 @@ test('pressing Replay during a rhythm does not break it', async ({ page }) => {
   await replay.dispatchEvent('click');
 });
 
+// Same or Different Rhythm: count-in, pattern A, a bar of clicks alone, pattern B, all over
+// a steady click (sameDiffPair, playSameDiffPair). Replay plays the very same pair again.
+test('a same-or-different rhythm plays over a steady click, and Replay plays it again', async ({ page }) => {
+  await openApp(page, '/?start=rhy_same_diff');
+  await expect(page.getByText(/four clicks to count you in/)).toBeVisible();
+  await pastIntro(page);
+  await expect(page.getByRole('button', { name: /^same/i })).toBeVisible({ timeout: 20_000 });
+  // 16 clicks (4 count-in and 12 through the three bars) plus at least 3 hits per pattern.
+  await expect.poll(async () => (await sounds(page)).synth, { timeout: 10_000 }).toBeGreaterThanOrEqual(22);
+  const first = (await sounds(page)).synth;
+  // Not click(): the button pulses and briefly hides while audio plays. A replay in the
+  // middle of the pair must not break it either.
+  await page.getByLabel('Replay').dispatchEvent('click');
+  await page.waitForTimeout(300);
+  await page.getByLabel('Replay').dispatchEvent('click');
+  await expect.poll(async () => (await sounds(page)).synth - first, { timeout: 10_000 }).toBeGreaterThanOrEqual(44);
+  await page.getByRole('button', { name: /^same/i }).click();
+});
+
 const BASICS = ['found_higher_lower', 'found_same_diff', 'found_beating', 'found_consonance'];
 
 async function openSingingLesson(page: import('@playwright/test').Page) {

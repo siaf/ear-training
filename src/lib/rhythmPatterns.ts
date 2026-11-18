@@ -46,29 +46,6 @@ export function pickTapPattern(): RhythmPattern {
   return TAP_PATTERNS[Math.floor(Math.random() * TAP_PATTERNS.length)];
 }
 
-/**
- * The "different" pattern for same-or-different questions: one onset (never the downbeat)
- * moved a sixteenth earlier or later. It stays at least a sixteenth from its neighbours and
- * inside the 4-beat bar, so the result is still sorted with no two hits at once. (Tone's
- * drum synth throws on a hit at the same time as the one before.)
- */
-export function nudgeOneOnset(onsets: number[], rand: () => number = Math.random): number[] {
-  const STEP = 0.25;
-  const moves: { i: number; t: number }[] = [];
-  for (let i = 1; i < onsets.length; i++) {
-    const prev = onsets[i - 1];
-    const next = i + 1 < onsets.length ? onsets[i + 1] : 4;
-    for (const t of [onsets[i] - STEP, onsets[i] + STEP]) {
-      if (t - prev >= STEP && next - t >= STEP) moves.push({ i, t });
-    }
-  }
-  const out = onsets.slice();
-  if (moves.length === 0) return out;
-  const { i, t } = moves[Math.floor(rand() * moves.length)];
-  out[i] = t;
-  return out;
-}
-
 // Patterns the dictation level uses. 16 cells (4 beats × 4 sixteenths). Boolean per cell.
 export interface DictationPattern {
   id: string;
@@ -126,3 +103,78 @@ export function encodeGrid(cells: boolean[]): string {
 export function decodeGrid(s: string): boolean[] {
   return s.split('').map((c) => c === '1');
 }
+
+/** How the second pattern of a same-or-different question differs from the first. */
+export type SameDiffChange = 'other_pattern' | 'added' | 'dropped' | 'moved';
+
+/** Shares of each kind of "different" question. The first rhythm lesson is the third
+ *  lesson most learners meet, so most differences are plain to hear: a different
+ *  pattern, or a hit added or missing. A hit moved by an eighth is the hardest kind. */
+const CHANGE_WEIGHTS: [SameDiffChange, number][] = [
+  ['other_pattern', 0.35],
+  ['added', 0.25],
+  ['dropped', 0.25],
+  ['moved', 0.15],
+];
+
+const EIGHTH = 0.5;
+const sorted = (xs: number[]) => [...xs].sort((a, b) => a - b);
+const gapOk = (xs: number[], t: number, gap: number) => xs.every((x) => Math.abs(x - t) >= gap);
+
+/** The pattern with `change` applied, or null when this pattern can't take it. */
+function applyChange(onsets: number[], change: SameDiffChange, rand: () => number): number[] | null {
+  const pick = <T,>(xs: T[]) => (xs.length ? xs[Math.floor(rand() * xs.length)] : null);
+  switch (change) {
+    case 'other_pattern': {
+      const other = pick(TAP_PATTERNS.filter((p) => p.onsets.join() !== onsets.join()));
+      return other ? other.onsets.slice() : null;
+    }
+    case 'added': {
+      // A new hit on an eighth, at least an eighth from every other hit.
+      const spots = [1, 2, 3, 4, 5, 6, 7].map((k) => k * EIGHTH).filter((t) => gapOk(onsets, t, EIGHTH));
+      const t = pick(spots);
+      return t === null ? null : sorted([...onsets, t]);
+    }
+    case 'dropped': {
+      // Never the downbeat, and never down to a single hit.
+      if (onsets.length < 3) return null;
+      const i = pick(onsets.map((_, k) => k).slice(1));
+      return i === null ? null : onsets.filter((_, k) => k !== i);
+    }
+    case 'moved': {
+      // One hit (never the downbeat) an eighth earlier or later, still inside the bar
+      // and at least a sixteenth from its neighbours.
+      const moves: { i: number; t: number }[] = [];
+      for (let i = 1; i < onsets.length; i++) {
+        const others = onsets.filter((_, k) => k !== i);
+        for (const t of [onsets[i] - EIGHTH, onsets[i] + EIGHTH]) {
+          if (t > 0 && t < 4 && gapOk(others, t, 0.25)) moves.push({ i, t });
+        }
+      }
+      const m = pick(moves);
+      return m === null ? null : sorted(onsets.map((x, k) => (k === m.i ? m.t : x)));
+    }
+  }
+}
+
+/**
+ * One same-or-different rhythm question: pattern A, and pattern B that is either the same
+ * or differs in one way listeners can name (another pattern, a hit added, dropped or moved).
+ */
+export function sameDiffPair(rand: () => number = Math.random): { a: number[]; b: number[]; change: SameDiffChange | null } {
+  const a = TAP_PATTERNS[Math.floor(rand() * TAP_PATTERNS.length)].onsets.slice();
+  if (rand() < 0.5) return { a, b: a.slice(), change: null };
+  let r = rand();
+  let change: SameDiffChange = 'other_pattern';
+  for (const [kind, weight] of CHANGE_WEIGHTS) {
+    if (r < weight) { change = kind; break; }
+    r -= weight;
+  }
+  const b = applyChange(a, change, rand);
+  if (b) return { a, b, change };
+  return { a, b: applyChange(a, 'other_pattern', rand)!, change: 'other_pattern' };
+}
+
+/** Where pattern B starts, in beats after pattern A's downbeat: A's bar, then a bar of
+ *  clicks on their own, so the two are never heard as one run. */
+export const SAME_DIFF_B_OFFSET = 8;
