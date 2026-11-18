@@ -121,6 +121,14 @@ test('a same-or-different rhythm plays over a steady click, and Replay plays it 
   await page.getByRole('button', { name: /^same/i }).click();
 });
 
+test('the moved-hits rhythm lesson opens after the first one and plays over the click', async ({ page }) => {
+  await openApp(page, '/?start=rhy_same_diff_moved', ['found_higher_lower', 'rhy_same_diff']);
+  await expect(page.getByText(/an eighth or a sixteenth early or late/)).toBeVisible();
+  await pastIntro(page);
+  await expect(page.getByRole('button', { name: /^different/i })).toBeVisible({ timeout: 20_000 });
+  await expect.poll(async () => (await sounds(page)).synth, { timeout: 10_000 }).toBeGreaterThanOrEqual(22);
+});
+
 const BASICS = ['found_higher_lower', 'found_same_diff', 'found_beating', 'found_consonance'];
 
 async function openSingingLesson(page: import('@playwright/test').Page) {

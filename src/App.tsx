@@ -991,7 +991,7 @@ export default function App() {
         if (kind === 'same_diff') {
           // Pattern A, a bar of clicks, then pattern B: the same, or different in one way
           // (another pattern, a hit added, dropped or moved an eighth). See sameDiffPair.
-          const { a, b } = sameDiffPair();
+          const { a, b } = sameDiffPair(level.rhythmChanges);
           itemType = a.join() === b.join() ? 'same' : 'different';
           correctAnswer = itemType;
           pendingRhythmPair = { a, b };

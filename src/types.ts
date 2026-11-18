@@ -2,6 +2,7 @@
 
 import type { VisualKind, VisualPrompt } from './notation/prompt';
 import type { ClefId } from './notation/theory';
+import type { SameDiffChange } from './lib/rhythmPatterns';
 
 
 export type IntervalType = 
@@ -224,6 +225,7 @@ export interface CurriculumLevel {
   };
   melodyScale?: DiatonicScale;
   rhythmBpm?: number; // Default BPM. Defaults to 100.
+  rhythmChanges?: SameDiffChange[]; // For same_diff: the kinds of difference it asks (see sameDiffPair). Defaults to the easy ones.
   rhythmTapToleranceMs?: number; // ± ms a tap can fall around a target onset. Defaults to 130 ms (forgiving for first lessons).
   rhythmPassScore?: number; // 0..1 grader threshold to count as correct. Defaults to 0.7 (tap), 1.0 (grid).
   // --- Visual lessons (type 'reading' | 'fretboard'). Items name what is shown; see src/notation/questions.ts. ---

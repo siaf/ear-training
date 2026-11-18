@@ -178,8 +178,8 @@ describe('"next lesson" after finishing one', () => {
   });
 
   it('keeps the teaching order for someone going lesson by lesson', () => {
-    expect(getNextLessonAfter('found_same_diff', upTo('found_same_diff'), false).id).toBe('rhy_same_diff');
-    expect(getNextLessonAfter('rhy_same_diff', upTo('rhy_same_diff'), false).id).toBe('found_beating');
+    expect(getNextLessonAfter('found_same_diff', upTo('found_same_diff'), false).id).toBe('found_beating');
+    expect(getNextLessonAfter('rhy_same_diff', upTo('rhy_same_diff'), false).id).toBe('rhy_tap_back');
   });
 
   it('skips lessons already passed, singing ones when singing is off, and Pro ones on the free plan', () => {
@@ -196,5 +196,19 @@ describe('"next lesson" after finishing one', () => {
     const last = TEACHING_ORDER[TEACHING_ORDER.length - 1];
     const done = TEACHING_ORDER.filter((id) => id !== 'found_beating');
     expect(getNextLessonAfter(last, done, true).id).toBe('found_beating');
+  });
+});
+
+describe('rhythm in the teaching order', () => {
+  it('comes after the pitch basics, tonality and the first intervals, with moved hits after tap-back', () => {
+    const at = (id: string) => TEACHING_ORDER.indexOf(id);
+    // New learners start with pitch: the first rhythm lesson is no longer third.
+    for (const id of ['found_beating', 'found_consonance', 'int_harmonic_4ths_5ths', 'ton_cadence_basic']) {
+      expect(at('rhy_same_diff')).toBeGreaterThan(at(id));
+    }
+    expect(at('rhy_tap_back')).toBeGreaterThan(at('rhy_same_diff'));
+    expect(at('rhy_same_diff_moved')).toBeGreaterThan(at('rhy_tap_back'));
+    expect(level('rhy_same_diff').rhythmChanges).toEqual(['other_pattern', 'added', 'dropped']);
+    expect(level('rhy_same_diff_moved').rhythmChanges).toEqual(['moved', 'nudged']);
   });
 });

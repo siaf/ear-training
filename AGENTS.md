@@ -66,7 +66,7 @@ Run all three before deploying. Nothing runs them for you: there's no CI for tes
 | File | Covers |
 |---|---|
 | `audio.spec.ts` | The real audio engine: sound while samples download, failed downloads, samples taking over, replaying rhythms |
-| `lesson.spec.ts` | Onboarding, deep links, a full 12-question lesson with no samples available, Replay during a rhythm, and the same-or-different rhythm lesson's steady click and Replay |
+| `lesson.spec.ts` | Onboarding, deep links, a full 12-question lesson with no samples available, Replay during a rhythm, and the same-or-different rhythm lessons (easy differences, then moved hits) with their steady click and Replay |
 | `screens.spec.ts` | Path, stats, settings, paywall, Pro lessons staying locked |
 | `billing.spec.ts` | RevenueCat hearing only about signed-in accounts that Supabase's server confirms (nothing for visitors, no anonymous IDs), and recovering after a failed load |
 | `accounts.spec.ts` | Sign-in prompts, on a third app server with a fake Supabase address; the sign-in wall after two lessons (`ANON_LESSON_LIMIT` in `App.tsx`), including mixed practice and shared links, and never for signed-in learners; a faked signed-in learner hitting closed checkout; deleting an account from settings, and its failure and live-subscription answers; telling Loops once that an account is confirmed |

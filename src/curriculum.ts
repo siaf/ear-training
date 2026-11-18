@@ -1319,6 +1319,8 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
         items: ['same', 'different'],
         unlockRequirement: 80,
         description: 'Two short patterns, a bar apart, over a steady click. Are they identical?',
+        // Only differences that are easy to hear; moved hits are the next lesson's job.
+        rhythmChanges: ['other_pattern', 'added', 'dropped'],
         segmentId: 'rhythm',
         prerequisites: ['found_higher_lower'],
         maxQuestions: 10,
@@ -1326,7 +1328,7 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
           {
             idea: 'Two short rhythmic patterns over a steady click: four clicks to count you in, the first pattern, a bar of just the click, then the second.',
             purpose: "Hearing whether two rhythms match is the rhythmic equivalent of same-or-different pitch matching — the ground floor of every rhythm skill that follows.",
-            expectation: "Feel the click, then compare. If a hit is added, missing or in a different place, they're different. Replay as often as you like.",
+            expectation: "Feel the click, then compare. If the pattern changes, or a hit is added or missing, they're different. Replay as often as you like.",
           },
         ],
       },
@@ -1350,6 +1352,29 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
             idea: 'Hear a short rhythm, then tap along with it.',
             purpose: "Producing rhythm with your body — even just a finger tap — wires it in differently than passive listening. This is the move that makes rhythmic patterns muscle memory, not abstractions.",
             expectation: "The pattern plays once. When you click start, it plays again — tap the pad once for each onset.",
+          },
+        ],
+      },
+      {
+        id: 'rhy_same_diff_moved',
+        name: 'Same or Different Rhythm: Moved Hits',
+        type: 'rhythm',
+        rhythmKind: 'same_diff',
+        rhythmBpm: 100,
+        // One hit moved by an eighth, or (harder) a sixteenth: the differences that need a
+        // steady sense of the beat, kept out of the first rhythm lesson.
+        rhythmChanges: ['moved', 'nudged'],
+        items: ['same', 'different'],
+        unlockRequirement: 80,
+        description: 'Two patterns over a steady click, where one hit may land a little early or late.',
+        segmentId: 'rhythm',
+        prerequisites: ['rhy_same_diff'],
+        maxQuestions: 10,
+        intro: [
+          {
+            idea: 'The same two-pattern question, with a harder difference: nothing added or missing, but one hit may land an eighth or a sixteenth early or late.',
+            purpose: "Hearing a hit that's slightly off the beat is what makes swing, syncopation and tight playing in a band possible. It needs the beat inside you, not just the pattern.",
+            expectation: "Keep the click in your head and listen for one hit that lands somewhere else. Replay as often as you like.",
           },
         ],
       },
@@ -1580,7 +1605,7 @@ export const lessonsInPath = (path: PathId) => CURRICULUM.filter((l) => pathOfLe
  * reviews are stored by id, so never rename or reuse one.
  */
 export const TEACHING_ORDER: string[] = [
-  'found_higher_lower', 'found_same_diff', 'rhy_same_diff', 'found_beating', 'found_consonance',
+  'found_higher_lower', 'found_same_diff', 'found_beating', 'found_consonance',
   'voice_match_pitch', 'voice_resting_tone',
   'ton_stable_unstable', 'ton_is_tonic', 'ton_major_minor_key',
   'scale_degree_major_1', 'voice_step_up', 'voice_step_down',
@@ -1588,7 +1613,7 @@ export const TEACHING_ORDER: string[] = [
   'int_harmonic_3rds', 'int_melodic_3rds_asc', 'int_melodic_3rds_desc',
   'voice_skip_third', 'voice_skip_fifth',
   'level_1', 'level_4',
-  'ton_cadence_basic', 'rhy_tap_back',
+  'ton_cadence_basic', 'rhy_same_diff', 'rhy_tap_back', 'rhy_same_diff_moved',
   'voice_pivot_tonic', 'voice_pivot_inverted', 'voice_arpeggio_triad',
   'scale_degree_major_2', 'md_steps_3', 'scale_degree_major_full',
   'int_harmonic_6ths', 'int_melodic_6ths_asc', 'int_melodic_6ths_desc',
