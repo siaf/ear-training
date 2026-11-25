@@ -15,7 +15,9 @@ var fifthsInternal = (function () {
 })();
 
 posthog.init('phc_vy9ynWCmqQ27B9FRAvXN6SNay28XjaGHHo3NCvszDF3h', {
-  api_host: 'https://us.i.posthog.com',
+  // Through our own domain (functions/ingest), so tracker blockers don't drop visitors.
+  api_host: '/ingest',
+  ui_host: 'https://us.posthog.com',
   defaults: '2026-01-30',
   person_profiles: 'always',
   property_blacklist: ['$ip'],
@@ -36,3 +38,21 @@ posthog.init('phc_vy9ynWCmqQ27B9FRAvXN6SNay28XjaGHHo3NCvszDF3h', {
     });
   }
 });
+
+// Links off the site, like the other apps in the comparison posts and app store pages:
+// which ones people leave by. Links into the app are counted by data-ph-track already.
+document.addEventListener('click', function (e) {
+  var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+  if (!a) return;
+  var url;
+  try { url = new URL(a.href, location.href); } catch (err) { return; }
+  if (!/^https?:$/.test(url.protocol) || url.hostname === location.hostname || /(^|\.)fifths\.io$/.test(url.hostname)) return;
+  // Until (or unless) PostHog has loaded there's no capture to call.
+  if (!window.posthog || typeof window.posthog.capture !== 'function') return;
+  window.posthog.capture('outbound_link_clicked', {
+    link_host: url.hostname,
+    link_url: url.origin + url.pathname,
+    link_text: (a.textContent || '').trim().slice(0, 80)
+  }, { transport: 'sendBeacon' });
+}, true);
+

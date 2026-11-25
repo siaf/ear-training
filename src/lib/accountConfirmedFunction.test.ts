@@ -36,9 +36,38 @@ describe('POST /api/account-confirmed', () => {
       'GET https://azsedefwatnqjogotudi.supabase.co/auth/v1/user',
       'GET https://app.loops.so/api/v1/contacts/find?email=learner%40example.com',
       'POST https://app.loops.so/api/v1/events/send',
+      'POST https://us.i.posthog.com/i/v0/e/',
     ]);
     expect(JSON.parse(calls[2].body!)).toEqual({ email: 'learner@example.com', userId: 'u-1', eventName: 'account_confirmed', emailConfirmed: true });
     expect(calls[2].headers['idempotency-key']).toBe('account_confirmed-u-1');
+  });
+
+  it('counts the new account in PostHog by its id alone, even for browsers that block trackers', async () => {
+    const calls = stubFetch(CONFIRMED, { contact: { email: 'learner@example.com' } });
+    await onRequestPost({ request: request(SIGNED_IN), env });
+    const sent = JSON.parse(calls[3].body!);
+    expect(sent).toMatchObject({ event: 'account_confirmed', distinct_id: 'u-1' });
+    expect(sent.api_key).toMatch(/^phc_/);
+    expect(JSON.stringify(sent)).not.toMatch(/example\.com/i);
+  });
+
+  it('still answers 200 when PostHog is down, and counts nobody twice', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    const calls: string[] = [];
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+      calls.push(url);
+      if (url.endsWith('/auth/v1/user')) return new Response(JSON.stringify(CONFIRMED));
+      if (url.includes('contacts/find')) return new Response('[]');
+      if (url.includes('posthog')) throw new Error('offline');
+      return new Response('{"success":true}');
+    }));
+    expect((await onRequestPost({ request: request(SIGNED_IN), env })).status).toBe(200);
+    const again = stubFetch(CONFIRMED, { contact: { email: 'learner@example.com', emailConfirmed: true } });
+    await onRequestPost({ request: request(SIGNED_IN), env });
+    expect(again.some((c) => c.url.includes('posthog'))).toBe(false);
+    const raced = stubFetch(CONFIRMED, { sendStatus: 409 });
+    await onRequestPost({ request: request(SIGNED_IN), env });
+    expect(raced.some((c) => c.url.includes('posthog'))).toBe(false);
   });
 
   it('sends nothing more for a contact already marked, so Welcome goes out once', async () => {

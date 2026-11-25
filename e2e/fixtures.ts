@@ -3,7 +3,8 @@ import { test as base, expect, type Page } from '@playwright/test';
 
 export { expect };
 
-export const SITE = 'http://localhost:5191';
+const PORT_BASE = Number(process.env.E2E_PORT_BASE ?? 5190); // see playwright.config.ts
+export const SITE = `http://localhost:${PORT_BASE + 1}`;
 const SAMPLE = path.resolve('site/audio/piano/C4.mp3');
 
 // Enough of RevenueCat's response for the SDK to treat this as a free customer.
@@ -61,7 +62,7 @@ const PRO_CUSTOMER = {
  * The app on a server that has accounts switched on, with Supabase at a fake address
  * (playwright.config.ts). Billing only runs for signed-in learners, so Pro tests use it.
  */
-export const ACCOUNTS_APP = process.env.ACCOUNTS_APP_URL ?? 'http://localhost:5192';
+export const ACCOUNTS_APP = process.env.ACCOUNTS_APP_URL ?? `http://localhost:${PORT_BASE + 2}`;
 const FAKE_SUPABASE = /^http:\/\/localhost:5199\//;
 
 export const E2E_USER = {
@@ -123,6 +124,11 @@ export const test = base.extend<Fixtures>({
         if (url.includes('api.revenuecat.com')) return route.fulfill({ json: FREE_CUSTOMER });
         return route.abort();
       });
+      // PostHog goes through /ingest on the page's own origin (functions/ingest in
+      // production). The test servers have no such path: answer it empty, so PostHog never
+      // loads and nothing is sent, as before.
+      await context.route(/^http:\/\/localhost:\d+\/ingest\//, (route) =>
+        route.fulfill({ status: 200, contentType: 'application/javascript', body: '' }));
       await page.addInitScript(() => {
         const w = window as unknown as { __sounds: { synth: number; sample: number } };
         w.__sounds = { synth: 0, sample: 0 };

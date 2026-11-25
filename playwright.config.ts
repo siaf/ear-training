@@ -1,8 +1,10 @@
 import { defineConfig, devices } from '@playwright/test';
 
-const APP_PORT = 5190;
-const SITE_PORT = 5191;
-const ACCOUNTS_PORT = 5192;
+// E2E_PORT_BASE moves all three servers, for when something else is using 5190–5192.
+const PORT_BASE = Number(process.env.E2E_PORT_BASE ?? 5190);
+const APP_PORT = PORT_BASE;
+const SITE_PORT = PORT_BASE + 1;
+const ACCOUNTS_PORT = PORT_BASE + 2;
 
 // Vite prefers real environment variables over .env.local, so these blanks switch
 // off Supabase, PostHog and Sentry in the app under test. Tests must never reach

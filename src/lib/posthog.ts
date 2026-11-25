@@ -7,14 +7,24 @@ const OPT_OUT_KEY = 'fifths.posthog.optOut'
 
 let initialised = false
 
+/**
+ * On the web, PostHog goes through our own origin (functions/ingest, and Vite's proxy in
+ * dev), because tracker blockers drop requests to posthog.com and those learners went
+ * uncounted. The native apps have no blockers and no server of their own, so they go direct.
+ */
+function posthogHost(): string {
+  if (isNative()) return (import.meta.env.VITE_POSTHOG_HOST as string | undefined) || 'https://us.i.posthog.com'
+  return '/ingest'
+}
+
 export function initPostHog(): void {
   if (initialised) return
   const key = import.meta.env.VITE_POSTHOG_KEY as string | undefined
-  const host = import.meta.env.VITE_POSTHOG_HOST as string | undefined
   if (!key) return
 
   posthog.init(key, {
-    api_host: host || 'https://us.i.posthog.com',
+    api_host: posthogHost(),
+    ui_host: 'https://us.posthog.com',
     defaults: '2026-01-30',
     // Profiles for signed-out learners too: most people never sign in, and
     // retention and cohort reports need a profile per learner.

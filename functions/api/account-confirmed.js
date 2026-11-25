@@ -9,8 +9,33 @@
 // repeat calls are harmless.
 //
 // Like wants-pro.js, it lives on fifths-marketing because that project holds LOOPS_API_KEY.
+//
+// The first time, it also tells PostHog (`account_confirmed`, by account id, nothing else).
+// Browsers that block trackers never send the app's own sign-up event, so this is the
+// complete count of confirmed accounts in PostHog.
 
 const SUPABASE_URL = "https://azsedefwatnqjogotudi.supabase.co";
+// The project's public key, the same one the app and site send from the browser.
+const POSTHOG_KEY = "phc_vy9ynWCmqQ27B9FRAvXN6SNay28XjaGHHo3NCvszDF3h";
+
+async function tellPostHog(userId) {
+  try {
+    const res = await fetch("https://us.i.posthog.com/i/v0/e/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        api_key: POSTHOG_KEY,
+        event: "account_confirmed",
+        distinct_id: userId,
+        properties: { $source: "server", $lib: "fifths-functions" },
+      }),
+    });
+    if (!res.ok) throw new Error(`capture returned ${res.status}`);
+  } catch (err) {
+    // Analytics only: the learner's request still succeeds.
+    console.error("account-confirmed: PostHog failed", err && err.message);
+  }
+}
 
 function allowedOrigin(origin) {
   if (origin === "https://app.fifths.io") return origin;
@@ -82,9 +107,11 @@ export async function onRequestPost({ request, env }) {
     });
     // 409: this exact event already went out in the last 24 hours.
     if (!res.ok && res.status !== 409) throw new Error(`events/send returned ${res.status}`);
+    if (res.status === 409) return json(request, { ok: true, already: true }, 200);
   } catch (err) {
     console.error("account-confirmed: Loops failed", err && err.message);
     return json(request, { error: "Server error" }, 502);
   }
+  await tellPostHog(user.id);
   return json(request, { ok: true }, 200);
 }

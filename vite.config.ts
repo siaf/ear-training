@@ -49,4 +49,20 @@ function requireReleaseKeys(): PluginOption {
 export default defineConfig({
   plugins: [react(), staticDirIndex(), requireReleaseKeys()],
   base: isMobileBuild ? './' : isWebAppBuild ? '/' : '/ear-training/',
+  // The app sends PostHog to /ingest on its own origin (src/lib/posthog.ts). In production
+  // functions/ingest forwards it; in dev this does, with the same split as that function.
+  server: {
+    proxy: {
+      '^/ingest/(static|array)/': {
+        target: 'https://us-assets.i.posthog.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/ingest/, ''),
+      },
+      '/ingest': {
+        target: 'https://us.i.posthog.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/ingest/, ''),
+      },
+    },
+  },
 })
