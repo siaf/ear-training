@@ -38,7 +38,7 @@ python3 -m http.server 5181 --directory site # marketing site and tools
 | Command | Builds |
 |---|---|
 | `npm run build:web` | The app for app.fifths.io, into `dist/`. Use this one for deploys. |
-| `npm run build` | The app under `/ear-training/`, for the old GitHub Pages copy. Not for app.fifths.io. |
+| `npm run build` | The app under `/ear-training/`, as `npm run dev` serves it. Not for app.fifths.io. |
 | `npm run build:mobile` | The app for Capacitor. `npm run cap:sync` then copies it into the native projects. |
 | `npm run build:tools` | Every free tool's bundle, from `_src/` into a `.js` file next to its page. The bundles are committed. |
 | `npm run build:lessons` | A public page per ear-training lesson (`site/lessons/<slug>/`, with its preview picture), the `/lessons/` index and `site/llms.txt`, from the curriculum. Needs Playwright's Chromium for the pictures. |
@@ -184,7 +184,7 @@ curl -sI https://fifths.io/tools/ | head -1
 
 Then watch Sentry for new issues. To roll back, promote an earlier deployment in the Cloudflare dashboard; `npx wrangler pages deployment list --project-name=fifths-app` shows the history.
 
-`.github/workflows/deploy.yml` is left over from before Cloudflare. It publishes the old GitHub Pages copy on every push to `main`, and it doesn't deploy either live site or run tests. `README.md` and parts of `docs/deploy-checklist.md` are also out of date on hosting; this file is right.
+Everything is hosted on Cloudflare. The old GitHub Pages copy and its workflow were removed on 2026-11-25; parts of `docs/deploy-checklist.md` still describe GitHub Pages and are out of date on hosting. This file is right.
 
 ## Services
 

@@ -62,22 +62,9 @@ npm run build
 npm run preview
 ```
 
-### Deploy to GitHub Pages
+### Deploy
 
-The app is configured to automatically deploy to GitHub Pages when you push to the `main` branch.
-
-**First-time setup:**
-1. Go to your repository on GitHub
-2. Navigate to **Settings** → **Pages**
-3. Under **Build and deployment**, set **Source** to **GitHub Actions**
-4. Push your code to the `main` branch
-
-The GitHub Actions workflow will automatically:
-- Install dependencies
-- Build the app
-- Deploy to GitHub Pages
-
-Your site will be live at: `https://siaf.github.io/ear-training/`
+Both sites are on Cloudflare Pages: the app at app.fifths.io and the marketing site at fifths.io. See `AGENTS.md` for the commands.
 
 **Manual deployment:**
 You can also trigger a deployment manually from the **Actions** tab in your GitHub repository.
