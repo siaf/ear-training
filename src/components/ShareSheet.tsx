@@ -38,7 +38,8 @@ export default function ShareSheet({ heading, payload, makeImage, fileName, onCl
         setPreview(url);
       })
       .catch((err) => console.warn('[share] picture failed', err));
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    // preventDefault tells the medal behind this sheet that the Escape was ours.
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') { e.preventDefault(); onClose(); } };
     window.addEventListener('keydown', onKey);
     return () => {
       live = false;
