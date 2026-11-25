@@ -2,6 +2,7 @@ import { ArrowLeft, ArrowRight, X as XIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Bean } from './primitives';
 import type { LessonIntroCopy } from '../types';
+import type { ArrivalNote } from '../lib/arrival';
 import { useBreakpoint } from '../lib/useBreakpoint';
 import RhythmStaff from './rhythm/RhythmStaff';
 import { countLabel, countsOf, describe, parseRhythm, parseTime } from '../rhythm/model';
@@ -15,6 +16,8 @@ interface Props {
   onSkipSinging?: () => void;
   /** Opened from someone's share: "medal", "week" or "streak". Frames it as "try it yourself". */
   shared?: string | null;
+  /** Opened from a free tool on fifths.io: says which, and what the app adds to it. */
+  fromTool?: ArrivalNote | null;
 }
 
 // Brand-kit palette: Fable=coral, Noir=mint, Major=butter, Pulse=sky.
@@ -25,7 +28,7 @@ const MASCOT_TONE: Record<NonNullable<LessonIntroCopy['mascot']>, { bg: string; 
   pulse: { bg: 'var(--sky-soft)',   ink: 'var(--sky-ink)' },
 };
 
-export default function LessonIntro({ pages, lessonName, onContinue, onExit, onSkipSinging, shared = null }: Props) {
+export default function LessonIntro({ pages, lessonName, onContinue, onExit, onSkipSinging, shared = null, fromTool = null }: Props) {
   const bp = useBreakpoint();
   const mobile = bp !== 'desktop';
 
@@ -204,7 +207,7 @@ export default function LessonIntro({ pages, lessonName, onContinue, onExit, onS
             gap: mobile ? 12 : 14,
           }}
         >
-          {shared && pageIdx === 0 && (
+          {(shared || fromTool) && pageIdx === 0 && (
             <div
               role="note"
               style={{
@@ -218,10 +221,18 @@ export default function LessonIntro({ pages, lessonName, onContinue, onExit, onS
                 color: 'var(--ink-1)',
               }}
             >
-              <b>Shared with you.</b>{' '}
-              {shared === 'medal'
-                ? 'Someone just mastered this. Can you? Try it yourself: a few minutes, free, no signup to start.'
-                : 'Someone is training their ear with this. Try it yourself: a few minutes, free, no signup to start.'}
+              {shared ? (
+                <>
+                  <b>Shared with you.</b>{' '}
+                  {shared === 'medal'
+                    ? 'Someone just mastered this. Can you? Try it yourself: a few minutes, free, no signup to start.'
+                    : 'Someone is training their ear with this. Try it yourself: a few minutes, free, no signup to start.'}
+                </>
+              ) : fromTool ? (
+                <>
+                  <b>{fromTool.title}</b> {fromTool.body}
+                </>
+              ) : null}
             </div>
           )}
           <div

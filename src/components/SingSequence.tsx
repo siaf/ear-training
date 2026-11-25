@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { Check } from 'lucide-react';
 import { audioEngine } from '../audioEngine';
 import MicTrouble from './MicTrouble';
+import { phCapture } from '../lib/posthog';
+import { SingAttemptRecorder } from '../lib/singTelemetry';
 import { classifyMicError, reportMicProblem, type MicProblem } from '../lib/micDiagnostics';
 import { Blob } from './primitives';
 import {
@@ -18,6 +20,7 @@ interface Props {
   toleranceCents?: number;        // default 50
   perNoteHoldMs?: number;         // default 250
   perNoteTimeoutMs?: number;      // default 6000 — auto-skip this note after this long
+  levelId?: string;               // for the sing_attempt event
   mobile: boolean;
   onReplay?: () => void;          // Re-play the sequence so the user can hear it again.
   onHits?: (hits: boolean[]) => void; // Per-note pass/miss, in target order. Fired once at end.
@@ -65,6 +68,7 @@ export default function SingSequence({
   toleranceCents = 50,
   perNoteHoldMs = 250,
   perNoteTimeoutMs = 6000,
+  levelId,
   mobile,
   onReplay,
   onHits,
@@ -88,6 +92,19 @@ export default function SingSequence({
   const targetStartRef = useRef<number>(performance.now());
   const missesRef = useRef(0);
   const hitsRef = useRef<boolean[]>([]);
+  // What the mic and detector heard on this question, sent once as `sing_attempt`. See
+  // singTelemetry.ts. Cents are against whichever note is being asked for at the time.
+  const recorderRef = useRef<SingAttemptRecorder | null>(null);
+
+  useEffect(() => {
+    const recorder = new SingAttemptRecorder(
+      { kind: 'sequence', target: targetNotes[0] ?? '', notes: targetNotes.length, anyOctave, toleranceCents, holdMs: perNoteHoldMs },
+      (summary) => phCapture('sing_attempt', { ...summary, level_id: levelId ?? null }),
+    );
+    recorderRef.current = recorder;
+    return () => recorder.finish('left');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [targetNotes.join('|')]);
 
   // Keep idxRef in sync so the mic callback sees current value without stale closure.
   useEffect(() => {
@@ -109,6 +126,8 @@ export default function SingSequence({
     if (next >= targetNotes.length && !matchedRef.current) {
       matchedRef.current = true;
       if (onHits) onHits([...hitsRef.current]);
+      recorderRef.current?.setHits(hitsRef.current.filter(Boolean).length);
+      recorderRef.current?.finish(missesRef.current > 0 ? 'missed' : 'matched');
       if (missesRef.current > 0) onCancel();
       else onMatch();
     }
@@ -160,7 +179,9 @@ export default function SingSequence({
         }
 
         const heardHz = smoothHzRef.current;
-        const inTune = heardHz !== null && Math.abs(centsFn(heardHz, target)) <= toleranceCents;
+        const cents = heardHz !== null ? centsFn(heardHz, target) : null;
+        const inTune = cents !== null && Math.abs(cents) <= toleranceCents;
+        recorderRef.current?.frame(s, cents, inTune);
         if (inTune) {
           if (holdStartRef.current === null) holdStartRef.current = now;
           if (now - holdStartRef.current >= perNoteHoldMs) {
@@ -173,6 +194,7 @@ export default function SingSequence({
         if (cancelled) return;
         setProblem('silent');
         setStatus('trouble');
+        recorderRef.current?.micTrouble('silent');
         reportMicProblem('silent', undefined, 'sing_sequence');
       })
       .then((handle) => {
@@ -181,6 +203,7 @@ export default function SingSequence({
           return;
         }
         handleRef.current = handle;
+        recorderRef.current?.micReady();
         setStatus('listening');
       })
       .catch((err: unknown) => {
@@ -188,6 +211,7 @@ export default function SingSequence({
         const kind = classifyMicError(err);
         setProblem(kind);
         setStatus('trouble');
+        recorderRef.current?.micTrouble(kind);
         reportMicProblem(kind, err, 'sing_sequence');
       });
 
@@ -361,7 +385,9 @@ export default function SingSequence({
         </div>
       </div>
 
-      {status === 'trouble' && <MicTrouble problem={problem} onRetry={() => setAttempt((n) => n + 1)} />}
+      {status === 'trouble' && (
+        <MicTrouble problem={problem} onRetry={() => { recorderRef.current?.retry(); setAttempt((n) => n + 1); }} />
+      )}
 
       <div style={{ display: 'flex', gap: 8 }}>
         {onReplay && (
@@ -382,7 +408,7 @@ export default function SingSequence({
           </button>
         )}
         <button
-          onClick={onCancel}
+          onClick={() => { recorderRef.current?.finish('skipped'); onCancel(); }}
           style={{
             padding: '8px 16px',
             borderRadius: 999,

@@ -2,6 +2,7 @@ import * as Sentry from '@sentry/react';
 import { isNative, platform } from './native';
 import { trackPurchase } from './attribution';
 import { phCapture } from './posthog';
+import { isStaleCodeError, STALE_CODE_EVENT } from './freshVersion';
 import { reportError } from './reportError';
 
 // Entitlement identifier configured in RevenueCat dashboard.
@@ -145,6 +146,8 @@ export function startBilling(userId: string, email?: string | null): Promise<voi
         lastError = err;
       }
     }
+    // This build's payment code is gone from the server: a newer build is live.
+    if (isStaleCodeError(lastError)) window.dispatchEvent(new Event(STALE_CODE_EVENT));
     if (accountId === userId) reportError('billing', lastError, { step: 'load', attempts: retryDelaysMs.length + 1 });
   })();
   starting = run;

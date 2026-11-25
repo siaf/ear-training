@@ -1280,6 +1280,17 @@ class AudioEngine {
   // Rhythm playback (Batch 4)
   // ---------------------------------------------------------------
 
+  /**
+   * When a sound scheduled at audio-clock time `t` reaches the speakers, on the page's clock
+   * (performance.now()), for grading taps against what the learner hears. Tone schedules
+   * "now" a lookahead (0.1 s) after the audio clock, and the device adds its output latency.
+   */
+  private heardAtMs(t: number): number {
+    const raw = Tone.getContext().rawContext as AudioContext;
+    const latency = (raw.outputLatency || raw.baseLatency || 0) * 1000;
+    return performance.now() + (t - raw.currentTime) * 1000 + latency;
+  }
+
   private getPercSynth(accent = false): Tone.MembraneSynth {
     if (accent) {
       if (!this.percAccentSynth) {
@@ -1326,9 +1337,8 @@ class AudioEngine {
     }
     const synth = this.getPercSynth(false);
     const accentSynth = this.getPercSynth(true);
-    // performance.now() at the moment Tone "now" is captured. They share a clock origin
-    // but we need the offset to convert audio-time → DOM-time for the grader.
-    const startMs = performance.now();
+    // When `now` is heard, on the page's clock, so taps can be graded against what was heard.
+    const startMs = this.heardAtMs(now);
     const accentSet = new Set(accentBeats);
 
     const onsetTimesMs: number[] = [];
@@ -1436,7 +1446,7 @@ class AudioEngine {
     const beatSec = 60 / bpm;
     const lead = 0.12; // schedule a moment ahead so the first click isn't clipped
     const now = Tone.now() + lead;
-    const nowMs = performance.now() + lead * 1000;
+    const nowMs = this.heardAtMs(now);
     // Fresh synths each time: they're monophonic, and a replay mid-pattern would otherwise
     // schedule a note before one already queued.
     const click = new Tone.Synth({ oscillator: { type: 'square' }, envelope: { attack: 0.001, decay: 0.03, sustain: 0, release: 0.02 }, volume: -20 }).toDestination();
@@ -1460,6 +1470,23 @@ class AudioEngine {
     this.markPlayback(duration);
     const startMs = nowMs + countIn * beatSec * 1000;
     return { startMs, onsetTimesMs: unique.map((o) => startMs + o * beatSec * 1000), duration };
+  }
+
+  /**
+   * A same-or-different rhythm question: a bar of count-in clicks, pattern A, a bar of
+   * clicks alone, then pattern B, with a quiet click on every beat throughout. The steady
+   * beat gives each hit something to be early or late against, and the empty bar keeps
+   * the two patterns from running together.
+   */
+  async playSameDiffPair(a: number[], b: number[], bpm = 100, bOffset = 8) {
+    return this.playRhythmBar({
+      onsets: [...a, ...b.map((o) => o + bOffset)],
+      bpm,
+      countIn: 4,
+      bars: (bOffset + 4) / 4,
+      beatsPerBar: 4,
+      metronome: true,
+    });
   }
 
   async playCorrectChime() {

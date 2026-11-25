@@ -8,7 +8,7 @@ import { feedbackPlan, type FeedbackSound } from './lib/feedbackSounds';
 import { DEFAULT_DEGREE_NOTATION, formatDegreeText } from './lib/degreeNotation';
 import { filterDiatonicItems } from './scaleContext';
 import { realizeDiatonicSequence, sequenceStartDegreeForQuestion } from './lib/diatonic';
-import { pickTapPattern, pickDictationPattern, gridToOnsets, encodeGrid, nudgeOneOnset } from './lib/rhythmPatterns';
+import { pickTapPattern, pickDictationPattern, gridToOnsets, encodeGrid, sameDiffPair, SAME_DIFF_B_OFFSET } from './lib/rhythmPatterns';
 import { isOwnerEmail } from './lib/owner';
 import { markThisDeviceInternal } from './lib/posthog';
 import { DEV_COURSE_PREVIEW, isLevelOpen, isPathOpen } from './lib/courseAccess';
@@ -88,7 +88,9 @@ function writeFlag(key: string): void {
 import { PRODUCT_IDS, checkoutIsOpen, isPro, purchaseProduct, purchasesNeedAccount, reportSandboxCheckoutAttempt, restorePurchases, subscribeBilling } from './lib/billing';
 import { trackEngagedAnon } from './lib/attribution';
 import { phCapture, phReset } from './lib/posthog';
+import { startFreshVersion } from './lib/freshVersion';
 import { sharedArrival } from './lib/share';
+import { toolArrival } from './lib/arrival';
 import LessonIntro from './components/LessonIntro';
 import MasteryOverlay from './components/MasteryOverlay';
 import StreakRecoverySheet from './components/StreakRecoverySheet';
@@ -318,11 +320,25 @@ export default function App() {
   const [deepLinkStart] = useState(readStartParam);
   // Arrived from someone's share: the first lesson's intro says "try it yourself".
   const [sharedFrom, setSharedFrom] = useState(() => (typeof window === 'undefined' ? null : sharedArrival(window.location.search)));
+  // Arrived from one of the free tools on fifths.io: the first intro says so. See arrival.ts.
+  const [toolNote, setToolNote] = useState(() => (typeof window === 'undefined' ? null : toolArrival(window.location.search)));
 
   // New visitors skip the in-app landing page: they already chose to try the
   // app on fifths.io, and a second sales page lost most of them in seconds.
   const defaultRoute: Route = !initial.hasOnboarded && !deepLinkStart ? 'onboarding' : 'path';
   const [route, setRouteState] = useState<Route>(parseRouteFromUrl(defaultRoute));
+
+  // Long-lived copies of the app (home-screen web apps on iPhone) reload into the live
+  // build, but only on screens where a reload loses nothing. See freshVersion.ts.
+  const routeRef = useRef(route);
+  routeRef.current = route;
+  const freshVersionRef = useRef<ReturnType<typeof startFreshVersion> | null>(null);
+  useEffect(() => {
+    const f = startFreshVersion({ canReload: () => ['path', 'stats', 'settings'].includes(routeRef.current) });
+    freshVersionRef.current = f;
+    return () => f.stop();
+  }, []);
+  useEffect(() => { freshVersionRef.current?.tryReload(); }, [route]);
   const setRoute = (r: Route) => {
     setRouteState(r);
     syncUrl(r);
@@ -787,6 +803,7 @@ export default function App() {
     let acousticSemis: number | undefined;
     let pendingRhythmOnsets: number[] | undefined;
     let pendingRhythmGrid: boolean[] | undefined;
+    let pendingRhythmPair: { a: number[]; b: number[] } | undefined;
     let melodySteps: number[] | undefined;
 
     // Review / interleave mode override: when a queue-driven session is active, the queue
@@ -990,21 +1007,14 @@ export default function App() {
       const kind = level.rhythmKind ?? 'same_diff';
       try {
         if (kind === 'same_diff') {
-          // Two patterns played in sequence — same or different. Use the same pattern bank.
-          const pattern = pickTapPattern();
-          const willDiffer = Math.random() < 0.5;
-          // For "different" mode, move one onset by a sixteenth.
-          const second = willDiffer ? nudgeOneOnset(pattern.onsets) : pattern.onsets.slice();
-          itemType = willDiffer ? 'different' : 'same';
+          // Pattern A, a bar of clicks, then pattern B: the same, or different in one way
+          // (another pattern, a hit added, dropped or moved an eighth). See sameDiffPair.
+          const { a, b } = sameDiffPair(level.rhythmChanges);
+          itemType = a.join() === b.join() ? 'same' : 'different';
           correctAnswer = itemType;
-          // Play first pattern, then second after a 1-bar gap.
-          const beatSec = 60 / bpm;
-          const offsetBeats = 4.5; // one bar of rest then next pattern
-          const allOnsets = [...pattern.onsets, ...second.map((o) => o + offsetBeats)];
-          const r = await audioEngine.playRhythmOnsets(allOnsets, bpm, [0, offsetBeats]);
+          pendingRhythmPair = { a, b };
+          await audioEngine.playSameDiffPair(a, b, bpm, SAME_DIFF_B_OFFSET);
           playedNotes = [];
-          void r;
-          void beatSec;
         } else if (kind === 'tap_back') {
           // No audio here — RhythmTapPad plays the pattern itself (listen → ready → replay+tap).
           // We just persist the pattern data on the Question so the pad can use it.
@@ -1103,13 +1113,14 @@ export default function App() {
         : undefined;
 
     // Rhythm-specific question fields.
-    type RhythmExtras = { rhythmKind?: typeof level.rhythmKind; rhythmBpm?: number; targetOnsets?: number[]; targetGrid?: boolean[] };
+    type RhythmExtras = { rhythmKind?: typeof level.rhythmKind; rhythmBpm?: number; targetOnsets?: number[]; targetGrid?: boolean[]; rhythmPair?: { a: number[]; b: number[] } };
     const rhythmExtras: RhythmExtras = level.type === 'rhythm'
       ? {
           rhythmKind: level.rhythmKind,
           rhythmBpm: level.rhythmBpm ?? 100,
           targetOnsets: typeof pendingRhythmOnsets !== 'undefined' ? pendingRhythmOnsets : undefined,
           targetGrid: typeof pendingRhythmGrid !== 'undefined' ? pendingRhythmGrid : undefined,
+          rhythmPair: typeof pendingRhythmPair !== 'undefined' ? pendingRhythmPair : undefined,
         }
       : {};
 
@@ -1221,6 +1232,7 @@ export default function App() {
       haptics.heavy();
     }
     setSharedFrom(null); // the shared lesson is done; later intros are ordinary
+    setToolNote(null);
     // A streak milestone offers to share the week, once per milestone.
     const streakNow = getStreakDays();
     const milestoneKey = `fifths.share.streak.${streakNow}`;
@@ -1467,8 +1479,8 @@ export default function App() {
             await audioEngine.playSubdivisionPattern(currentQuestion.itemType as 'eighths' | 'sixteenths' | 'triplets' | 'dotted', bpm);
           } else if (k === 'meter') {
             await audioEngine.playMeterPattern(currentQuestion.itemType as '2/4' | '3/4' | '4/4' | '6/8' | '5/4', bpm);
-          } else if (k === 'same_diff') {
-            // Replay full A vs B sequence — not stored on Question; skip for now (not user-critical).
+          } else if (k === 'same_diff' && currentQuestion.rhythmPair) {
+            await audioEngine.playSameDiffPair(currentQuestion.rhythmPair.a, currentQuestion.rhythmPair.b, bpm, SAME_DIFF_B_OFFSET);
           }
           break;
         }
@@ -1769,6 +1781,7 @@ export default function App() {
           }}
           onSkipSinging={canSkipSinging ? () => handleSkipSinging('intro') : undefined}
           shared={sharedFrom && deepLinkStart === currentLevel.id ? sharedFrom : null}
+          fromTool={toolNote && deepLinkStart === currentLevel.id ? toolNote : null}
         />
       );
     }

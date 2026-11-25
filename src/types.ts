@@ -2,6 +2,7 @@
 
 import type { VisualKind, VisualPrompt } from './notation/prompt';
 import type { ClefId } from './notation/theory';
+import type { SameDiffChange } from './lib/rhythmPatterns';
 
 
 export type IntervalType = 
@@ -96,6 +97,7 @@ export interface Question {
   rhythmBpm?: number; // BPM the pattern was played at (also used for tap-back grading).
   targetOnsets?: number[]; // For tap_back: expected beat-position onsets in fractional beats (0..N). User taps timed against these.
   targetGrid?: boolean[]; // For dictation: 16-cell on/off pattern (1 bar of 16th notes).
+  rhythmPair?: { a: number[]; b: number[] }; // For same_diff: both patterns, so Replay plays the same question.
   // --- Melodic dictation ---
   melodySteps?: number[]; // Scale steps from the tonic (see src/lib/melody.ts), kept so Replay plays the same melody.
   melodyScale?: DiatonicScale;
@@ -225,6 +227,7 @@ export interface CurriculumLevel {
   };
   melodyScale?: DiatonicScale;
   rhythmBpm?: number; // Default BPM. Defaults to 100.
+  rhythmChanges?: SameDiffChange[]; // For same_diff: the kinds of difference it asks (see sameDiffPair). Defaults to the easy ones.
   rhythmTapToleranceMs?: number; // ± ms a tap can fall around a target onset. Defaults to 130 ms (forgiving for first lessons).
   rhythmPassScore?: number; // 0..1 grader threshold to count as correct. Defaults to 0.7 (tap), 1.0 (grid).
   // --- Visual lessons (type 'reading' | 'fretboard'). Items name what is shown; see src/notation/questions.ts. ---

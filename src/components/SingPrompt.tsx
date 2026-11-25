@@ -4,6 +4,8 @@ import { audioEngine } from '../audioEngine';
 import MicTrouble from './MicTrouble';
 import { classifyMicError, reportMicProblem, type MicProblem } from '../lib/micDiagnostics';
 import { Blob } from './primitives';
+import { phCapture } from '../lib/posthog';
+import { SingAttemptRecorder } from '../lib/singTelemetry';
 import {
   centsFromTarget,
   centsFromTargetAnyOctave,
@@ -18,6 +20,7 @@ interface Props {
   toleranceCents?: number;      // default 50 — ±this many cents counts as "in tune"
   holdMs?: number;              // default 900 — how long they must stay in tune
   label?: string;               // heading; default "sing <note>". "sing home" when naming the note would give it away
+  levelId?: string;             // for the sing_attempt event
   mobile: boolean;
   onMatch: () => void;          // called once when the user holds the note in tune
   onCancel: () => void;         // user bailed
@@ -49,6 +52,7 @@ export default function SingPrompt({
   toleranceCents = 50,
   holdMs = 900,
   label,
+  levelId,
   mobile,
   onMatch,
   onCancel,
@@ -61,6 +65,19 @@ export default function SingPrompt({
   const holdStartRef = useRef<number | null>(null);
   const matchedRef = useRef(false);
   const handleRef = useRef<ListenHandle | null>(null);
+  // What the mic and detector heard on this question, sent once as `sing_attempt` when it
+  // ends: matched, skipped, or left (the learner quit the lesson). See singTelemetry.ts.
+  const recorderRef = useRef<SingAttemptRecorder | null>(null);
+
+  useEffect(() => {
+    const recorder = new SingAttemptRecorder(
+      { kind: 'prompt', target: targetNote, anyOctave, toleranceCents, holdMs },
+      (summary) => phCapture('sing_attempt', { ...summary, level_id: levelId ?? null }),
+    );
+    recorderRef.current = recorder;
+    return () => recorder.finish('left');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [targetNote]);
 
   useEffect(() => {
     let cancelled = false;
@@ -74,7 +91,9 @@ export default function SingPrompt({
         setSample(s);
 
         if (matchedRef.current) return;
-        const inTune = s.hz !== null && Math.abs(centsFn(s.hz, targetNote)) <= toleranceCents;
+        const cents = s.hz !== null ? centsFn(s.hz, targetNote) : null;
+        const inTune = cents !== null && Math.abs(cents) <= toleranceCents;
+        recorderRef.current?.frame(s, cents, inTune);
 
         const now = performance.now();
         if (inTune) {
@@ -83,6 +102,7 @@ export default function SingPrompt({
           setHoldPct(Math.min(1, elapsed / holdMs));
           if (elapsed >= holdMs && !matchedRef.current) {
             matchedRef.current = true;
+            recorderRef.current?.finish('matched');
             onMatch();
           }
         } else {
@@ -93,6 +113,7 @@ export default function SingPrompt({
         if (cancelled) return;
         setProblem('silent');
         setStatus('trouble');
+        recorderRef.current?.micTrouble('silent');
         reportMicProblem('silent', undefined, 'sing_prompt');
       })
       .then((handle) => {
@@ -101,6 +122,7 @@ export default function SingPrompt({
           return;
         }
         handleRef.current = handle;
+        recorderRef.current?.micReady();
         setStatus('listening');
       })
       .catch((err: unknown) => {
@@ -108,6 +130,7 @@ export default function SingPrompt({
         const kind = classifyMicError(err);
         setProblem(kind);
         setStatus('trouble');
+        recorderRef.current?.micTrouble(kind);
         reportMicProblem(kind, err, 'sing_prompt');
       });
 
@@ -324,10 +347,12 @@ export default function SingPrompt({
         </div>
       </div>
 
-      {status === 'trouble' && <MicTrouble problem={problem} onRetry={() => setAttempt((n) => n + 1)} />}
+      {status === 'trouble' && (
+        <MicTrouble problem={problem} onRetry={() => { recorderRef.current?.retry(); setAttempt((n) => n + 1); }} />
+      )}
 
       <button
-        onClick={onCancel}
+        onClick={() => { recorderRef.current?.finish('skipped'); onCancel(); }}
         style={{
           padding: '8px 16px',
           borderRadius: 999,

@@ -200,7 +200,7 @@ export const CHECKPOINTS: Checkpoint[] = [
     name: 'Rhythm Mix',
     description: 'Same/different, tap-back, subdivisions, meter, dictation.',
     segmentId: 'rhythm',
-    levelIds: ['rhy_same_diff', 'rhy_tap_back', 'rhy_subdivisions', 'rhy_meter', 'rhy_dictation'],
+    levelIds: ['rhy_same_diff', 'rhy_tap_back', 'rhy_same_diff_moved', 'rhy_subdivisions', 'rhy_meter', 'rhy_dictation'],
   },
 ];
 

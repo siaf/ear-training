@@ -123,17 +123,23 @@ export default function MasteryOverlay({ level, onClose, onContinue, next = null
   const [mounted, setMounted] = useState(false);
   const ref = useRef<HTMLDivElement | null>(null);
   const reduced = prefersReducedMotion();
-  // Escape closes the share sheet first, not the medal behind it.
+  // Escape closes the share sheet first, not the medal behind it. Whichever key listener
+  // runs first: while sharing, this one ignores Escape, and once the sheet has handled it
+  // (preventDefault) this one leaves it alone. The listener is added once, with onClose in a
+  // ref: re-adding it on every redraw moved it after the sheet's, and a redraw between the
+  // two listeners then closed both.
   const sharingRef = useRef(false);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
 
   useEffect(() => {
     setMounted(true);
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !sharingRef.current) onClose();
+      if (e.key === 'Escape' && !e.defaultPrevented && !sharingRef.current) onCloseRef.current();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [onClose]);
+  }, []);
 
   const idx = CURRICULUM.findIndex((l) => l.id === level.id);
   const palette = segmentColor(level.segmentId ?? 'purple', idx);
