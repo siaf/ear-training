@@ -6,6 +6,9 @@ updated: 2026-11-10
 author: Fifths
 tags: [intervals, ear-training, apps, comparison, review]
 description: "If you want to learn intervals by ear, the app matters less than whether it lets you drill the right intervals, in both directions and as harmonic dyads, every day. Ten interval trainers compared on price, platforms, and what they actually let you practice."
+top_cta: "Rather hear an interval than read about one? Fifths starts with the 5th and the octave: free in your browser, no signup to start."
+top_cta_lesson: int_harmonic_5ths_octaves
+top_cta_button: "Hear your first interval →"
 ---
 
 # Best interval ear training apps in 2026: 10 options compared

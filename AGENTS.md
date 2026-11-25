@@ -74,7 +74,8 @@ Run all three before deploying. Nothing runs them for you: there's no CI for tes
 | `pro.spec.ts` | Pro features as a signed-in subscriber (`asPro` in `fixtures.ts`, on the accounts server): saved drills, melodic dictation, all-time stats; and drills leading free learners to the plans |
 | `repeat.spec.ts` | "Repeat lesson" after a lesson, "drill what you missed" (free and Pro), and replaying a finished lesson from the path |
 | `singing.spec.ts` | The voice check before the first singing lesson, and "Find Home" never playing its answer. `fakeMic` in `fixtures.ts` stands in for the microphone; headless WebKit refuses a made-up mic stream, so the hum test runs in Chromium only |
-| `blog.spec.ts` | The best-apps post's updated date and lesson buttons, and the three-question ear test (`site/ear-quiz.js`) with its score sharing |
+| `blog.spec.ts` | The best-apps post's updated date and lesson buttons, the three-question ear test (`site/ear-quiz.js`) with its score sharing, a post's top button starting a chosen lesson (`top_cta_lesson`), and counting clicks on links to other sites |
+| `feedback.spec.ts` | What a wrong answer plays: the right interval beside the one picked, and Stable or Unstable's note over the home chord, resolving |
 | `lessons.spec.ts` | The public lesson pages: index, a free page that starts its lesson, a Pro page, preview pictures, the sitemap and `llms.txt` |
 | `share.spec.ts` | Sharing a medal, "your week" on the stats screen and the 7-day streak prompt: the picture, X, Reddit as a text post, and Escape |
 | `paths.spec.ts` | The course switcher, and Read Music and Guitar lessons finished by reading the staff or neck the learner sees, including chord and scale shapes |
@@ -90,7 +91,7 @@ Rules for browser tests:
 - Tests are silent: `e2e/fixtures.ts` sends all audio through a gain of zero just before the speakers (headless browsers on a Mac otherwise play out loud). So tests count sounds started rather than listen for them. `sounds(page)` returns how many came from synths and how many from samples. Audio needs a real click to start; see `openEngine` in `audio.spec.ts`.
 - When you add a test for a bug, put the old code back and check that the test fails. One test here passed on broken code until it was rewritten.
 - Run new tests a few times with `--repeat-each=3`. Timing mistakes often pass on the first run.
-- Only one Playwright run at a time per checkout: runs share ports and `test-results/`.
+- Only one Playwright run at a time per checkout: runs share ports and `test-results/`. If something else holds ports 5190–5192, `E2E_PORT_BASE=5290 npm run test:e2e` moves all three servers.
 - Passing tests don't replace a check on a real iPhone for audio changes. Most production audio errors have come from Apple devices.
 
 ## Changing the curriculum
@@ -188,7 +189,7 @@ Then watch Sentry for new issues. To roll back, promote an earlier deployment in
 | Service | Used for | Notes |
 |---|---|---|
 | Sentry | Errors | Org `ketabian-llc`, project `fifths-web`. Resolve fixed bugs so they reopen if they return. Archive only expected noise, like people refusing the mic. |
-| PostHog | Analytics | The same project covers the site and the app. |
+| PostHog | Analytics | The same project covers the site and the app. Both send to `/ingest` on their own domain, which `functions/ingest/[[path]].js` forwards to PostHog (Vite's proxy does it in dev), because tracker blockers drop requests to posthog.com; the native apps go direct. `functions/api/account-confirmed.js` also sends `account_confirmed` from the server, once per confirmed account, so that count is complete even for browsers that block everything. |
 | Supabase | Accounts and sync | Project ref `azsedefwatnqjogotudi`. The secret key is only on `fifths-marketing`, for deleting accounts. |
 | RevenueCat | Payments | The web SDK is a lazy import in `src/lib/billing.ts`. On the web and Android it starts only for a signed-in account that Supabase's server has confirmed (`syncEngine.ts`), configured with that account's id: visitors send RevenueCat nothing. The iOS app is the exception, because Apple doesn't allow requiring an account to buy: it bills an anonymous ID from launch, moves it to the account with `logIn` once confirmed, and its paywall has "restore purchases". |
 | Loops | Email | The key exists only as a Cloudflare secret, on `fifths-marketing`. So server code that writes to Loops lives in `functions/` and is served from fifths.io, like `functions/api/wants-pro.js`, which the app calls cross-origin. Tests for files in `functions/` go under `src/`, because Cloudflare turns every file in `functions/` into a route. Contacts come from Loops' Supabase sync (a trigger on `auth.users`), which adds one as soon as someone asks for a magic link, confirmed or not. So once Supabase's server confirms an account, the app calls `functions/api/account-confirmed.js` (`src/lib/loopsConfirm.ts`), which sets `emailConfirmed` and sends the `account_confirmed` event. Send people who got in their emails from that event or property, not from "contact added". |

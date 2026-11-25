@@ -5,6 +5,9 @@ date: 2026-10-31
 author: Fifths
 tags: [singing, ear-training, sight-singing, apps, comparison]
 description: "Singers need different ear training from instrumentalists: you have to produce the pitch, not just recognize it. Eight apps compared for sight-singing, holding a harmony part, singing intervals and hearing notes in a key."
+top_cta: "Want to try it right now? Fifths plays a note and listens while you sing it back: free in your browser, no signup to start."
+top_cta_lesson: voice_match_pitch
+top_cta_button: "Sing your first note →"
 ---
 
 # Best ear training apps for singers (2026): sight-singing, harmony and aural skills

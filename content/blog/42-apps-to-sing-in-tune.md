@@ -5,6 +5,9 @@ date: 2026-10-31
 author: Fifths
 tags: [singing, pitch-matching, voice, apps, comparison]
 description: "If you sing off-key, you need an app that listens to you through the microphone and shows whether you hit the note. Nine pitch-matching and vocal-training apps compared on feedback, price and platforms, plus what the research says about why people sing out of tune."
+top_cta: "Want to try it right now? Fifths plays a note and listens while you sing it back: free in your browser, no signup to start."
+top_cta_lesson: voice_match_pitch
+top_cta_button: "Sing your first note →"
 ---
 
 # Best apps to learn to sing in tune (2026): pitch-matching apps compared

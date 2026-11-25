@@ -49,3 +49,26 @@ test('the ear test plays three questions and ends on a lesson link', async ({ pa
   expect(reddit.searchParams.get('title')).toMatch(/^I got [0-3]\/3 on a 30-second ear test/);
   expect(reddit.searchParams.get('text')).toContain(`${POST}?utm_source=share&utm_medium=reddit&utm_campaign=ear-test`);
 });
+
+test('the singing apps post starts a singing lesson from the top, and counts links to other apps', async ({ page }) => {
+  await page.goto(`${SITE}/blog/apps-to-sing-in-tune/`);
+  const top = page.locator('a[data-ph-cta="article-top"]');
+  await expect(top).toHaveText(/Sing your first note/);
+  await expect(top).toHaveAttribute('href', /\?start=voice_match_pitch&.*utm_content=top/);
+
+  // PostHog's script doesn't load in tests; stand in for it and keep the page here.
+  await page.evaluate(() => {
+    const w = window as unknown as { posthog: { capture: (...a: unknown[]) => void }; __captured: unknown[][] };
+    w.__captured = [];
+    w.posthog = { capture: (...a: unknown[]) => { w.__captured.push(a); } };
+    document.addEventListener('click', (e) => e.preventDefault());
+  });
+  await page.locator('.prose a[href*="singingcarrots.com"]').first().click();
+  const captured = await page.evaluate(() => (window as unknown as { __captured: unknown[][] }).__captured);
+  expect(captured).toEqual([['outbound_link_clicked', expect.objectContaining({ link_host: 'singingcarrots.com' }), { transport: 'sendBeacon' }]]);
+
+  // Links within the site and into the app aren't outbound.
+  await top.click();
+  expect(await page.evaluate(() => (window as unknown as { __captured: unknown[][] }).__captured.length)).toBe(1);
+});
+

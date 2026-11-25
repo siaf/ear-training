@@ -36,7 +36,7 @@ const lastModified = (data) => (data.updated ? isoDate(data.updated) : isoDate(d
 
 
 function articlePage(post) {
-  const { title, description, slug, date, author = 'Fifths', tags = [], image, top_cta: topCta, top_quiz: topQuiz } = post.data;
+  const { title, description, slug, date, author = 'Fifths', tags = [], image, top_cta: topCta, top_quiz: topQuiz, top_cta_lesson: topLesson, top_cta_button: topButton } = post.data;
   const canonical = `${SITE_URL}/blog/${slug}/`;
   const brandLogo = `${SITE_URL}/brand/logos/logo-stacked-light.png`;
   const ogImage = image
@@ -76,7 +76,9 @@ function articlePage(post) {
     .replace(/<p>\{\{lesson-cta\}\}<\/p>/g, lessonCtaHtml);
 
   // Optional `top_cta` front matter: a button under the header. Markdown can't hold it
-  // because raw HTML is off.
+  // because raw HTML is off. `top_cta_lesson` (a lesson id) makes the button start that
+  // lesson, and `top_cta_button` changes its words. Readers sent here by an AI assistant
+  // leave within seconds, so the comparison posts put the try-it button above the table.
   // With `top_quiz: true` the box holds the three-question ear test (site/ear-quiz.js),
   // which ends with its own lesson link.
   const topCtaHtml = topCta && topQuiz
@@ -90,7 +92,7 @@ function articlePage(post) {
     : topCta
     ? `<aside class="article-cta article-cta-top">
       <p>${escape(topCta)}</p>
-      <a href="https://app.fifths.io/?utm_source=fifths.io&utm_medium=blog&utm_campaign=${slug}&utm_content=top" class="btn btn-coral" data-ph-track data-ph-cta="article-top">Start a free lesson →</a>
+      <a href="https://app.fifths.io/?${topLesson ? `start=${encodeURIComponent(topLesson)}&` : ''}utm_source=fifths.io&utm_medium=blog&utm_campaign=${slug}&utm_content=top" class="btn btn-coral" data-ph-track data-ph-cta="article-top">${escape(topButton || 'Start a free lesson →')}</a>
     </aside>`
     : '';
 
