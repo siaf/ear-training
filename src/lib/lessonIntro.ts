@@ -13,7 +13,7 @@ const FIRST_IN_CONCEPT = new Set<string>([
   'ton_is_tonic',                // tonality refinement
   'ton_cadence_basic',           // first cadence teaching
   'scale_degree_major_1',        // first scale-degree teaching
-  'int_harmonic_4ths_5ths',      // first intervals teaching
+  'int_harmonic_5ths_octaves',   // first intervals teaching
   'level_4',                     // first triad teaching ("Tonic Triads")
   'inv_triad_basic',             // first inversion teaching
   'level_7',                     // first 7th chord teaching

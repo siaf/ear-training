@@ -1,6 +1,8 @@
 import * as Tone from 'tone';
 import type { AcousticKind } from './types';
 import { startPitchDetect, type ListenHandle, type PitchListener } from './lib/pitchDetect';
+import { midiToNote } from './lib/pitch';
+import { degreeSemitones, resolutionDegree } from './lib/stability';
 
 // Note frequencies and intervals
 const NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
@@ -791,23 +793,65 @@ class AudioEngine {
   }
 
   // Play a scale degree with context (melodic or harmonic)
+  /**
+   * The home chord (1-3-5 and the octave) just below the tonic, quietly, for `durationSec`.
+   * Under a tested note it makes stable notes blend and unstable ones rub, and it keeps
+   * the key in the ear on every question instead of only after the scale.
+   */
+  private playTonicChordUnder(rootNote: string, minor: boolean, durationSec: number, at: number) {
+    const tonicMidi = 60 + NOTES.indexOf(rootNote);
+    const chord = [0, minor ? 3 : 4, 7, 12].map((s) => midiToNote(tonicMidi - 12 + s).label);
+    this.synth.triggerAttackRelease(chord, durationSec, at, 0.4);
+  }
+
+  /**
+   * After a stable/unstable answer: the note again over the home chord, then, if it's
+   * unstable, the note it leans to (2→1, 4→3, 6→5, 7→1 above). Same octave as the question.
+   * Returns how long it lasts, in seconds.
+   */
+  async playDegreeResolution(rootNote: string, degree: number, context: 'major' | 'natural_minor'): Promise<number> {
+    await this.initialize();
+    const scale = context === 'natural_minor' ? MODES.aeolian : MODES.ionian;
+    const tonicMidi = 60 + NOTES.indexOf(rootNote);
+    const minor = context === 'natural_minor';
+    const now = Tone.now();
+    const hold = this.getAdjustedTime(1.1);
+    const from = midiToNote(tonicMidi + degreeSemitones(degree, scale)).label;
+    const target = resolutionDegree(degree);
+    if (target === null) {
+      const long = this.getAdjustedTime(2);
+      this.playTonicChordUnder(rootNote, minor, long, now);
+      this.synth.triggerAttackRelease(from, long, now);
+      this.markPlayback(long);
+      return long;
+    }
+    const to = midiToNote(tonicMidi + degreeSemitones(target, scale)).label;
+    const rest = this.getAdjustedTime(1.6);
+    this.playTonicChordUnder(rootNote, minor, hold + rest, now);
+    this.synth.triggerAttackRelease(from, hold, now);
+    this.synth.triggerAttackRelease(to, rest, now + hold);
+    this.markPlayback(hold + rest);
+    return hold + rest;
+  }
+
   async playScaleDegree(
-    rootNote: string, 
+    rootNote: string,
     degree: number, // 0-6 for scale degrees 1-7
-    context: 'major' | 'natural_minor' | 'major_triads' | 'minor_triads' | 'major_7ths' | 'minor_7ths'
+    context: 'major' | 'natural_minor' | 'major_triads' | 'minor_triads' | 'major_7ths' | 'minor_7ths',
+    opts: { overTonicChord?: boolean } = {},
   ): Promise<string[]> {
     await this.initialize();
-    
+
     const octave = 4;
     const rootIndex = NOTES.indexOf(rootNote);
-    
+
     // Get the scale based on context
     const scale = context === 'natural_minor' || context === 'minor_triads' || context === 'minor_7ths'
       ? MODES.aeolian // Natural minor
       : MODES.ionian; // Major
-    
+
     const playedNotes: string[] = [];
-    
+
     // Melodic context: play the scale degree as a single note
     if (context === 'major' || context === 'natural_minor') {
       const semitones = scale[degree];
@@ -819,8 +863,15 @@ class AudioEngine {
       console.log(`🎵 Playing scale degree ${degree + 1} in ${context}:`, note);
 
       const now = Tone.now();
-      this.synth.triggerAttackRelease(note, '1n', now);
-      this.markPlayback(2); // '1n' at 120bpm ≈ 2s
+      if (opts.overTonicChord) {
+        const hold = this.getAdjustedTime(1.8);
+        this.playTonicChordUnder(rootNote, context === 'natural_minor', hold, now);
+        this.synth.triggerAttackRelease(note, hold, now);
+        this.markPlayback(hold);
+      } else {
+        this.synth.triggerAttackRelease(note, '1n', now);
+        this.markPlayback(2); // '1n' at 120bpm ≈ 2s
+      }
       playedNotes.push(note);
     }
     // Harmonic context: play the triad or 7th chord built on that degree

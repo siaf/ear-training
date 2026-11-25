@@ -3,6 +3,7 @@ import { ArrowRight, Check, Flame, Music as MusicIcon, Play as PlayIcon, Setting
 import { Bean, Blob, ColorPill, useTicker } from '../components/primitives';
 import { getDisplayName } from '../curriculum';
 import { CurriculumLevel, Question, SessionStats } from '../types';
+import type { FeedbackSound } from '../lib/feedbackSounds';
 import { audioEngine } from '../audioEngine';
 import { useBreakpoint } from '../lib/useBreakpoint';
 import SingPrompt from '../components/SingPrompt';
@@ -51,6 +52,11 @@ interface Props {
   degreeNotation?: DegreeNotation;
   onSkipSinging?: () => void;
   onReplay: () => void;
+  /** After a wrong answer: sounds that show the difference (src/lib/feedbackSounds.ts). */
+  feedbackSounds?: FeedbackSound[];
+  /** After a wrong answer: one sentence on why. */
+  feedbackExplain?: string;
+  onPlayFeedbackSound?: (sound: FeedbackSound) => void;
   onAnswer: (answer: string) => void;
   onPick: (answer: string) => void;
   onSubmit: () => void;
@@ -130,6 +136,9 @@ export default function Practice({
   degreeNotation,
   onSkipSinging,
   onReplay,
+  feedbackSounds,
+  feedbackExplain,
+  onPlayFeedbackSound,
   onAnswer,
   onPick,
   onSubmit,
@@ -1117,6 +1126,42 @@ export default function Practice({
               </div>
             ) : null}
           </div>
+          {!isCorrect && (feedbackExplain || (feedbackSounds && feedbackSounds.length > 0)) && (
+            // Hear the difference. Neutral buttons: mint and coral only mean right and wrong.
+            <div
+              style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                alignItems: 'center',
+                gap: 8,
+                margin: mobile ? '0 0 10px' : '0 auto 16px',
+                maxWidth: mobile ? undefined : 860,
+              }}
+            >
+              {feedbackExplain && (
+                <span style={{ fontSize: mobile ? 13 : 15, lineHeight: 1.45, color: 'var(--ink-2)', marginRight: 4 }}>
+                  {feedbackExplain}
+                </span>
+              )}
+              {feedbackSounds?.map((sound, i) => (
+                <Bean
+                  key={i}
+                  tone="soft"
+                  size="sm"
+                  onClick={() => onPlayFeedbackSound?.(sound)}
+                  style={{ borderRadius: 999 }}
+                >
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                    <PlayIcon size={13} strokeWidth={2.5} />
+                    {sound.kind === 'interval' ? `hear ${sound.label}` : sound.label}
+                    {sound.kind === 'interval' && (
+                      <span style={{ fontSize: 11, color: 'var(--ink-3)' }}>{sound.tag === 'right' ? 'right' : 'yours'}</span>
+                    )}
+                  </span>
+                </Bean>
+              ))}
+            </div>
+          )}
           {question.visual && !isCorrect && (
             // How to read it, not just what it was. Right answers move on by themselves. Shown in the bar so the picture keeps its place.
             <p

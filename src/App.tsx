@@ -4,6 +4,8 @@ import { CURRICULUM, DEFAULT_PATH, PATHS, getCurrentLevel, getNextLessonAfter, c
 import { buildVisualQuestion } from './notation/questions';
 import { AnalyticsEngine } from './analytics';
 import { Answer, Question } from './types';
+import { feedbackPlan, type FeedbackSound } from './lib/feedbackSounds';
+import { DEFAULT_DEGREE_NOTATION, formatDegreeText } from './lib/degreeNotation';
 import { filterDiatonicItems } from './scaleContext';
 import { realizeDiatonicSequence, sequenceStartDegreeForQuestion } from './lib/diatonic';
 import { pickTapPattern, pickDictationPattern, gridToOnsets, encodeGrid, nudgeOneOnset } from './lib/rhythmPatterns';
@@ -853,7 +855,7 @@ export default function App() {
       correctAnswer = resolveGroupedAnswer(randomDegree, level.itemGroups);
       rootNote = currentScaleRoot;
       try {
-        playedNotes = await audioEngine.playScaleDegree(currentScaleRoot, parseInt(randomDegree) - 1, level.context!);
+        playedNotes = await audioEngine.playScaleDegree(currentScaleRoot, parseInt(randomDegree) - 1, level.context!, { overTonicChord: level.overTonicChord });
       } catch (err) {
         console.error('playScaleDegree error:', err);
       }
@@ -1124,6 +1126,7 @@ export default function App() {
       playedNotes,
       timestamp: Date.now(),
       context: level.context,
+      overTonicChord: level.overTonicChord,
       intervalDirection: level.intervalDirection,
       intervalPresentation: level.intervalPresentation,
       acousticKind: level.acousticKind,
@@ -1371,7 +1374,7 @@ export default function App() {
           await audioEngine.playMelody(currentQuestion.rootNote, currentQuestion.melodySteps ?? [], currentQuestion.melodyScale ?? 'major');
           break;
         case 'scale_degree':
-          await audioEngine.playScaleDegree(currentQuestion.rootNote, parseInt(currentQuestion.itemType) - 1, currentQuestion.context!);
+          await audioEngine.playScaleDegree(currentQuestion.rootNote, parseInt(currentQuestion.itemType) - 1, currentQuestion.context!, { overTonicChord: currentQuestion.overTonicChord });
           break;
         case 'interval':
           await audioEngine.playInterval(
@@ -1475,6 +1478,45 @@ export default function App() {
     }
   };
 
+  // After a wrong answer: hear the difference, not just read it (src/lib/feedbackSounds.ts).
+  // Timers, so "next" or a tap on a sound button cuts the automatic play short.
+  const feedbackSoundTimersRef = useRef<number[]>([]);
+  const cancelFeedbackSounds = useCallback(() => {
+    for (const t of feedbackSoundTimersRef.current) window.clearTimeout(t);
+    feedbackSoundTimersRef.current = [];
+  }, []);
+  useEffect(() => cancelFeedbackSounds, [cancelFeedbackSounds]);
+
+  const planFeedback = (q: Question, answer: string | null) =>
+    feedbackPlan(q, answer, {
+      intervals: Object.keys(INTERVALS),
+      name: getDisplayName,
+      degreeLabel: (d) => formatDegreeText(String(d), q.context, settings.degreeNotation ?? DEFAULT_DEGREE_NOTATION),
+    });
+
+  const playFeedbackSound = (q: Question, sound: FeedbackSound) => {
+    if (sound.kind === 'interval') {
+      return audioEngine.playInterval(q.rootNote, sound.item as keyof typeof INTERVALS, q.intervalDirection || 'ascending', q.intervalPresentation || 'melodic');
+    }
+    return audioEngine.playDegreeResolution(q.rootNote, parseInt(q.itemType, 10), q.context === 'natural_minor' ? 'natural_minor' : 'major');
+  };
+
+  /** Plays a wrong answer's sounds once, one after another, after the buzz. */
+  const autoPlayFeedback = (q: Question, answer: string) => {
+    const plan = planFeedback(q, answer);
+    if (!plan) return;
+    cancelFeedbackSounds();
+    const speed = settings.playbackSpeed || 1;
+    const each = (q.type === 'interval' && q.intervalPresentation === 'harmonic' ? 1.5 : 2.6) / speed;
+    plan.sounds.forEach((sound, i) => {
+      feedbackSoundTimersRef.current.push(window.setTimeout(() => {
+        void playFeedbackSound(q, sound).catch((err) => console.warn('feedback sound', err));
+      }, 600 + i * each * 1000));
+    });
+  };
+
+  const feedback = currentQuestion && showFeedback ? planFeedback(currentQuestion, selectedAnswer) : null;
+
   const handleAnswer = (answer: string) => {
     if (!currentQuestion || showFeedback || feedbackPending) return;
     setSelectedAnswer(answer);
@@ -1496,6 +1538,7 @@ export default function App() {
       } else {
         haptics.warning();
         audioEngine.playIncorrectBuzz();
+        if (currentQuestion) autoPlayFeedback(currentQuestion, answer);
       }
       // On correct, flash green briefly then advance automatically.
       if (isCorrect) {
@@ -1583,6 +1626,7 @@ export default function App() {
   };
 
   const handleNext = () => {
+    cancelFeedbackSounds();
     if (autoAdvanceTimerRef.current !== null) {
       window.clearTimeout(autoAdvanceTimerRef.current);
       autoAdvanceTimerRef.current = null;
@@ -1772,14 +1816,21 @@ export default function App() {
         interleaveCategoryPicked={interleaveCategoryPicked}
         onPickInterleaveCategory={handlePickInterleaveCategory}
         onReplay={replaySound}
+        feedbackSounds={feedback?.sounds}
+        feedbackExplain={feedback?.explain}
+        onPlayFeedbackSound={(sound) => {
+          cancelFeedbackSounds();
+          if (currentQuestion) void playFeedbackSound(currentQuestion, sound).catch((err) => console.warn('feedback sound', err));
+        }}
         onAnswer={handleAnswer}
         onPick={handlePick}
         onSubmit={handleSubmit}
         onNext={handleNext}
-        onEndSession={endSession}
+        onEndSession={() => { cancelFeedbackSounds(); endSession(); }}
         onToggleDrone={() => setSettings((s) => ({ ...s, drone: !s.drone }))}
         onSpeedChange={(v) => setSettings((s) => ({ ...s, playbackSpeed: v }))}
         onExit={() => {
+          cancelFeedbackSounds();
           phCapture('session_abandoned', {
             level_id: currentLevel.id,
             level_type: currentLevel.type,

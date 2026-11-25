@@ -407,13 +407,17 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
         name: 'Stable or Unstable',
         type: 'scale_degree',
         context: 'major',
-        items: ['1', '2', '3', '4', '5', '6', '7'],
+        // Starts with the clearest contrast: home against the notes either side of it.
+        // 3, 4, 5 and 6 come in the next lesson. Each note sounds over the home chord, so
+        // stable notes blend and unstable ones rub; a wrong answer plays the note resolving.
+        items: ['1', '2', '7'],
         itemGroups: {
-          stable: ['1', '3', '5'],
-          unstable: ['2', '4', '6', '7'],
+          stable: ['1'],
+          unstable: ['2', '7'],
         },
+        overTonicChord: true,
         unlockRequirement: 75,
-        description: 'Does the note feel resolved or does it want to move?',
+        description: 'Over the home chord, does the note rest or want to move?',
         segmentId: 'tonality',
         prerequisites: ['found_higher_lower'],
         maxQuestions: 12,
@@ -422,11 +426,41 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
           {
             idea: 'Some notes feel like they want to move. Others feel done.',
             purpose: "This is the deepest ear-training intuition there is. Before you can name a key's tonic, you can feel which notes pull and which rest. We start there.",
-            expectation: "You'll hear the scale first, then a single note from it.",
+            expectation: "You'll hear the scale first, then single notes, each over the home chord.",
           },
           {
-            idea: 'Your job: does the note rest, or does it want to keep going?',
-            purpose: "Stable vs unstable is what makes a melody feel like a melody — a sequence of pulls and resolutions. Hearing that pull is the foundation of everything else.",
+            idea: 'Start with home and its two neighbours.',
+            purpose: 'Home (1) melts into the chord. The note just above it (2) and the note just below it (7) rub against the chord and lean back home.',
+            expectation: "Tap stable or unstable. Miss one and you'll hear where the note wanted to go.",
+          },
+        ],
+      },
+      {
+        id: 'ton_stable_unstable_all',
+        name: 'Stable or Unstable: All Seven Notes',
+        type: 'scale_degree',
+        context: 'major',
+        items: ['1', '2', '3', '4', '5', '6', '7'],
+        itemGroups: {
+          stable: ['1', '3', '5'],
+          unstable: ['2', '4', '6', '7'],
+        },
+        overTonicChord: true,
+        unlockRequirement: 75,
+        description: 'All seven notes of the key: which rest and which lean?',
+        segmentId: 'tonality',
+        prerequisites: ['ton_stable_unstable'],
+        maxQuestions: 12,
+        questionsPerKey: 4,
+        intro: [
+          {
+            idea: '3 and 5 rest too.',
+            purpose: "They're the other two notes of the home chord, so they blend with it just like 1 does. 4 and 6 sit between them and lean: 4 down to 3, 6 down to 5.",
+            expectation: 'Same question, now with all seven notes over the home chord.',
+          },
+          {
+            idea: '5 is stable, even though it can lead home.',
+            purpose: 'In a chord progression 5 often moves to 1, but over the home chord it is part of the chord and sits still. Judge each note against the chord you hear.',
             expectation: 'Tap stable or unstable.',
           },
         ],
@@ -637,6 +671,29 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
     color: 'green',
     levels: [
       {
+        id: 'int_harmonic_5ths_octaves',
+        name: 'Harmonic: Fifths and Octaves',
+        type: 'interval',
+        items: ['perfect_5th', 'octave'],
+        intervalPresentation: 'harmonic',
+        unlockRequirement: 75,
+        description: 'Tell a perfect 5th from an octave, both notes played together',
+        segmentId: 'intervals',
+        prerequisites: ['found_consonance'],
+        intro: [
+          {
+            idea: 'An interval is the distance between two pitches.',
+            purpose: "Intervals are the alphabet of all melody and harmony. Once you can name them by ear, chord qualities and melodic shapes start reading like plain text.",
+            expectation: "We'll start with two of the most stable intervals: the octave and the perfect 5th.",
+          },
+          {
+            idea: 'Harmonic means both notes sound at once.',
+            purpose: 'An octave blends so completely it can sound like one note. A 5th is open and hollow: you can hear two notes, but they fit.',
+            expectation: "Listen, then tap which interval you heard. Miss one and you'll hear both side by side.",
+          },
+        ],
+      },
+      {
         id: 'int_harmonic_4ths_5ths',
         name: 'Harmonic: Fourths, Fifths and Octaves',
         type: 'interval',
@@ -645,17 +702,17 @@ export const CURRICULUM_SEGMENTS: CurriculumSegment[] = [
         unlockRequirement: 75,
         description: 'Recognize perfect 4ths, 5ths and octaves played together',
         segmentId: 'intervals',
-        prerequisites: ['found_consonance'],
+        prerequisites: ['int_harmonic_5ths_octaves'],
         intro: [
           {
-            idea: 'An interval is the distance between two pitches.',
-            purpose: "Intervals are the alphabet of all melody and harmony. Once you can name them by ear, chord qualities and melodic shapes start reading like plain text.",
-            expectation: "We'll start with the three most stable intervals, the perfect ones: the 4th, the 5th and the octave.",
+            idea: 'Now the 4th joins the 5th and the octave.',
+            purpose: "The 4th is the 5th turned upside down: the same two note names, with the bottom one moved up an octave. That's why the two sound so alike.",
+            expectation: 'Listen for how settled it sounds.',
           },
           {
-            idea: 'Harmonic means both notes sound at once.',
-            purpose: "Training harmonic recognition before melodic is kinder to a new ear — you hear the blend, not the gesture, and the 4th, 5th and octave sound clearly different.",
-            expectation: 'Listen, then tap which interval you heard.',
+            idea: 'The 5th rests. The 4th leans.',
+            purpose: "Both are open and hollow, but the 5th sounds finished, while in a 4th the top note seems to want to step down. That lean is the thing to listen for.",
+            expectation: "Tap which interval you heard. Miss one and you'll hear both side by side.",
           },
         ],
       },
@@ -1582,9 +1639,9 @@ export const lessonsInPath = (path: PathId) => CURRICULUM.filter((l) => pathOfLe
 export const TEACHING_ORDER: string[] = [
   'found_higher_lower', 'found_same_diff', 'rhy_same_diff', 'found_beating', 'found_consonance',
   'voice_match_pitch', 'voice_resting_tone',
-  'ton_stable_unstable', 'ton_is_tonic', 'ton_major_minor_key',
+  'ton_stable_unstable', 'ton_stable_unstable_all', 'ton_is_tonic', 'ton_major_minor_key',
   'scale_degree_major_1', 'voice_step_up', 'voice_step_down',
-  'int_harmonic_4ths_5ths', 'int_melodic_4ths_5ths_asc', 'int_melodic_4ths_5ths_desc',
+  'int_harmonic_5ths_octaves', 'int_harmonic_4ths_5ths', 'int_melodic_4ths_5ths_asc', 'int_melodic_4ths_5ths_desc',
   'int_harmonic_3rds', 'int_melodic_3rds_asc', 'int_melodic_3rds_desc',
   'voice_skip_third', 'voice_skip_fifth',
   'level_1', 'level_4',

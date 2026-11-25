@@ -183,7 +183,7 @@ describe('"next lesson" after finishing one', () => {
   });
 
   it('skips lessons already passed, singing ones when singing is off, and Pro ones on the free plan', () => {
-    const done = [...upTo('found_consonance'), 'ton_stable_unstable'];
+    const done = [...upTo('found_consonance'), 'ton_stable_unstable', 'ton_stable_unstable_all'];
     const next = getNextLessonAfter('found_consonance', done, false, { skipSinging: true });
     expect(next.id).toBe('ton_is_tonic');
     for (const id of TEACHING_ORDER) {

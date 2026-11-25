@@ -53,7 +53,7 @@ export const CHECKPOINTS: Checkpoint[] = [
     name: 'Tonality Mix',
     description: 'Stable/unstable, tonic, major/minor, cadences — all key-feel skills.',
     segmentId: 'tonality',
-    levelIds: ['ton_stable_unstable', 'ton_is_tonic', 'ton_major_minor_key', 'ton_cadence_basic'],
+    levelIds: ['ton_stable_unstable', 'ton_stable_unstable_all', 'ton_is_tonic', 'ton_major_minor_key', 'ton_cadence_basic'],
   },
 
   // ---------- Pitch / Scale Degrees ----------

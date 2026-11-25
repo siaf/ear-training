@@ -84,6 +84,7 @@ export interface Question {
   playedNotes: string[];
   timestamp: number;
   context?: ScaleDegreeContext; // For scale degree questions
+  overTonicChord?: boolean; // Scale degree played over the home chord (from the lesson), so Replay sounds the same
   intervalDirection?: IntervalDirection; // For interval questions
   intervalPresentation?: IntervalPresentation; // For interval questions
   acousticKind?: AcousticKind; // For acoustic questions
@@ -194,6 +195,7 @@ export interface CurriculumLevel {
   // Defaults: 'scale' for tonal lessons; 'none' for non-tonal acoustic / rhythm / self-keyed types.
   primerKind?: 'scale' | 'cadence' | 'cadence_then_scale' | 'drone' | 'none';
   itemGroups?: Record<string, string[]>; // Bucket items into answer groups, e.g. { stable: ['1','3','5'], unstable: ['2','4','6','7'] }
+  overTonicChord?: boolean; // scale_degree lessons: hold the home chord under each note, and after a wrong answer play the note resolving (src/lib/stability.ts).
   responseModes?: ResponseMode[]; // Allowed response modes for prompts in this level. Defaults to ['select']. e.g. ['sing'] = pure sing-back, ['select','sing'] = mixed.
   singProbability?: number; // When responseModes includes both, probability (0..1) that a prompt is sing-mode. Defaults to 0.5.
   singAcceptAnyOctave?: boolean; // Sing mode: accept any octave of the target note. Defaults to true (easier); set false when octave accuracy is part of the drill.
