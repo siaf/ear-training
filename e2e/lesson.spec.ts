@@ -182,3 +182,17 @@ test('listening lessons do not offer to skip singing', async ({ page }) => {
   await expect(page.getByRole('button', { name: /^next|let's go/i }).first()).toBeVisible();
   await expect(skipSinging(page)).toBeHidden();
 });
+
+test('someone pressing "keep training" in a free tool is told the lesson picks up from it', async ({ page }) => {
+  // The interval tool's round-end button. Its lesson's intro starts from scratch ("An interval
+  // is the distance between two notes"), so without this note it reads as a step backwards.
+  await page.goto('/?start=int_melodic_4ths_5ths_asc&utm_source=fifths.io&utm_medium=tool&utm_campaign=interval-ear-trainer&utm_content=round-end');
+  await expect(page.getByRole('note')).toContainText('Picking up from the Interval Ear Trainer. Same drill, one difference');
+  await page.getByRole('button', { name: /let's go/i }).click();
+  await expect(page.getByRole('button', { name: 'Perfect 5th' })).toBeVisible({ timeout: 20_000 });
+
+  // A link from a blog post gets the ordinary intro.
+  await page.goto('/?start=int_melodic_4ths_5ths_asc&utm_source=fifths.io&utm_medium=blog&utm_campaign=x');
+  await expect(page.getByRole('button', { name: /let's go/i })).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByRole('note')).toHaveCount(0);
+});

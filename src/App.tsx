@@ -88,6 +88,7 @@ import { trackEngagedAnon } from './lib/attribution';
 import { phCapture, phReset } from './lib/posthog';
 import { startFreshVersion } from './lib/freshVersion';
 import { sharedArrival } from './lib/share';
+import { toolArrival } from './lib/arrival';
 import LessonIntro from './components/LessonIntro';
 import MasteryOverlay from './components/MasteryOverlay';
 import StreakRecoverySheet from './components/StreakRecoverySheet';
@@ -317,6 +318,8 @@ export default function App() {
   const [deepLinkStart] = useState(readStartParam);
   // Arrived from someone's share: the first lesson's intro says "try it yourself".
   const [sharedFrom, setSharedFrom] = useState(() => (typeof window === 'undefined' ? null : sharedArrival(window.location.search)));
+  // Arrived from one of the free tools on fifths.io: the first intro says so. See arrival.ts.
+  const [toolNote, setToolNote] = useState(() => (typeof window === 'undefined' ? null : toolArrival(window.location.search)));
 
   // New visitors skip the in-app landing page: they already chose to try the
   // app on fifths.io, and a second sales page lost most of them in seconds.
@@ -1226,6 +1229,7 @@ export default function App() {
       haptics.heavy();
     }
     setSharedFrom(null); // the shared lesson is done; later intros are ordinary
+    setToolNote(null);
     // A streak milestone offers to share the week, once per milestone.
     const streakNow = getStreakDays();
     const milestoneKey = `fifths.share.streak.${streakNow}`;
@@ -1733,6 +1737,7 @@ export default function App() {
           }}
           onSkipSinging={canSkipSinging ? () => handleSkipSinging('intro') : undefined}
           shared={sharedFrom && deepLinkStart === currentLevel.id ? sharedFrom : null}
+          fromTool={toolNote && deepLinkStart === currentLevel.id ? toolNote : null}
         />
       );
     }
