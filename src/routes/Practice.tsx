@@ -720,6 +720,7 @@ export default function Practice({
               {question.targetNotes && question.targetNotes.length > 1 ? (
                 <SingSequence
                   key={question.id}
+                  levelId={level.id}
                   targetNotes={question.targetNotes}
                   anyOctave={level.singAcceptAnyOctave ?? true}
                   toleranceCents={effectiveSingTolerance(level.singToleranceCents, singDifficulty)}
@@ -734,6 +735,7 @@ export default function Practice({
                 <SingPrompt
                   label={question.acousticKind === 'sing_tonic' ? 'sing home' : undefined}
                   key={question.id}
+                  levelId={level.id}
                   targetNote={question.correctAnswer}
                   anyOctave={level.singAcceptAnyOctave ?? true}
                   toleranceCents={effectiveSingTolerance(level.singToleranceCents, singDifficulty)}

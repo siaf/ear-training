@@ -75,6 +75,10 @@ export function phRegister(props: Record<string, unknown>): void {
 }
 
 export function phCapture(event: string, props: Record<string, unknown> = {}): void {
+  // Browser tests run without PostHog. A test that sets window.__fifthsEvents = [] sees every
+  // event here instead; real visitors never have it, so nothing changes for them.
+  const sink = (globalThis as { __fifthsEvents?: unknown }).__fifthsEvents
+  if (Array.isArray(sink)) sink.push({ event, ...props })
   if (!initialised) return
   posthog.capture(event, props)
 }

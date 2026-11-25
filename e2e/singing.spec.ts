@@ -72,3 +72,49 @@ test('Find Home plays chords that stop short of home, and never names the note',
   const total = async () => { const s = await sounds(page); return s.synth + s.sample; };
   await expect.poll(total, { timeout: 10_000 }).toBeGreaterThanOrEqual(12);
 });
+
+type Sent = { event: string; [k: string]: unknown };
+const sent = (page: import('@playwright/test').Page, name: string) =>
+  page.evaluate((n) => ((window as unknown as { __fifthsEvents: Sent[] }).__fifthsEvents ?? []).filter((e) => e.event === n), name);
+
+test('each Match the Pitch question reports what the microphone heard', async ({ page, browserName }) => {
+  test.skip(browserName !== 'chromium', 'WebKit refuses a synthetic mic stream');
+  await page.addInitScript(() => { (window as unknown as { __fifthsEvents: unknown[] }).__fifthsEvents = []; });
+  await fakeMic(page, 220); // a steady A
+  await seed(page, BASICS, { voiceCheckedAt: 1 });
+  await openApp(page, '/?start=voice_match_pitch');
+  await pastIntro(page);
+
+  const prompt = page.getByText(/^sing [A-G]/);
+  await expect(prompt).toBeVisible();
+  const target = (await prompt.innerText()).replace(/^sing /, '').trim();
+  // The mic is muted while the app plays the note and lets it ring out, then hears the tone.
+  await page.waitForTimeout(5000);
+  if (target !== 'A') await page.getByRole('button', { name: 'skip question' }).click();
+
+  await expect.poll(async () => (await sent(page, 'sing_attempt')).length).toBeGreaterThan(0);
+  const [attempt] = await sent(page, 'sing_attempt');
+  expect(attempt).toMatchObject({ kind: 'prompt', level_id: 'voice_match_pitch', target_pitch_class: target, mic_problem: null });
+  expect(attempt.outcome).toBe(target === 'A' ? 'matched' : 'skipped');
+  expect(attempt.ms_to_mic).not.toBeNull();
+  expect(attempt.muted_ms as number).toBeGreaterThan(1000);
+  expect(attempt.first_sound_ms as number).toBeGreaterThan(1000);
+  expect(attempt.voice_ms as number).toBeGreaterThan(500);
+  expect(attempt.pitch_ms as number).toBeGreaterThan(500);
+  if (target === 'A') expect(attempt.best_hold_ms as number).toBeGreaterThanOrEqual(900);
+  else expect(attempt.in_tune_ms).toBe(0);
+});
+
+test('leaving a singing question with the mic blocked reports why', async ({ page }) => {
+  await page.addInitScript(() => { (window as unknown as { __fifthsEvents: unknown[] }).__fifthsEvents = []; });
+  await fakeMic(page, 'denied');
+  await seed(page, BASICS, { voiceCheckedAt: 1 });
+  await openApp(page, '/?start=voice_match_pitch');
+  await pastIntro(page);
+
+  await expect(page.getByText('microphone blocked')).toBeVisible();
+  await page.getByRole('button', { name: 'Exit session' }).click();
+  await expect.poll(async () => (await sent(page, 'sing_attempt')).length).toBe(1);
+  const [attempt] = await sent(page, 'sing_attempt');
+  expect(attempt).toMatchObject({ outcome: 'left', mic_problem: 'denied', voice_ms: 0, ms_to_mic: null });
+});

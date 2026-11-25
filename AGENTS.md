@@ -74,7 +74,7 @@ Run all three before deploying. Nothing runs them for you: there's no CI for tes
 | `tools.spec.ts` | Every free tool loads, and sample files arrive |
 | `pro.spec.ts` | Pro features as a signed-in subscriber (`asPro` in `fixtures.ts`, on the accounts server): saved drills, melodic dictation, all-time stats; and drills leading free learners to the plans |
 | `repeat.spec.ts` | "Repeat lesson" after a lesson, "drill what you missed" (free and Pro), and replaying a finished lesson from the path |
-| `singing.spec.ts` | The voice check before the first singing lesson, and "Find Home" never playing its answer. `fakeMic` in `fixtures.ts` stands in for the microphone; headless WebKit refuses a made-up mic stream, so the hum test runs in Chromium only |
+| `singing.spec.ts` | The voice check before the first singing lesson, "Find Home" never playing its answer, and the `sing_attempt` event each singing question sends. `fakeMic` in `fixtures.ts` stands in for the microphone; headless WebKit refuses a made-up mic stream, so tests that need it to hear a tone run in Chromium only |
 | `blog.spec.ts` | The best-apps post's updated date and lesson buttons, and the three-question ear test (`site/ear-quiz.js`) with its score sharing |
 | `lessons.spec.ts` | The public lesson pages: index, a free page that starts its lesson, a Pro page, preview pictures, the sitemap and `llms.txt` |
 | `share.spec.ts` | Sharing a medal, "your week" on the stats screen and the 7-day streak prompt: the picture, X, Reddit as a text post, and Escape |
@@ -88,6 +88,7 @@ Rules for browser tests:
 - **They must never reach production.** `playwright.config.ts` blanks the PostHog and Sentry keys, blanks Supabase or points it at a fake address, and `e2e/fixtures.ts` blocks all outside traffic except the React and Tone scripts from unpkg. It also fakes sample files and RevenueCat. Keep both in place, and never point a test at a live URL.
 - Every test fails if the page throws or logs an error. Don't filter out a new error to get a test passing; find out what it is first.
 - Import `test` from `./fixtures`, not from `@playwright/test`.
+- PostHog is off in tests. To check an event, set `window.__fifthsEvents = []` in an init script: `phCapture` (`src/lib/posthog.ts`) also pushes every event there.
 - Tests are silent: `e2e/fixtures.ts` sends all audio through a gain of zero just before the speakers (headless browsers on a Mac otherwise play out loud). So tests count sounds started rather than listen for them. `sounds(page)` returns how many came from synths and how many from samples. Audio needs a real click to start; see `openEngine` in `audio.spec.ts`.
 - When you add a test for a bug, put the old code back and check that the test fails. One test here passed on broken code until it was rewritten.
 - Run new tests a few times with `--repeat-each=3`. Timing mistakes often pass on the first run.
