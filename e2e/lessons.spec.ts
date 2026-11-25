@@ -44,6 +44,7 @@ test('the sitemap lists the lesson pages, and llms.txt describes Fifths for AI a
   const llms = await (await request.get(`${SITE}/llms.txt`)).text();
   expect(llms).toMatch(/^# Fifths\n\n> Fifths is an ear training app/);
   expect(llms).toMatch(/\d+ lessons, \d+ of them free/);
-  expect(llms).toContain('$4.99');
+  expect(llms).toContain('$9.99');
+  expect(llms).not.toContain('$4.99');
 });
 

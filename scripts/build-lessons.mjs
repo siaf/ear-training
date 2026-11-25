@@ -245,7 +245,7 @@ function llmsTxt(segments) {
 ## Plans
 
 - Free: foundations, singing, tonality, scale degrees, every interval, and major and minor chords, with 7 days of stats.
-- Pro: one monthly plan at $4.99 (a launch discount on the $9.99 list price). Adds more chords (diminished, inversions and sevenths), cadences, progressions and jazz harmony, all seven modes, melodic dictation, advanced rhythm, custom drills (save your own, or drill exactly what you just missed) and your full stats history.
+- Pro: one monthly plan at $9.99, cancel any time. Adds more chords (diminished, inversions and sevenths), cadences, progressions and jazz harmony, all seven modes, melodic dictation, advanced rhythm, custom drills (save your own, or drill exactly what you just missed) and your full stats history.
 
 ## How it teaches
 

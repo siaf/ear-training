@@ -20,22 +20,21 @@ export const PRODUCT_IDS = {
 // no longer sold. Pro is monthly only.
 
 /**
- * RevenueCat Web Billing discount code applied at checkout without the learner typing it:
- * $5.00 off, forever, on the monthly product, so launch subscribers pay $4.99 for as long
- * as they stay. It's what makes the crossed-out $9.99 on the paywall a real price. To end
- * the launch price, set this to '' and drop the crossed-out price and "launch discount"
- * badge from the Paywall and fifths.io in the same change. Earlier subscribers keep theirs.
+ * RevenueCat Web Billing discount code applied at checkout without the learner typing it.
+ * Empty: since 2026-11-25 Pro sells at its $9.99 list price with no discount (the user's
+ * call: the $4.99 launch price beside a $9.99 checkout confused buyers). The `LAUNCH` code
+ * ($5.00 off, forever) still exists in RevenueCat, switched off. Setting a code here again
+ * means showing the crossed-out price on the Paywall and fifths.io in the same change.
  */
-export const LAUNCH_DISCOUNT_CODE = 'LAUNCH';
+export const LAUNCH_DISCOUNT_CODE: string = '';
 
 type CustomerInfoLike = {
   entitlements?: { active?: Record<string, unknown> };
 };
 
 const PRODUCT_VALUE_USD: Record<string, number> = {
-  // What a subscriber pays: the $9.99 list price less LAUNCH_DISCOUNT_CODE's $5.00. Change
-  // it here, on the Paywall card and on fifths.io together.
-  [PRODUCT_IDS.proMonthly]: 4.99,
+  // What a subscriber pays. Change it here, on the Paywall card and on fifths.io together.
+  [PRODUCT_IDS.proMonthly]: 9.99,
 };
 
 interface BillingProvider {

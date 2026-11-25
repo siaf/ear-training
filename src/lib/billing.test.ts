@@ -175,15 +175,15 @@ describe('purchaseProduct on the web', () => {
     expect(reportError).not.toHaveBeenCalled();
   });
 
-  it('applies the launch discount code at checkout', async () => {
+  it('sells Pro at its $9.99 list price, with no discount code at checkout', async () => {
     const { startBilling, purchaseProduct, LAUNCH_DISCOUNT_CODE } = await loadBilling('rcb_live_key');
     await startBilling('user');
     rc.state.getOfferings.mockResolvedValue(offering('fifths_pro_monthly_999'));
     rc.state.purchase.mockResolvedValue({ customerInfo: PRO });
 
     expect(await purchaseProduct('fifths_pro_monthly_999')).toBe('purchased');
-    expect(LAUNCH_DISCOUNT_CODE).toBe('LAUNCH');
-    expect(rc.state.purchase).toHaveBeenCalledWith(expect.objectContaining({ discountCode: 'LAUNCH' }));
+    expect(LAUNCH_DISCOUNT_CODE).toBe('');
+    expect(rc.state.purchase.mock.calls[0][0]).not.toHaveProperty('discountCode');
   });
 
   it('pre-fills the checkout with the signed-in email, and only while signed in', async () => {

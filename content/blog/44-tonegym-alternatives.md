@@ -2,6 +2,7 @@
 title: "ToneGym alternatives in 2026: 8 ear training apps compared"
 slug: tonegym-alternatives
 date: 2026-10-31
+updated: 2026-11-25
 author: Fifths
 tags: [tonegym, ear-training, apps, comparison, alternatives]
 description: "ToneGym's games and daily workouts work well for some musicians. Others want a lower price, less gamification, a structured curriculum, or a better phone app. Eight alternatives compared with current pricing."
@@ -29,7 +30,7 @@ Prices are **as of October 2026**, from official sites and the US App Store.
 | App | Platforms | Price (Oct 2026) | Gamified? | Best for |
 |---|---|---|---|---|
 | [Theta Music Trainer](https://trainer.thetamusic.com/) | Web, iOS | Free levels; $9/mo or $39/yr | Yes (50 games) | The closest ToneGym-style experience, cheaper |
-| [Fifths](https://app.fifths.io/?utm_source=fifths.io&utm_medium=blog&utm_campaign=tonegym-alternatives) | Web | Free tier; $4.99/mo | Light (streaks, no leaderboards) | A structured path with stats on what you miss |
+| [Fifths](https://app.fifths.io/?utm_source=fifths.io&utm_medium=blog&utm_campaign=tonegym-alternatives) | Web | Free tier; Pro $9.99/mo | Light (streaks, no leaderboards) | A structured path with stats on what you miss |
 | [Complete Ear Trainer](https://apps.apple.com/us/app/complete-ear-trainer/id1012455471) | iOS, Android | Free; $6.99 one-time | Some (arcade mode) | Pay once, mobile |
 | [EarMaster](https://www.earmaster.com/) | Windows, macOS, iOS, Android | All-Access $49.95/yr; desktop $59.95 once | No | Depth, sight-singing, exams |
 | [Functional Ear Trainer](https://apps.apple.com/us/app/functional-ear-trainer/id1088761926) | iOS, Android | Free; Plus $19.99 | No | Scale-degree hearing |
@@ -53,7 +54,7 @@ Fifths takes a different approach from ToneGym. Instead of rotating games, it's 
 
 **Pros:** structured progression instead of a game shuffle; per-item stats on weak spots; serious harmony coverage (secondary dominants, ii-V-I, altered dominants, voicings); runs in any browser with no signup for the first lessons; no ads.
 **Cons:** much less gamified, which is a downside if games are what keep you practicing; no community features; no sight-singing from notation yet; iOS and Android apps aren't in the stores yet.
-**Pricing:** free tier covers foundations, tonality, scale degrees, every interval and most Voice lessons. Pro is $4.99/month.
+**Pricing:** free tier covers foundations, tonality, scale degrees, every interval and most Voice lessons. Pro is $9.99/month.
 **Best for:** musicians who found ToneGym's games fun but weren't sure what they were improving.
 
 ### 3. Complete Ear Trainer
@@ -124,7 +125,7 @@ ToneGym's tools include a circle of fifths; ours is free at [/tools/circle-of-fi
 If daily games, scores and contests keep you practicing, Pro can be worth it. The best ear training app is the one you use daily. If you find yourself playing games without a clear sense of improvement, a structured app may suit you better.
 
 **What's the cheapest ToneGym alternative?**
-Tonedear is free to use in the browser. Of the paid options, Complete Ear Trainer ($6.99 one-time) and Perfect Ear (Premium $14.99 on iOS) are the cheapest. Theta Music Trainer ($39/year) and Fifths ($4.99/month) are the cheapest subscriptions here.
+Tonedear is free to use in the browser. Of the paid options, Complete Ear Trainer ($6.99 one-time) and Perfect Ear (Premium $14.99 on iOS) are the cheapest. Theta Music Trainer ($39/year) is the cheapest subscription here; Fifths is $9.99/month.
 
 **Is there a ToneGym alternative with similar games?**
 Theta Music Trainer is the closest, with about 50 games across intervals, chords, melody and rhythm.

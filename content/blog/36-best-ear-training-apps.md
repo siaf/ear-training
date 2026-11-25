@@ -2,7 +2,7 @@
 title: "Best ear training apps in 2026: an honest comparison"
 slug: best-ear-training-apps
 date: 2026-05-05
-updated: 2026-11-09
+updated: 2026-11-25
 author: Fifths
 tags: [ear-training, apps, review, comparison, listicle]
 description: "Most ear-training-app roundups copy each other. This one tries to be useful: nine apps, real strengths and weaknesses, and the one question you should answer before picking any of them."
@@ -119,7 +119,7 @@ A browser-based app (iOS and Android versions are on the way) that prioritizes f
 **Strengths:** functional-first curriculum (informed by tonal-hierarchy research and the Berklee/Banacos jazz-pedagogy literature); per-item spaced-repetition surfaces weaknesses without you having to track them yourself; runs in any modern browser, desktop or phone; no ads, ever.
 **Weaknesses:** newer (so less battle-tested than EarMaster); no App Store or Play Store app yet; the app deliberately does not gamify with streaks-or-die mechanics, which some learners do prefer.
 **Best for:** adult learners who want measurable progress on functional hearing, jazz musicians who want serious harmony coverage, and the learners who tried interval-only apps and bounced off them.
-**Pricing:** [free to try](https://app.fifths.io/?utm_source=fifths.io&utm_medium=blog&utm_campaign=best-ear-training-apps) (no signup to start); Pro is $4.99/mo.
+**Pricing:** [free to try](https://app.fifths.io/?utm_source=fifths.io&utm_medium=blog&utm_campaign=best-ear-training-apps) (no signup to start); Pro is $9.99/mo.
 
 ### Honourable mentions
 
@@ -140,7 +140,7 @@ A browser-based app (iOS and Android versions are on the way) that prioritizes f
 | Musictheory.net | Web | Free | No | Free interval/chord drills |
 | Teoria | Web | Free | Limited | Free, school-aligned |
 | SoundGym | Web | $$$ subscription | N/A (engineering) | Production / mixing |
-| Fifths | Web (iOS/Android coming) | Free tier; $4.99/mo | **Yes (default)** | Functional + analytics + jazz |
+| Fifths | Web (iOS/Android coming) | Free tier; Pro $9.99/mo | **Yes (default)** | Functional + analytics + jazz |
 
 {{lesson-cta}}
 

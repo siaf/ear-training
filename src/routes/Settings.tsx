@@ -651,7 +651,7 @@ export default function Settings({
                 on the free plan
               </div>
               <div style={{ fontSize: 13, opacity: 0.9, marginTop: 2 }}>
-                Pro adds modes, dictation and custom practice · $4.99/mo, half price at launch
+                Pro adds modes, dictation and custom practice · $9.99/mo
               </div>
             </div>
             <Bean tone="ink" size="sm" onClick={onOpenPaywall}>

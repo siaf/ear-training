@@ -34,11 +34,13 @@ test('the paywall shows the plans and can be closed', async ({ page }) => {
   await expect(page).toHaveURL(/path/);
 });
 
-test('the paywall sells one monthly plan at the launch price, after signing in', async ({ page }) => {
+test('the paywall sells one monthly plan at $9.99, with how it renews and the terms, after signing in', async ({ page }) => {
   await openApp(page, '/paywall');
-  await expect(page.getByText('$4.99', { exact: true })).toBeVisible();
-  await expect(page.locator('s', { hasText: '$9.99' })).toBeVisible();
-  await expect(page.getByText('launch discount')).toBeVisible();
+  await expect(page.getByText('$9.99', { exact: true })).toBeVisible();
+  await expect(page.locator('s')).toHaveCount(0);
+  await expect(page.getByText(/4\.99|launch discount/i)).toHaveCount(0);
+  await expect(page.getByText(/Renews at \$9\.99 a month until you cancel/)).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Terms' })).toHaveAttribute('href', 'https://fifths.io/terms/');
   await expect(page.getByText(/lifetime|one-time|per year/i)).toHaveCount(0);
   await page.getByRole('button', { name: 'subscribe' }).click();
   await expect(page.getByRole('dialog')).toBeVisible();

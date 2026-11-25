@@ -2,7 +2,7 @@
 title: "Best interval ear training apps in 2026: 10 options compared"
 slug: best-interval-training-apps
 date: 2026-10-31
-updated: 2026-11-10
+updated: 2026-11-25
 author: Fifths
 tags: [intervals, ear-training, apps, comparison, review]
 description: "If you want to learn intervals by ear, the app matters less than whether it lets you drill the right intervals, in both directions and as harmonic dyads, every day. Ten interval trainers compared on price, platforms, and what they actually let you practice."
@@ -25,7 +25,7 @@ If you'd rather try something first without installing anything, our [free inter
 |---|---|---|---|
 | [Complete Ear Trainer](https://apps.apple.com/us/app/complete-ear-trainer/id1012455471) | iOS, Android | Free; full version $6.99 one-time | A structured interval path on your phone |
 | [Tonedear](https://tonedear.com/ear-training/intervals) | Web (paid app for offline use) | Web exercises free to use | Fully configurable drilling, including 9ths |
-| [Fifths](https://app.fifths.io/?start=int_harmonic_4ths_5ths&utm_source=fifths.io&utm_medium=blog&utm_campaign=best-interval-training-apps) | Web | Free tier; Pro $4.99/mo | A guided path plus stats on which intervals you miss |
+| [Fifths](https://app.fifths.io/?start=int_harmonic_4ths_5ths&utm_source=fifths.io&utm_medium=blog&utm_campaign=best-interval-training-apps) | Web | Free tier; Pro $9.99/mo | A guided path plus stats on which intervals you miss |
 | [Theta Music Trainer](https://trainer.thetamusic.com/) | Web, iOS | 3 free levels per game; $9/mo or $39/yr | Interval games instead of quizzes |
 | [Tenuto](https://www.musictheory.net/products/tenuto) / [musictheory.net](https://www.musictheory.net/exercises) | iOS / Web | $4.99 one-time / free | Quick, no-frills drills |
 | [teoria.com](https://www.teoria.com/en/exercises/ie.php) | Web | No prices listed | Answering on a MIDI keyboard |
@@ -71,7 +71,7 @@ Fifths is a browser-based ear training app built around short lessons and per-it
 
 **Pros:** a clear harmonic-then-melodic path; accuracy broken down per interval and direction; also trains scale degrees and chords in the same app; runs in any browser with no signup for the first lessons; no ads.
 **Cons:** no compound intervals (9ths and up) yet; you follow its groupings rather than choosing any set of intervals yourself; newer and smaller than most apps here; iOS and Android apps aren't in the stores yet, so on a phone you use the browser.
-**Pricing:** every interval lesson is free, along with the foundations, tonality, scale-degree and singing sections. Major and minor chords are free too. Pro is $4.99/month and adds seventh chords, progressions, modes, melodic dictation, custom drills (just the intervals you choose, or the ones you just missed) and full stats history.
+**Pricing:** every interval lesson is free, along with the foundations, tonality, scale-degree and singing sections. Major and minor chords are free too. Pro is $9.99/month and adds seventh chords, progressions, modes, melodic dictation, custom drills (just the intervals you choose, or the ones you just missed) and full stats history.
 **Best for:** learners who want a guided route through intervals and want to see exactly which ones they miss.
 
 [Try the first interval lesson →](https://app.fifths.io/?start=int_harmonic_4ths_5ths&utm_source=fifths.io&utm_medium=blog&utm_campaign=best-interval-training-apps)

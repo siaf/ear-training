@@ -39,6 +39,8 @@ interface Plan {
   badge?: string;
   /** The full price, shown crossed out beside a discounted `price`. */
   listPrice?: string;
+  /** Under the button: how it renews, then links to the terms and privacy policy. */
+  terms?: string;
   cta: string;
 }
 
@@ -65,13 +67,12 @@ const PLANS: Plan[] = [
     cta: 'free forever',
   },
   {
-    // One plan: monthly, cancel any time. The list price is $9.99, shown crossed out
-    // beside the $4.99 launch price (the user's call, 2026-11-10). It's real: the product
-    // is $9.99 in RevenueCat and checkout applies LAUNCH_DISCOUNT_CODE (billing.ts), $5.00
-    // off forever. Ending the launch price changes both. See "Free and Pro copy" in AGENTS.md.
+    // One plan: monthly, cancel any time, $9.99 with no discount (from 2026-11-25; it was
+    // $4.99 off a crossed-out $9.99). The same price shows in RevenueCat's checkout, so the
+    // two agree. See "Free and Pro copy" in AGENTS.md before changing it.
     id: 'pro',
     name: 'Pro',
-    price: '$4.99',
+    price: '$9.99',
     priceNote: 'per month · cancel any time',
     color: 'var(--coral)',
     ink: 'var(--coral-ink)',
@@ -85,10 +86,9 @@ const PLANS: Plan[] = [
       'Advanced rhythm: subdivisions, meter, dictation',
       'Your full stats history',
     ],
-    listPrice: '$9.99',
     highlight: true,
-    badge: 'launch discount',
     cta: 'subscribe',
+    terms: 'Renews at $9.99 a month until you cancel. By subscribing you agree to the',
   },
 ];
 
@@ -102,7 +102,7 @@ function triggerCopy(trigger: PaywallTrigger): { title: string; sub: string } {
     default:
       return {
         title: 'Free, or Pro.',
-        sub: 'Free trains your ear for notes, intervals, keys and major and minor chords. Pro adds seventh chords, progressions, modes, dictation and custom practice, now half price at launch.',
+        sub: 'Free trains your ear for notes, intervals, keys and major and minor chords. Pro adds seventh chords, progressions, modes, dictation and custom practice.',
       };
   }
 }
@@ -200,7 +200,7 @@ export default function Paywall({ trigger, currentPlan, onSelect, onDismiss, not
                     : 'var(--sh-sm)',
                 }}
               >
-                {(p.highlight || p.badge) && (
+                {p.badge && (
                   <div
                     style={{
                       position: 'absolute',
@@ -219,7 +219,7 @@ export default function Paywall({ trigger, currentPlan, onSelect, onDismiss, not
                       whiteSpace: 'nowrap',
                     }}
                   >
-                    {p.badge ?? 'most popular'}
+                    {p.badge}
                   </div>
                 )}
                 <div
@@ -293,6 +293,14 @@ export default function Paywall({ trigger, currentPlan, onSelect, onDismiss, not
                 >
                   {isCurrent ? 'current plan' : p.cta}
                 </Bean>
+                {p.terms && !isCurrent && (
+                  <p style={{ margin: '10px 0 0', fontSize: 11.5, lineHeight: 1.45, color: 'var(--ink-2)', textAlign: 'center' }}>
+                    {p.terms}{' '}
+                    <a href="https://fifths.io/terms/" target="_blank" rel="noopener" style={{ color: 'inherit' }}>Terms</a>
+                    {' and '}
+                    <a href="https://fifths.io/privacy/" target="_blank" rel="noopener" style={{ color: 'inherit' }}>Privacy Policy</a>.
+                  </p>
+                )}
                 {notice?.plan === p.id && (
                   <div
                     ref={noticeRef}

@@ -2,6 +2,7 @@
 title: "Best ear training apps for singers (2026): sight-singing, harmony and aural skills"
 slug: ear-training-apps-for-singers
 date: 2026-10-31
+updated: 2026-11-25
 author: Fifths
 tags: [singing, ear-training, sight-singing, apps, comparison]
 description: "Singers need different ear training from instrumentalists: you have to produce the pitch, not just recognize it. Eight apps compared for sight-singing, holding a harmony part, singing intervals and hearing notes in a key."
@@ -26,7 +27,7 @@ Prices are **as of October 2026**, from official sites and the US App Store.
 |---|---|---|---|---|
 | [Sight Singing Pro](https://apps.apple.com/us/app/-/id1631774557) | iOS, Android | Yes, note by note | $8.99/mo, $89.99/yr or $259.99 once | Sight-singing from a score |
 | [EarMaster](https://www.earmaster.com/) | Windows, macOS, iOS, Android | Yes (pitch and timing) | All-Access $49.95/yr; iOS Vocal Trainer $14.99 | Complete aural skills, including singing |
-| [Fifths](https://app.fifths.io/?start=voice_match_pitch&utm_source=fifths.io&utm_medium=blog&utm_campaign=ear-training-apps-for-singers) | Web | Yes (sing-back exercises) | Free tier; Pro $4.99/mo | Singing scale degrees and patterns in a key |
+| [Fifths](https://app.fifths.io/?start=voice_match_pitch&utm_source=fifths.io&utm_medium=blog&utm_campaign=ear-training-apps-for-singers) | Web | Yes (sing-back exercises) | Free tier; Pro $9.99/mo | Singing scale degrees and patterns in a key |
 | [Harmony Helper](https://apps.apple.com/us/app/harmony-helper/id1283704743) | iOS | Yes (pitch and timing) | Free download | Learning and holding harmony parts |
 | [Functional Ear Trainer](https://apps.apple.com/us/app/functional-ear-trainer/id1088761926) | iOS, Android | No (tap answers) | Free; Plus $19.99 | Hearing scale degrees |
 | [Perfect Ear](https://apps.apple.com/us/app/perfect-ear-music-rhythm/id1440768353) | iOS, Android | Yes ("sing it" drills) | Free; Premium $14.99 | Cheap all-rounder with singing drills |
@@ -73,7 +74,7 @@ Each is graded by microphone pitch detection. Alongside the Voice section, the t
 
 **Pros:** singing exercises grounded in a key, not isolated notes; ear training and voice in one place; free in any browser with no signup for the first lessons; per-item stats show which degrees you miss.
 **Cons:** **no sight-singing from notation or melodic dictation yet** (both are planned, not shipped); no harmony-part practice; no song library; iOS and Android apps aren't in the stores yet.
-**Pricing:** most Voice lessons, plus foundations, tonality and scale degrees, are free. Pro is $4.99/month.
+**Pricing:** most Voice lessons, plus foundations, tonality and scale degrees, are free. Pro is $9.99/month.
 **Best for:** singers building the inner sense of key that sight-singing depends on, especially those who aren't fluent in notation yet.
 
 [Start with Match the Pitch →](https://app.fifths.io/?start=voice_match_pitch&utm_source=fifths.io&utm_medium=blog&utm_campaign=ear-training-apps-for-singers)
