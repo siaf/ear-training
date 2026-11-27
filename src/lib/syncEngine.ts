@@ -371,14 +371,42 @@ const landingUrlParams =
     ? null
     : new URLSearchParams(window.location.search + '&' + window.location.hash.replace(/^#/, ''));
 
+/**
+ * What went wrong when Supabase sent someone back from a sign-in link, if anything.
+ * 'link_used': an email link that was already used or has expired. Each one works once,
+ * and email scanners, link previews and a second tap or browser all use it up.
+ */
+export type LandingAuthError = 'link_used' | 'other';
+export function getLandingAuthError(): LandingAuthError | null {
+  const params = landingUrlParams;
+  if (!params) return null;
+  const error = params.get('error') || params.get('error_code');
+  if (!error) return null;
+  const code = params.get('error_code') ?? '';
+  return code === 'otp_expired' || error === 'access_denied' ? 'link_used' : 'other';
+}
+
 function reportAuthRedirectError(): void {
   const params = landingUrlParams;
-  if (!params) return;
-  const error = params.get('error') || params.get('error_code');
-  if (!error) return;
+  const kind = getLandingAuthError();
+  if (!params || !kind) return;
+  const error = params.get('error') || params.get('error_code') || '';
   const description = params.get('error_description') ?? '';
+  phCapture('auth_failed', { step: 'redirect', reason: error, error_code: params.get('error_code') ?? undefined });
+  // A used or expired link is expected (the app says so and offers a code), so it isn't a bug report.
+  if (kind === 'link_used') return;
   reportError('auth', new Error(`Auth redirect error: ${error} ${description}`.trim()), { step: 'redirect' });
-  phCapture('auth_failed', { step: 'redirect', reason: error });
+}
+
+/**
+ * Signs in with the code from the sign-in email, in this tab. Unlike the link, it can't be
+ * used up by a mail scanner, and it works when the link would open another browser or a
+ * separate private tab. onAuthStateChange then picks up the session as it does for the link.
+ */
+export async function verifyEmailCode(email: string, code: string): Promise<void> {
+  if (!supabase) throw new Error('Supabase is not configured');
+  const { error } = await supabase.auth.verifyOtp({ email, token: code, type: 'email' });
+  if (error) throw error;
 }
 
 export async function signInWithMagicLink(email: string): Promise<void> {

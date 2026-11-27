@@ -50,8 +50,10 @@ For each template:
 
 | Zip | Purpose | Trigger | Mascot | Required `{DATA_VARIABLE:*}` |
 |---|---|---|---|---|
-| `magic-link.zip` | Supabase magic-link sign-in | Supabase Auth `magic_link` | Fable (portrait) | `confirmationUrl` |
-| `confirm-signup.zip` | First-time signup confirmation | Supabase Auth `signup` | Fable (happy) | `confirmationUrl` |
+| `magic-link.zip` | Supabase magic-link sign-in | Supabase Auth `magic_link` | Fable (portrait) | `confirmationUrl`, `token` |
+| `confirm-signup.zip` | First-time signup confirmation | Supabase Auth `signup` | Fable (happy) | `confirmationUrl`, `token` |
+
+`token` is the sign-in code (`{{ .Token }}` in Supabase's email templates, which send JSON to Loops: `"dataVariables": {"confirmationUrl": "{{ .ConfirmationURL }}", "token": "{{ .Token }}"}`). The app's sign-in sheet takes the code, so learners can sign in in the tab they're in.
 | `payment-failed.zip` | Stripe charge failure | RevenueCat webhook `BILLING_ISSUE` (not yet wired — see TODO.md) | Major (curious) | `nextRetryDate`, `updateUrl` |
 | `cancelled.zip` | Subscription cancellation | RevenueCat webhook `CANCELLATION` (not yet wired — see TODO.md) | Fable (content) | `accessUntilDate`, `resubUrl` |
 

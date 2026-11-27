@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Check } from 'lucide-react';
 import { Bean, Blob } from './primitives';
-import { signInWithGoogle, signInWithMagicLink } from '../lib/syncEngine';
+import { signInWithGoogle, signInWithMagicLink, verifyEmailCode } from '../lib/syncEngine';
 import { phCapture } from '../lib/posthog';
 import { reportError } from '../lib/reportError';
 
@@ -9,19 +9,38 @@ interface Props {
   onClose: () => void;
   // 'first_lesson' = the soft ask after someone's first finished lesson.
   // 'lesson_limit' = the wall after the free lessons (ANON_LESSON_LIMIT in App.tsx).
-  reason?: 'sync' | 'first_lesson' | 'lesson_limit';
+  // 'link_used' = they arrived from an email link that was already used or has expired.
+  reason?: AuthSheetReason;
 }
 
+export type AuthSheetReason = 'sync' | 'first_lesson' | 'lesson_limit' | 'link_used';
+
 type Status = 'idle' | 'sending' | 'sent' | 'error';
+
+// Supabase's answers, in words a learner can act on. null: not one we expect, so show it
+// as it is and report it.
+function friendlyAuthMessage(message: string): string | null {
+  if (/email rate limit exceeded|over_email_send_rate_limit/i.test(message)) {
+    return "We've sent several emails in the last few minutes. Use the newest one, or continue with Google.";
+  }
+  if (/token has expired or is invalid|otp.*(expired|invalid)|invalid.*(token|otp)/i.test(message)) {
+    return "That code didn't work. Check the newest email, or send a new one.";
+  }
+  return null;
+}
 
 export default function AuthSheet({ onClose, reason = 'sync' }: Props) {
   const firstLesson = reason === 'first_lesson';
   const wall = reason === 'lesson_limit';
+  const linkUsed = reason === 'link_used';
   const [mounted, setMounted] = useState(false);
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<Status>('idle');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [emailOpen, setEmailOpen] = useState(false);
+  const [emailOpen, setEmailOpen] = useState(linkUsed);
+  const [code, setCode] = useState('');
+  const [verifying, setVerifying] = useState(false);
+  const [resent, setResent] = useState(false);
   const [googleStarting, setGoogleStarting] = useState(false);
   const backdropRef = useRef<HTMLDivElement | null>(null);
 
@@ -42,29 +61,61 @@ export default function AuthSheet({ onClose, reason = 'sync' }: Props) {
     phCapture('auth_sheet_opened', { reason });
   }, [reason]);
 
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
-    if (status === 'sending') return;
-    const trimmed = email.trim();
-    if (!trimmed) return;
-    setStatus('sending');
-    setErrorMsg(null);
+  // 'wait': Supabase refused because one was asked for seconds ago, so that one is on its way.
+  async function sendEmail(): Promise<'sent' | 'wait' | 'failed'> {
     phCapture('auth_provider_clicked', { provider: 'magic_link' });
     try {
-      await signInWithMagicLink(trimmed);
-      setStatus('sent');
+      await signInWithMagicLink(email.trim());
+      return 'sent';
     } catch (err) {
       const message = err instanceof Error ? err.message : 'unknown';
       phCapture('auth_failed', { provider: 'magic_link', reason: message });
-      // Asking twice within a few seconds: Supabase refuses the second, but the first link
-      // is on its way, so say that rather than show its error (or report it as one).
-      if (/only request this after \d+ seconds/i.test(message)) {
-        setStatus('sent');
-        return;
-      }
-      reportError('auth', err, { provider: 'magic_link' });
-      setStatus('error');
-      setErrorMsg(err instanceof Error ? err.message : 'Could not send the link.');
+      if (/only request this after \d+ seconds/i.test(message)) return 'wait';
+      const friendly = friendlyAuthMessage(message);
+      if (!friendly) reportError('auth', err, { provider: 'magic_link' });
+      setErrorMsg(friendly ?? (err instanceof Error ? err.message : 'Could not send the email.'));
+      return 'failed';
+    }
+  }
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (status === 'sending' || !email.trim()) return;
+    setStatus('sending');
+    setErrorMsg(null);
+    const result = await sendEmail();
+    // On 'wait', the earlier email is on its way, so go on to its code rather than show an error.
+    setStatus(result === 'failed' ? 'error' : 'sent');
+  }
+
+  async function resend() {
+    setErrorMsg(null);
+    setResent(false);
+    setCode('');
+    const result = await sendEmail();
+    if (result === 'sent') setResent(true);
+    if (result === 'wait') setErrorMsg('A new email can go in a few seconds. Try again shortly.');
+  }
+
+  // Signing in here, in this tab. App closes the sheet once the session lands
+  // (and carries on with whatever the learner was starting).
+  async function submitCode(e: React.FormEvent) {
+    e.preventDefault();
+    const digits = code.replace(/\D/g, '');
+    if (verifying || digits.length < 6) return;
+    setVerifying(true);
+    setErrorMsg(null);
+    phCapture('auth_provider_clicked', { provider: 'email_code' });
+    try {
+      await verifyEmailCode(email.trim(), digits);
+      phCapture('auth_code_verified');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'unknown';
+      phCapture('auth_failed', { provider: 'email_code', reason: message });
+      const friendly = friendlyAuthMessage(message);
+      if (!friendly) reportError('auth', err, { provider: 'email_code' });
+      setErrorMsg(friendly ?? (err instanceof Error ? err.message : 'Could not sign in with that code.'));
+      setVerifying(false);
     }
   }
 
@@ -117,7 +168,7 @@ export default function AuthSheet({ onClose, reason = 'sync' }: Props) {
                   marginBottom: 6,
                 }}
               >
-                {firstLesson ? 'nice work' : wall ? 'free account' : 'cloud sync'}
+                {linkUsed ? 'link already used' : firstLesson ? 'nice work' : wall ? 'free account' : 'cloud sync'}
               </div>
               <h2
                 style={{
@@ -129,7 +180,9 @@ export default function AuthSheet({ onClose, reason = 'sync' }: Props) {
                   margin: '0 0 10px',
                 }}
               >
-                {wall ? (
+                {linkUsed ? (
+                  <>That sign-in link has <span style={{ fontStyle: 'italic', color: 'var(--mint-ink)' }}>already been used.</span></>
+                ) : wall ? (
                   <>Save your progress to <span style={{ fontStyle: 'italic', color: 'var(--mint-ink)' }}>keep going.</span></>
                 ) : firstLesson ? (
                   <>Keep your <span style={{ fontStyle: 'italic', color: 'var(--mint-ink)' }}>progress.</span></>
@@ -138,7 +191,9 @@ export default function AuthSheet({ onClose, reason = 'sync' }: Props) {
                 )}
               </h2>
               <p style={{ fontSize: 14, color: 'var(--ink-2)', lineHeight: 1.5, margin: '0 0 18px' }}>
-                {wall
+                {linkUsed
+                  ? 'Each link works once, and some email apps open it before you do. If you opened it in another tab or browser, you\'re signed in there. To sign in here, we\'ll email you a code.'
+                  : wall
                   ? 'You\'ve finished your first lessons. A free account keeps everything you\'ve done and opens the rest of the free course, on any device. It takes 10 seconds with Google.'
                   : firstLesson
                   ? 'Save this lesson and pick up where you left off on any device. We\'ll send an occasional nudge to keep your streak going; unsubscribe anytime.'
@@ -191,7 +246,7 @@ export default function AuthSheet({ onClose, reason = 'sync' }: Props) {
                 <>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '18px 0 10px' }}>
                     <div style={{ flex: 1, height: 1, background: 'var(--ink-5)' }} />
-                    <span style={{ fontSize: 11, color: 'var(--ink-3)', letterSpacing: 1, textTransform: 'uppercase' }}>email magic link</span>
+                    <span style={{ fontSize: 11, color: 'var(--ink-3)', letterSpacing: 1, textTransform: 'uppercase' }}>sign in by email</span>
                     <div style={{ flex: 1, height: 1, background: 'var(--ink-5)' }} />
                   </div>
                   <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -221,7 +276,7 @@ export default function AuthSheet({ onClose, reason = 'sync' }: Props) {
                       disabled={status === 'sending'}
                       style={{ justifyContent: 'center' }}
                     >
-                      {status === 'sending' ? 'sending…' : 'send magic link'}
+                      {status === 'sending' ? 'sending…' : 'email me a sign-in code'}
                     </Bean>
                   </form>
                 </>
@@ -256,7 +311,7 @@ export default function AuthSheet({ onClose, reason = 'sync' }: Props) {
                 }}
               >
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-                  <Check size={12} strokeWidth={3} /> link sent
+                  <Check size={12} strokeWidth={3} /> email sent
                 </span>
               </div>
               <h2
@@ -271,12 +326,58 @@ export default function AuthSheet({ onClose, reason = 'sync' }: Props) {
               >
                 Check <span style={{ fontStyle: 'italic', color: 'var(--mint-ink)' }}>{email}</span>.
               </h2>
-              <p style={{ fontSize: 14, color: 'var(--ink-2)', lineHeight: 1.5, margin: '0 0 18px' }}>
-                Tap the magic link in the email to sign in. The link opens this app and you'll be signed in automatically.
+              <p style={{ fontSize: 14, color: 'var(--ink-2)', lineHeight: 1.5, margin: '0 0 14px' }}>
+                Type the code from the email to sign in here, or tap the link in it.
               </p>
-              <Bean tone="ghost" size="sm" onClick={onClose} style={{ alignSelf: 'center' }}>
-                close
-              </Bean>
+              <form onSubmit={submitCode} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  aria-label="Code from the email"
+                  placeholder="123456"
+                  maxLength={12}
+                  value={code}
+                  onChange={(e) => setCode(e.target.value.replace(/[^\d ]/g, ''))}
+                  style={{
+                    fontFamily: 'var(--mono)',
+                    fontSize: 22,
+                    letterSpacing: 6,
+                    textAlign: 'center',
+                    padding: '12px 16px',
+                    borderRadius: 14,
+                    border: '1.5px solid var(--ink-5)',
+                    background: 'var(--card)',
+                    color: 'var(--ink-1)',
+                    outline: 'none',
+                  }}
+                />
+                <Bean
+                  tone="coral"
+                  size="lg"
+                  type="submit"
+                  disabled={verifying || code.replace(/\D/g, '').length < 6}
+                  style={{ justifyContent: 'center' }}
+                >
+                  {verifying ? 'signing in…' : 'sign in'}
+                </Bean>
+              </form>
+              {errorMsg && (
+                <div style={{ fontSize: 13, color: 'var(--coral-ink)', textAlign: 'center', marginTop: 10 }}>{errorMsg}</div>
+              )}
+              {resent && !errorMsg && (
+                <div role="status" style={{ fontSize: 13, color: 'var(--mint-ink)', textAlign: 'center', marginTop: 10 }}>
+                  New email sent. Use the code in the newest one.
+                </div>
+              )}
+              <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 10 }}>
+                <Bean tone="ghost" size="sm" onClick={() => { void resend(); }}>
+                  send a new email
+                </Bean>
+                <Bean tone="ghost" size="sm" onClick={onClose}>
+                  close
+                </Bean>
+              </div>
             </>
           )}
         </div>

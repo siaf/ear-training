@@ -1,4 +1,4 @@
-import { test, expect, openApp, ACCOUNTS_APP, signedIn } from './fixtures';
+import { test, expect, openApp, ACCOUNTS_APP, signedIn, E2E_USER } from './fixtures';
 
 // ACCOUNTS_APP: the app with accounts switched on (see fixtures.ts).
 
@@ -238,4 +238,130 @@ test('an account the server does not confirm never reaches Loops', async ({ page
   await page.waitForLoadState('networkidle');
   await page.waitForTimeout(500);
   expect(called).toBe(false);
+});
+
+// Signing in with the code from the email, in the same tab. The link alone failed people
+// whose mail app or link preview used it first, or who opened it in another browser or a
+// separate private tab (2026-11-27). Supabase is faked: the code 123456 signs in.
+async function fakeEmailSignIn(page: import('@playwright/test').Page, { otp = 'sends' as 'sends' | 'rate_limited' } = {}) {
+  const verified: { email?: string; token?: string; type?: string }[] = [];
+  let signedIn = false;
+  const user = { ...E2E_USER, created_at: new Date().toISOString() };
+  await page.route(/^http:\/\/localhost:5199\//, async (route) => {
+    const url = route.request().url();
+    if (url.includes('/auth/v1/otp')) {
+      if (otp === 'rate_limited') {
+        return route.fulfill({ status: 429, json: { code: 429, error_code: 'over_email_send_rate_limit', msg: 'email rate limit exceeded' } });
+      }
+      return route.fulfill({ json: {} });
+    }
+    if (url.includes('/auth/v1/verify')) {
+      const body = route.request().postDataJSON() as { email?: string; token?: string; type?: string };
+      verified.push(body);
+      if (body.token !== '123456') {
+        return route.fulfill({ status: 403, json: { code: 403, error_code: 'otp_expired', msg: 'Token has expired or is invalid' } });
+      }
+      signedIn = true;
+      const now = Math.floor(Date.now() / 1000);
+      return route.fulfill({ json: { access_token: 'e2e-access-token', refresh_token: 'e2e-refresh', token_type: 'bearer', expires_in: 3600, expires_at: now + 3600, user } });
+    }
+    if (url.includes('/auth/v1/user')) {
+      return signedIn ? route.fulfill({ json: user }) : route.fulfill({ status: 401, json: { code: 401, msg: 'invalid JWT' } });
+    }
+    return route.fulfill({ json: [] });
+  });
+  return verified;
+}
+
+async function askForCode(page: import('@playwright/test').Page) {
+  const sheet = page.getByRole('dialog', { name: /sign in/i });
+  const ask = sheet.getByRole('button', { name: /or sign in with email/i });
+  if (await ask.isVisible()) await ask.click();
+  await sheet.getByPlaceholder('your@email.com').fill('learner@example.com');
+  await sheet.getByRole('button', { name: /email me a sign-in code/i }).click();
+  await expect(sheet.getByRole('textbox', { name: /code from the email/i })).toBeVisible();
+  return sheet;
+}
+
+test('the code from the email signs a learner in, in this tab', async ({ page }) => {
+  const verified = await fakeEmailSignIn(page);
+  await openApp(page, `${ACCOUNTS_APP}/path`);
+  await page.getByRole('button', { name: 'sign in', exact: true }).click();
+  const sheet = await askForCode(page);
+
+  await sheet.getByRole('textbox', { name: /code from the email/i }).fill('123456');
+  await sheet.getByRole('button', { name: /^sign in$/i }).click();
+
+  await expect(sheet).toBeHidden();
+  await expect(page.getByRole('button', { name: 'sign in', exact: true })).toBeHidden();
+  expect(verified).toEqual([expect.objectContaining({ email: 'learner@example.com', token: '123456', type: 'email' })]);
+});
+
+test('signing in with the code at the wall carries on into the lesson', async ({ page }) => {
+  await fakeEmailSignIn(page);
+  await openApp(page, `${ACCOUNTS_APP}/path`, TWO_DONE);
+  await page.getByRole('button', { name: /continue/i }).first().click();
+  await expect(wall(page)).toContainText('Save your progress to keep going.');
+  const sheet = await askForCode(page);
+
+  await sheet.getByRole('textbox', { name: /code from the email/i }).fill('123456');
+  await sheet.getByRole('button', { name: /^sign in$/i }).click();
+
+  await expect(sheet).toBeHidden();
+  await expect(page).toHaveURL(/practice/);
+});
+
+test('a wrong code says so and keeps the sheet open', async ({ page }) => {
+  await fakeEmailSignIn(page);
+  await openApp(page, `${ACCOUNTS_APP}/path`);
+  await page.getByRole('button', { name: 'sign in', exact: true }).click();
+  const sheet = await askForCode(page);
+
+  await sheet.getByRole('textbox', { name: /code from the email/i }).fill('999999');
+  await sheet.getByRole('button', { name: /^sign in$/i }).click();
+
+  await expect(sheet).toContainText("That code didn't work.");
+  await expect(sheet.getByRole('textbox', { name: /code from the email/i })).toBeVisible();
+});
+
+test('too many emails asked for gets a plain answer', async ({ page }) => {
+  await fakeEmailSignIn(page, { otp: 'rate_limited' });
+  await openApp(page, `${ACCOUNTS_APP}/path`);
+  await page.getByRole('button', { name: 'sign in', exact: true }).click();
+  const sheet = page.getByRole('dialog', { name: /sign in/i });
+  await sheet.getByRole('button', { name: /or sign in with email/i }).click();
+  await sheet.getByPlaceholder('your@email.com').fill('learner@example.com');
+  await sheet.getByRole('button', { name: /email me a sign-in code/i }).click();
+
+  await expect(sheet).toContainText("We've sent several emails in the last few minutes.");
+  await expect(sheet).not.toContainText('email rate limit exceeded');
+});
+
+const USED_LINK = '#error=access_denied&error_code=otp_expired&error_description=Email+link+is+invalid+or+has+expired';
+
+test('back from a used sign-in link, a signed-out learner is told and offered a code', async ({ page }) => {
+  await page.addInitScript(() => { (window as unknown as { __fifthsEvents: unknown[] }).__fifthsEvents = []; });
+  await fakeEmailSignIn(page);
+  await openApp(page, `${ACCOUNTS_APP}/path${USED_LINK}`);
+
+  const sheet = page.getByRole('dialog', { name: /sign in/i });
+  await expect(sheet).toContainText('That sign-in link has already been used.');
+  await expect(sheet.getByPlaceholder('your@email.com')).toBeVisible();
+  const events = await page.evaluate(() => (window as unknown as { __fifthsEvents: { event: string }[] }).__fifthsEvents);
+  expect(events.filter((e) => e.event === 'auth_failed')).toEqual([
+    expect.objectContaining({ step: 'redirect', error_code: 'otp_expired' }),
+  ]);
+
+  await askForCode(page);
+  await sheet.getByRole('textbox', { name: /code from the email/i }).fill('123456');
+  await sheet.getByRole('button', { name: /^sign in$/i }).click();
+  await expect(sheet).toBeHidden();
+});
+
+test('back from a used sign-in link while already signed in, nothing is asked', async ({ page }) => {
+  await signedIn(page);
+  await openApp(page, `${ACCOUNTS_APP}/path${USED_LINK}`);
+  await expect(page.getByRole('button', { name: /continue/i }).first()).toBeVisible();
+  await page.waitForTimeout(1000);
+  await expect(page.getByRole('dialog', { name: /sign in/i })).toBeHidden();
 });

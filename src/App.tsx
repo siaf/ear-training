@@ -61,6 +61,7 @@ import {
   subscribeSyncState,
   signOut as syncSignOut,
   getCurrentUser,
+  getLandingAuthError,
   flushNow,
   type SyncState,
   type ProfileSnapshot,
@@ -94,7 +95,7 @@ import { toolArrival } from './lib/arrival';
 import LessonIntro from './components/LessonIntro';
 import MasteryOverlay from './components/MasteryOverlay';
 import StreakRecoverySheet from './components/StreakRecoverySheet';
-import AuthSheet from './components/AuthSheet';
+import AuthSheet, { type AuthSheetReason } from './components/AuthSheet';
 import BottomTabs, { BottomTabRoute } from './components/BottomTabs';
 import { haptics } from './lib/haptics';
 import { cancelStreakReminder, requestNotificationPermission, scheduleStreakReminder } from './lib/notifications';
@@ -396,7 +397,7 @@ export default function App() {
   const coursePreview = DEV_COURSE_PREVIEW || isOwner;
   const unlockAll = debugMode && devToolsAllowed;
   const [showAuth, setShowAuth] = useState(false);
-  const [authReason, setAuthReason] = useState<'sync' | 'lesson_limit'>('sync');
+  const [authReason, setAuthReason] = useState<AuthSheetReason>('sync');
   const [paywallNotice, setPaywallNotice] = useState<PaywallNotice | null>(null);
   const [showFirstLessonPrompt, setShowFirstLessonPrompt] = useState(false);
   const [proActive, setProActive] = useState<boolean>(isPro());
@@ -689,6 +690,26 @@ export default function App() {
     setShowAuth(false);
     setAuthReason('sync');
   }, []);
+
+  // Signed in from the code in a sign-in sheet: the session lands in this tab, so close
+  // the sheet. (Whatever they were starting carries on from the sync-state listener.)
+  useEffect(() => {
+    if (!userEmail) return;
+    setShowAuth(false);
+    setShowFirstLessonPrompt(false);
+  }, [userEmail]);
+
+  // Back from an email link that was already used or has expired: say so and offer a code,
+  // unless this browser is signed in anyway. Once, as soon as the app knows which it is.
+  const landingErrorShownRef = useRef(false);
+  useEffect(() => {
+    if (landingErrorShownRef.current || syncState === 'disabled') return;
+    landingErrorShownRef.current = true;
+    if (syncState === 'signed_out' && getLandingAuthError() === 'link_used') {
+      setAuthReason('link_used');
+      setShowAuth(true);
+    }
+  }, [syncState]);
 
   // Wrap startSession to enforce the anonymous lesson cap.
   const guardedStartSession = useCallback(
