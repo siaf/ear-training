@@ -139,6 +139,8 @@ It needs `SUPABASE_SERVICE_ROLE_KEY` as a secret on `fifths-marketing` (the Supa
 
 ## Deploy
 
+> **⛔ APP DEPLOYS ON HOLD (since 2026-11-27).** Do not deploy the app (`fifths-app`) until the owner removes this notice. Commit `4247dfe` makes the sign-in sheet ask for a code from the sign-in email, and the live emails don't carry one yet. Deploying first would ask learners for a code they don't have. Before lifting the hold: in Loops, upload `loops-templates/_zips/magic-link.zip` and `confirm-signup.zip` to "Supabase Magic Link" and "Welcome to Fifths — confirm your email", add the `token` data variable, and publish both. In Supabase (Authentication → Emails), add `"token": "{{ .Token }}"` to `dataVariables` in the Magic Link and Confirm signup templates. Then send a test sign-in and check the email shows a code. Site deploys (`fifths-marketing`) are not affected.
+
 Both deploys go live immediately. Run them from the repo root, not from inside `site/`, because `functions/` and `wrangler.toml` are read from there.
 
 **App:**
