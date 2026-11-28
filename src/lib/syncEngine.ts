@@ -352,11 +352,17 @@ async function assertAuthReachable(): Promise<void> {
   const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined;
   if (!url || !key) return;
   let status = 0;
+  // Not AbortSignal.timeout: Safari before 16 (iOS 15) doesn't have it, so the check threw
+  // there and Google sign-in always said it was unavailable (FIFTHS-WEB-22).
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 6000);
   try {
-    const res = await fetch(`${url}/auth/v1/health`, { headers: { apikey: key }, signal: AbortSignal.timeout(6000) });
+    const res = await fetch(`${url}/auth/v1/health`, { headers: { apikey: key }, signal: controller.signal });
     status = res.status;
   } catch {
     status = 0;
+  } finally {
+    clearTimeout(timer);
   }
   if (status !== 200) {
     throw new Error(`Sign-in is temporarily unavailable (auth health ${status || 'unreachable'}). Please try again in a few minutes.`);

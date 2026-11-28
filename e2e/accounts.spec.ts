@@ -365,3 +365,24 @@ test('back from a used sign-in link while already signed in, nothing is asked', 
   await page.waitForTimeout(1000);
   await expect(page.getByRole('dialog', { name: /sign in/i })).toBeHidden();
 });
+
+// iOS 15 Safari has no AbortSignal.timeout. The check before Google sign-in used it, so it
+// threw there and Google sign-in always said it was unavailable (FIFTHS-WEB-22, 2026-11-28).
+for (const browser of ['old Safari', 'a current browser']) {
+  test(`Google sign-in starts on ${browser}`, async ({ page }) => {
+    if (browser === 'old Safari') {
+      await page.addInitScript(() => { delete (AbortSignal as unknown as { timeout?: unknown }).timeout; });
+    }
+    await page.route(/^http:\/\/localhost:5199\//, (route) => {
+      const url = route.request().url();
+      if (url.includes('/auth/v1/health')) return route.fulfill({ json: { name: 'GoTrue' } });
+      if (url.includes('/auth/v1/authorize')) return route.fulfill({ contentType: 'text/html', body: '<title>Google</title>' });
+      return route.fulfill({ status: 401, json: {} });
+    });
+    await openApp(page, `${ACCOUNTS_APP}/path`);
+    await page.getByRole('button', { name: 'sign in', exact: true }).click();
+    await page.getByRole('button', { name: /continue with google/i }).click();
+
+    await expect(page).toHaveURL(/localhost:5199\/auth\/v1\/authorize\?provider=google/);
+  });
+}
