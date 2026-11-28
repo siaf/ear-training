@@ -74,14 +74,14 @@ For each template:
 
 ### Daily reminders (Loop workflows, live from `functions/api/daily-nudges.js`)
 
-The daily job (AGENTS.md, "Reminder emails") sends these events. Each gets its own workflow: trigger **Event received** with the event name, then one **Send email** step with the zip uploaded as code. All four use `{EVENT_PROPERTY:*}` and `{unsubscribe_link}`, and only promise what the app does.
+The daily job (AGENTS.md, "Reminder emails") sends these events. Each gets its own workflow: trigger **Event received** with the event name, then one **Send email** step with the zip uploaded as code. All four use `{EVENT_PROPERTY:*}` and `{unsubscribe_link}`, and only promise what the app does. Button links are written into each template (tagged `utm_campaign=<event>`), so the only property an email needs is `lessonsDone`: add it to each event in Loops (a number) before uploading, or Loops warns it doesn't exist.
 
 | Zip | Event | Subject | Mascot | Event properties used |
 |---|---|---|---|---|
-| `missed-a-day.zip` | `missed_a_day` (last lesson 20–44 h ago) | Five minutes today keeps it going | Pulse (happy) | `lessonsDone`, `appUrl` |
-| `inactive-14-days.zip` | `inactive_14_days` | Your progress is still here | Fable (curious) | `daysSinceLastSession`, `lessonsDone`, `appUrl` |
-| `inactive-30-days.zip` | `inactive_30_days` | What got in the way? | Noir (listening) | `appUrl` |
-| `inactive-60-days.zip` | `inactive_60_days` | One last note from Fifths | Fable (content) | `lessonsDone`, `appUrl` |
+| `missed-a-day.zip` | `missed_a_day` (last lesson 20–44 h ago) | Five minutes today keeps it going | Pulse (happy) | `lessonsDone` |
+| `inactive-14-days.zip` | `inactive_14_days` | Your progress is still here | Fable (curious) | `lessonsDone` |
+| `inactive-30-days.zip` | `inactive_30_days` | What got in the way? | Noir (listening) | none |
+| `inactive-60-days.zip` | `inactive_60_days` | One last note from Fifths | Fable (content) | `lessonsDone` |
 
 These replace `streak-break` and `win-back` below, which promise things the app doesn't do (picking your weakest intervals, muting by reply, `furthestLevel`). `streakDays` is sent too but left out of the copy: it counts days in UTC, and the app counts them in the learner's own time zone.
 

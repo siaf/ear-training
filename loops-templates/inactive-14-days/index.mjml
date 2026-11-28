@@ -29,7 +29,7 @@
       <mj-section padding="0">
         <mj-group>
           <mj-column width="65%">
-            <mj-text padding="0 0 10px"><span class="pill">{EVENT_PROPERTY:daysSinceLastSession} days away</span></mj-text>
+            <mj-text padding="0 0 10px"><span class="pill">14 days away</span></mj-text>
             <mj-text padding="0 0 12px"><span class="h1">Your progress is <span class="accent">still here</span>.</span></mj-text>
             <mj-text padding="0 0 12px">You've finished <strong>{EVENT_PROPERTY:lessonsDone} lessons</strong>, and all of it is saved to your account, on any device you sign in on.</mj-text>
             <mj-text padding="0">Tap <strong>continue</strong> and Fifths picks up at the next lesson in your path.</mj-text>
@@ -42,7 +42,7 @@
 
       <mj-section padding="24px 0 0">
         <mj-column>
-          <mj-button href="{EVENT_PROPERTY:appUrl}" align="left">Continue →</mj-button>
+          <mj-button href="https://app.fifths.io/?utm_source=loops&amp;utm_medium=email&amp;utm_campaign=inactive_14_days" align="left">Continue →</mj-button>
         </mj-column>
       </mj-section>
     </mj-wrapper>

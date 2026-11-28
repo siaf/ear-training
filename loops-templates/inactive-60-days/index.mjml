@@ -42,7 +42,7 @@
 
       <mj-section padding="24px 0 0">
         <mj-column>
-          <mj-button href="{EVENT_PROPERTY:appUrl}" align="left">Open Fifths →</mj-button>
+          <mj-button href="https://app.fifths.io/?utm_source=loops&amp;utm_medium=email&amp;utm_campaign=inactive_60_days" align="left">Open Fifths →</mj-button>
         </mj-column>
       </mj-section>
     </mj-wrapper>
