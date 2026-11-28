@@ -1,0 +1,16 @@
+# A Worker with only a schedule: once a day it calls https://fifths.io/api/daily-nudges.
+# Separate from the two Pages projects, because Pages Functions can't run on a schedule.
+#
+# Deploy from the repo root:
+#   npx wrangler deploy --config workers/daily-nudges/wrangler.toml
+# Its one secret, the same value as NUDGES_SECRET on fifths-marketing:
+#   npx wrangler secret put NUDGES_SECRET --config workers/daily-nudges/wrangler.toml
+
+name = "fifths-daily-nudges"
+main = "index.js"
+compatibility_date = "2026-11-28"
+workers_dev = false
+
+[triggers]
+# 16:00 UTC: morning in the Americas, evening in Europe.
+crons = ["0 16 * * *"]
