@@ -68,9 +68,22 @@ For each template:
 | `welcome.zip` | Welcome on first sign-in | Loops audience event `user.created` (or app-side `welcome`) | Fable (excited) | none — static copy |
 | `day-1-reactivation.zip` | 24h post-signup, no session yet | Loops time-based automation | Fable (curious) | none |
 | `first-insight.zip` | After first practice session | App-side custom event `first_session_completed` | Noir (listening) | `topInterval`, `accuracy`, `weakestInterval` |
-| `streak-break.zip` | 24h after last session, streak ≥ 2 | Cloudflare Worker cron → Loops event | Pulse (curious) | `streakDays`, `appUrl` |
+| `streak-break.zip` (replaced by `missed-a-day`) | 24h after last session, streak ≥ 2 | Cloudflare Worker cron → Loops event | Pulse (curious) | `streakDays`, `appUrl` |
 | `weekly-digest.zip` | Sundays | CF Worker cron → Loops event | Pulse (happy) | `minutesPracticed`, `streakDays`, `topInterval`, `weakestInterval` |
-| `win-back.zip` | 14d / 30d / 60d inactive | CF Worker cron → Loops event | Fable (content) | `daysSinceLastSession`, `furthestLevel` |
+| `win-back.zip` (replaced by `inactive-*`) | 14d / 30d / 60d inactive | CF Worker cron → Loops event | Fable (content) | `daysSinceLastSession`, `furthestLevel` |
+
+### Daily reminders (Loop workflows, live from `functions/api/daily-nudges.js`)
+
+The daily job (AGENTS.md, "Reminder emails") sends these events. Each gets its own workflow: trigger **Event received** with the event name, then one **Send email** step with the zip uploaded as code. All four use `{EVENT_PROPERTY:*}` and `{unsubscribe_link}`, and only promise what the app does.
+
+| Zip | Event | Subject | Mascot | Event properties used |
+|---|---|---|---|---|
+| `missed-a-day.zip` | `missed_a_day` (last lesson 20–44 h ago) | Five minutes today keeps it going | Pulse (happy) | `lessonsDone`, `appUrl` |
+| `inactive-14-days.zip` | `inactive_14_days` | Your progress is still here | Fable (curious) | `daysSinceLastSession`, `lessonsDone`, `appUrl` |
+| `inactive-30-days.zip` | `inactive_30_days` | What got in the way? | Noir (listening) | `appUrl` |
+| `inactive-60-days.zip` | `inactive_60_days` | One last note from Fifths | Fable (content) | `lessonsDone`, `appUrl` |
+
+These replace `streak-break` and `win-back` below, which promise things the app doesn't do (picking your weakest intervals, muting by reply, `furthestLevel`). `streakDays` is sent too but left out of the copy: it counts days in UTC, and the app counts them in the learner's own time zone.
 
 ## What's in every template
 
