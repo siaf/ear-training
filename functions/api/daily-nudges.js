@@ -56,8 +56,12 @@ function sameSecret(given, expected) {
   return diff === 0;
 }
 
+// Supabase's secret keys (sb_secret_…) go in apikey only: sent as a Bearer token, they're
+// refused. Only an old JWT service-role key (eyJ…) also goes in Authorization.
 function serviceHeaders(key) {
-  return { apikey: key, Authorization: `Bearer ${key}` };
+  const headers = { apikey: key };
+  if (key.startsWith("eyJ")) headers.Authorization = `Bearer ${key}`;
+  return headers;
 }
 
 async function fetchSessions(key, since) {

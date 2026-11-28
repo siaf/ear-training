@@ -143,7 +143,19 @@ describe('POST /api/daily-nudges', () => {
     const pages = calls.filter((c) => c.url.includes('/rest/v1/sessions'));
     expect(pages.map((c) => new URL(c.url).searchParams.get('offset'))).toEqual(['0', '1000']);
     expect(new URL(pages[0].url).searchParams.get('started_at')).toBe(`gte.${ago(62 * DAY)}`);
-    expect(pages[0].headers).toMatchObject({ apikey: 'sb_secret_x', authorization: 'Bearer sb_secret_x' });
+    // A secret key (sb_secret_…) goes in apikey only: Supabase refuses it as a Bearer token.
+    expect(pages[0].headers.apikey).toBe('sb_secret_x');
+    expect(pages[0].headers.authorization).toBeUndefined();
+    const admin = calls.find((c) => c.url.includes('/auth/v1/admin/users'))!;
+    expect(admin.headers.apikey).toBe('sb_secret_x');
+    expect(admin.headers.authorization).toBeUndefined();
+  });
+
+  it('sends an old JWT service-role key as a Bearer token too', async () => {
+    const calls = stubFetch({ sessions: [], accounts: [] });
+    await onRequestPost({ request: post('/api/daily-nudges?dry=1'), env: { ...ENV, SUPABASE_SERVICE_ROLE_KEY: 'eyJold' } });
+    const page = calls.find((c) => c.url.includes('/rest/v1/sessions'))!;
+    expect(page.headers).toMatchObject({ apikey: 'eyJold', authorization: 'Bearer eyJold' });
   });
 
   it('counts a repeat send as already done, and reports Loops failures without stopping', async () => {
