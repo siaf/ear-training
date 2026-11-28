@@ -1,0 +1,133 @@
+{
+  "name": "Noir",
+  "animal": "cat",
+  "role": "Mint · focus. Quiet, observant, analytical; confirms, never celebrates.",
+  "viewBox": {
+    "full": "0 0 430 430",
+    "bust": "47 -1 337 337"
+  },
+  "blinkEyes": [
+    "open",
+    "wide"
+  ],
+  "faces": {
+    "neutral": {
+      "eyes": "open",
+      "mouth": "smile",
+      "ref": "portrait.original.png",
+      "label": "Neutral (portrait)"
+    },
+    "happy": {
+      "eyes": "closed",
+      "mouth": "tongue",
+      "blush": "on",
+      "ref": "happy.png"
+    },
+    "excited": {
+      "eyes": "open",
+      "mouth": "open",
+      "blush": "on",
+      "fx": "sparkles",
+      "ref": "excited.png"
+    },
+    "laugh": {
+      "eyes": "wink-left",
+      "mouth": "tongue",
+      "blush": "on",
+      "ref": "laugh.png"
+    },
+    "curious": {
+      "eyes": "open",
+      "mouth": "small",
+      "fx": "question",
+      "ref": "curious.png"
+    },
+    "listening": {
+      "eyes": "closed",
+      "mouth": "smile",
+      "fx": "notes",
+      "ref": "listening.png"
+    },
+    "content": {
+      "eyes": "wink-right",
+      "mouth": "smile",
+      "ref": "content.png"
+    },
+    "sad": {
+      "eyes": "sad",
+      "mouth": "frown"
+    },
+    "surprised": {
+      "eyes": "wide",
+      "mouth": "o"
+    },
+    "sing": {
+      "eyes": "closed",
+      "mouth": "o",
+      "blush": "on",
+      "fx": "notes"
+    },
+    "keeping-time": {
+      "eyes": "closed",
+      "mouth": "small",
+      "fx": "notes",
+      "label": "Keeping time"
+    }
+  },
+  "acts": {
+    "correct": {
+      "label": "Correct (a quiet nod)",
+      "face": "content",
+      "anim": "nod",
+      "ms": 1000
+    },
+    "wrong": {
+      "label": "Wrong (a sigh, ears flat)",
+      "face": "sad",
+      "anim": "sigh",
+      "ms": 1600
+    },
+    "listen": {
+      "label": "Listen (ears turn in turn)",
+      "face": "listening",
+      "anim": "attend",
+      "ms": 3500
+    },
+    "curious": {
+      "label": "Curious (head tilt)",
+      "face": "curious",
+      "anim": "tilt",
+      "ms": 1900
+    },
+    "slowblink": {
+      "label": "Slow blink (I trust you)",
+      "face": "neutral",
+      "anim": "slowblink",
+      "ms": 2300
+    },
+    "beat": {
+      "label": "Keep time, calmly (nods, 100 bpm)",
+      "face": "keeping-time",
+      "anim": "noir-beat",
+      "ms": 2400
+    },
+    "ear": {
+      "label": "Ear to the sound (one bar)",
+      "face": "listening",
+      "anim": "noir-ear",
+      "ms": 2400
+    },
+    "pitch-up": {
+      "label": "Higher (rises, ears up)",
+      "face": "neutral",
+      "anim": "pitch-up",
+      "ms": 1000
+    },
+    "pitch-down": {
+      "label": "Lower (sinks, ears down)",
+      "face": "neutral",
+      "anim": "pitch-down",
+      "ms": 1000
+    }
+  }
+}

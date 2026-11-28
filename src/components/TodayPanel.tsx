@@ -13,6 +13,7 @@
 // shadow, and the rows sit inside as a list. That keeps the visual weight on the panel,
 // not on each item.
 
+import Mascot from './Mascot';
 import { ArrowUpRight, ChevronRight, Flame, RotateCcw, Shuffle, SlidersHorizontal, type LucideIcon } from 'lucide-react';
 import { CURRICULUM_SEGMENTS } from '../curriculum';
 import type { Recommendation } from '../lib/recommendations';
@@ -156,16 +157,15 @@ export default function TodayPanel({
       }}
     >
       {/* Mascot positioned in the top-right of the header so it doesn't overlap action rows */}
-      <img
-        src={`${import.meta.env.BASE_URL}brand/mascots/pulse/excited.png`}
-        alt=""
-        aria-hidden
+      <Mascot
+        name="pulse"
+        face="excited"
+        view="bust"
+        size={mobile ? 60 : 78}
         style={{
           position: 'absolute',
           right: -8,
           top: mobile ? -4 : -6,
-          width: mobile ? 60 : 78,
-          height: 'auto',
           pointerEvents: 'none',
           filter: 'drop-shadow(0 4px 8px rgba(42,29,58,0.15))',
         }}

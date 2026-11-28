@@ -1,5 +1,5 @@
 import { ArrowLeft, ArrowRight, X as XIcon } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Bean } from './primitives';
 import type { LessonIntroCopy } from '../types';
 import type { ArrivalNote } from '../lib/arrival';
@@ -7,6 +7,9 @@ import { useBreakpoint } from '../lib/useBreakpoint';
 import RhythmStaff from './rhythm/RhythmStaff';
 import { countLabel, countsOf, describe, parseRhythm, parseTime } from '../rhythm/model';
 import Fretboard from './notation/Fretboard';
+import Mascot from './Mascot';
+import type { MascotHandle } from './Mascot';
+import { faceForExpression } from '../mascots';
 
 interface Props {
   pages: LessonIntroCopy[];
@@ -28,6 +31,18 @@ const MASCOT_TONE: Record<NonNullable<LessonIntroCopy['mascot']>, { bg: string; 
   pulse: { bg: 'var(--sky-soft)',   ink: 'var(--sky-ink)' },
 };
 
+// Each mascot greets in character as the page opens (after the entrance), and a tap
+// plays one of its music moves in turn.
+const GREETING: Record<NonNullable<LessonIntroCopy['mascot']>, string> = {
+  fable: 'wave', noir: 'slowblink', major: 'welcome', pulse: 'beat',
+};
+const ON_TAP: Record<NonNullable<LessonIntroCopy['mascot']>, string[]> = {
+  fable: ['conduct', 'sing', 'beat', 'correct'],
+  noir: ['beat', 'ear', 'pitch-up', 'slowblink'],
+  major: ['drum', 'sing', 'proud', 'correct'],
+  pulse: ['beat', 'drum', 'metronome', 'streak'],
+};
+
 export default function LessonIntro({ pages, lessonName, onContinue, onExit, onSkipSinging, shared = null, fromTool = null }: Props) {
   const bp = useBreakpoint();
   const mobile = bp !== 'desktop';
@@ -39,8 +54,13 @@ export default function LessonIntro({ pages, lessonName, onContinue, onExit, onS
 
   const mascot = page.mascot ?? 'fable';
   const tone = MASCOT_TONE[mascot];
-  const mascotSrc = `${import.meta.env.BASE_URL}brand/mascots/${mascot}/portrait.png`;
   const mascotSize = mobile ? 160 : 220;
+  const mascotRef = useRef<MascotHandle>(null);
+  const taps = useRef(0);
+  const onMascotTap = () => {
+    const moves = ON_TAP[mascot];
+    if (mascotRef.current?.play(moves[taps.current % moves.length])) taps.current += 1;
+  };
 
   const goPrev = () => setPageIdx((i) => Math.max(0, i - 1));
   const goNext = () => {
@@ -184,10 +204,18 @@ export default function LessonIntro({ pages, lessonName, onContinue, onExit, onS
             flexShrink: 0,
           }}
         >
-          <img
-            src={mascotSrc}
-            alt={mascot}
-            style={{ width: '92%', height: '92%', objectFit: 'contain' }}
+          <Mascot
+            // A new page is a new greeting.
+            key={`${pageIdx}-${mascot}`}
+            ref={mascotRef}
+            name={mascot}
+            face={faceForExpression(page.expression)}
+            act={GREETING[mascot]}
+            actDelayMs={600}
+            size="92%"
+            label={mascot}
+            onClick={onMascotTap}
+            style={{ cursor: 'pointer' }}
           />
         </div>
         )}

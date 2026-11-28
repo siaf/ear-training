@@ -6,6 +6,7 @@ import { Bean, Brand } from '../components/primitives';
 import DesktopSidebar from '../components/DesktopSidebar';
 import TodayPanel from '../components/TodayPanel';
 import UpsellCard, { type UpsellMode } from '../components/UpsellCard';
+import Mascot from '../components/Mascot';
 import type { Recommendation } from '../lib/recommendations';
 import { CHECKPOINTS, type Checkpoint } from '../lib/checkpoints';
 import { BookOpen, Drum, Ear, Flag, Flame, GraduationCap, Guitar, Landmark, Lock as LockIcon, RotateCcw, type LucideIcon } from 'lucide-react';
@@ -194,16 +195,13 @@ function RiverNode({
       {isSectionNext && (
         // Section-owned mascot — stands to the left of the section's next-up node, like a guide.
         // Anchored to the button's center via translate so label width can't shift it around.
-        <img
-          src={`${import.meta.env.BASE_URL}brand/mascots/${mascotForColor(segmentTailwindColor)}/portrait.png`}
-          alt=""
-          aria-hidden
+        <Mascot
+          name={mascotForColor(segmentTailwindColor)}
+          size={mascotSize}
           style={{
             position: 'absolute',
             top: '50%',
             left: '50%',
-            width: mascotSize,
-            height: 'auto',
             transform: `translate(calc(-100% - ${sz / 2 + 12}px), -50%)`,
             pointerEvents: 'none',
             filter: 'drop-shadow(0 8px 16px rgba(42,29,58,0.18))',

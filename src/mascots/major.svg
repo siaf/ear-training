@@ -1,0 +1,243 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 431 431" class="mascot major" data-eyes="open" data-mouth="smile" data-fx="none">
+  <!--
+    Major the bear: a rig for animation, drawn to design/STYLE.md.
+    Every moving part is its own group; pivots are set below in view-box coordinates.
+    Faces use the shared vocabulary: data-eyes, data-mouth, data-blush, data-fx on the root <svg>.
+    Coordinates match design/reference/major/portrait.original.png (431x431).
+  -->
+  <style>
+    .major * { transform-box: view-box; }
+    /* pivots */
+    .major #figure, .major #body, .major #shadow { transform-origin: 218px 374px; }
+    .major #head      { transform-origin: 218px 212px; }
+    .major #ear-left  { transform-origin: 156px 96px; }
+    .major #ear-right { transform-origin: 280px 96px; }
+    .major #eyes      { transform-origin: 218px 140px; }
+    .major #mouth     { transform-origin: 218px 175px; }
+    .major #arm-left  { transform-origin: 142px 226px; }
+    .major #arm-right { transform-origin: 294px 226px; }
+    .major #book      { transform-origin: 218px 272px; }
+    .major #foot-left { transform-origin: 214px 372px; }  /* inner end, so the outer toes lift */
+    .major #foot-right{ transform-origin: 222px 372px; }
+
+    /* face switching */
+    .major .eye-set, .major .mouth-set, .major .fx { display: none; }
+    .major[data-eyes="open"]       .eyes-open,
+    .major[data-eyes="wide"]       .eyes-wide,
+    .major[data-eyes="closed"]     .eyes-closed,
+    .major[data-eyes="wink-left"]  .eyes-wink-left,
+    .major[data-eyes="wink-right"] .eyes-wink-right,
+    .major[data-eyes="sad"]        .eyes-sad,
+    .major[data-mouth="smile"]     .mouth-smile,
+    .major[data-mouth="small"]     .mouth-small,
+    .major[data-mouth="open"]      .mouth-open,
+    .major[data-mouth="tongue"]    .mouth-tongue,
+    .major[data-mouth="o"]         .mouth-o,
+    .major[data-mouth="frown"]     .mouth-frown,
+    .major[data-fx="notes"]        .fx-notes,
+    .major[data-fx="sparkles"]     .fx-sparkles,
+    .major[data-fx="heart"]        .fx-heart,
+    .major[data-fx="question"]     .fx-question { display: inline; }
+    .major .blush { opacity: 0; transition: opacity .3s; }
+    .major[data-blush="on"] .blush { opacity: .55; }
+
+    /* Bust view: head, shoulders, and the top of the book held against the chest */
+    .major[data-view="bust"] #legs, .major[data-view="bust"] #shadow,
+    .major[data-view="bust"] #arm-left, .major[data-view="bust"] #arm-right { display: none; }
+    .major[data-view="bust"] .book-seat { transform: translateY(34px); }
+
+    /* ── Major's own animations: the paws stay on the book ── */
+
+    /* correct: a short, grounded hop that keeps hold of the book */
+    .major.anim-steadyhop #figure { animation: majHop .8s cubic-bezier(.3,.7,.4,1) 1; }
+    .major.anim-steadyhop #shadow { animation: majShadow .8s cubic-bezier(.3,.7,.4,1) 1; }
+    .major.anim-steadyhop #ear-left  { animation: majEarL .8s ease-out 1; }
+    .major.anim-steadyhop #ear-right { animation: majEarR .8s ease-out 1; }
+    @keyframes majHop {
+      0% { transform: none; } 18% { transform: scale(1.07,.91); } 42% { transform: translateY(-30px) scale(.96,1.05); }
+      58% { transform: translateY(-34px); } 78% { transform: translateY(0) scale(1.08,.9); } 90% { transform: scale(.98,1.02); } 100% { transform: none; }
+    }
+    @keyframes majShadow { 0%,18%,78%,100%{transform:scale(1);opacity:.7} 50%{transform:scale(.75);opacity:.4} }
+    @keyframes majEarL { 0%,100%{transform:rotate(0)} 42%{transform:rotate(6deg)} 78%{transform:rotate(-8deg)} }
+    @keyframes majEarR { 0%,100%{transform:rotate(0)} 42%{transform:rotate(-6deg)} 78%{transform:rotate(8deg)} }
+
+    /* wrong: a soft, kind head tilt and slow nod, ears ease down; never a slump */
+    .major.anim-reassure #head      { animation: majReassure 1.4s ease-in-out 1; }
+    .major.anim-reassure #ear-left  { animation: majEarDownL 1.4s ease-in-out 1; }
+    .major.anim-reassure #ear-right { animation: majEarDownR 1.4s ease-in-out 1; }
+    @keyframes majReassure { 0%,100%{transform:none} 20%{transform:rotate(-6deg) translateY(3px)} 50%{transform:rotate(-6deg) translateY(7px)} 75%{transform:rotate(-4deg) translateY(2px)} }
+    @keyframes majEarDownL { 0%,100%{transform:rotate(0)} 25%,75%{transform:rotate(-10deg)} }
+    @keyframes majEarDownR { 0%,100%{transform:rotate(0)} 25%,75%{transform:rotate(10deg)} }
+
+    /* proud: holds the book up to show what's been done */
+    .major.anim-present #hold   { animation: majPresent 1.8s cubic-bezier(.3,1.3,.5,1) 1; }
+    .major.anim-present #head   { animation: majProudHead 1.8s ease-in-out 1; }
+    .major.anim-present #figure { animation: majRise 1.8s ease-in-out 1; }
+    .major #hold { transform-origin: 218px 280px; }
+    @keyframes majPresent { 0%,100%{transform:none} 22%,78%{transform:translateY(-10px) scale(1.12) rotate(-4deg)} 50%{transform:translateY(-12px) scale(1.15) rotate(-2deg)} }
+    @keyframes majProudHead { 0%,100%{transform:none} 22%,78%{transform:rotate(5deg) translateY(-6px)} }
+    @keyframes majRise { 0%,100%{transform:none} 22%,78%{transform:scale(1,1.02)} }
+
+    /* keeping track: one paw taps the cover twice, then a nod */
+    .major.anim-tap #arm-right { animation: majTap 1.4s ease-in-out 1; }
+    .major.anim-tap #head { animation: majNod 1.4s ease-in-out 1; }
+    @keyframes majTap { 0%,100%{transform:none} 12%{transform:translate(-14px,-22px) rotate(-12deg)} 24%{transform:translate(-26px,0)} 36%{transform:translate(-14px,-22px) rotate(-12deg)} 48%{transform:translate(-26px,0)} 62%{transform:none} }
+    @keyframes majNod { 0%,55%,100%{transform:none} 68%{transform:translateY(6px)} 82%{transform:translateY(-1px)} 90%{transform:translateY(3px)} }
+
+    /* welcome back: one paw leaves the book and waves; the other keeps hold */
+    .major.anim-greet #arm-right { animation: majWave 1.7s ease-in-out 1; }
+    .major.anim-greet #head      { animation: majGreetHead 1.7s ease-in-out 1; }
+    .major.anim-greet #book      { animation: majBookTip 1.7s ease-in-out 1; }
+    @keyframes majWave { 0%,100%{transform:none} 16%{transform:rotate(-150deg)} 30%{transform:rotate(-120deg)} 44%{transform:rotate(-152deg)} 58%{transform:rotate(-120deg)} 74%{transform:rotate(-148deg)} }
+    @keyframes majGreetHead { 0%,100%{transform:none} 16%,74%{transform:rotate(5deg) translateY(-3px)} }
+    @keyframes majBookTip { 0%,100%{transform:none} 16%,74%{transform:rotate(3deg) translateX(-4px)} }
+
+    /* drum: paws tap the cover on each beat at 100 bpm (one 4/4 bar), alternating, head bobbing */
+    .major.anim-drum #arm-left  { animation: majDrumL 1.2s ease-in-out 2; }
+    .major.anim-drum #arm-right { animation: majDrumR 1.2s ease-in-out 2.5; animation-delay: -.6s; }
+    .major.anim-drum #book      { animation: majBookHit .6s ease-out 4; }
+    .major.anim-drum #head      { animation: beatHead .6s ease-in-out 4; }
+    .major.anim-drum #ear-left  { animation: beatEarL .6s ease-in-out 4; animation-delay: .06s; }
+    .major.anim-drum #ear-right { animation: beatEarR .6s ease-in-out 4; animation-delay: .06s; }
+    .major.anim-drum .note      { animation: float 1.2s ease-out 2; }
+    .major.anim-drum .n2        { animation-delay: .6s; }
+    @keyframes majDrumL { 0%,100%{transform:translate(12px,3px)} 15%,50%{transform:none} 74%{transform:translate(10px,-32px) rotate(16deg)} }
+    @keyframes majDrumR { 0%,100%{transform:translate(-12px,3px)} 15%,50%{transform:none} 74%{transform:translate(-10px,-32px) rotate(-16deg)} }
+    @keyframes majBookHit { 0%{transform:translateY(3px) scale(1.01,.98)} 35%,100%{transform:none} }
+  </style>
+
+  <defs>
+    <!-- one eye, centred on 0,0; the dot is ~6% of the head's width -->
+    <circle id="mj-eye-open" r="14" fill="#241d2a"/>
+    <circle id="mj-eye-wide" r="16" fill="#241d2a"/>
+    <path id="mj-eye-closed" d="M-12,4 Q0,-12 12,4" fill="none" stroke="#241d2a" stroke-width="6" stroke-linecap="round"/>
+    <path id="mj-eye-sad" d="M-12,-1 Q0,9 12,-1" fill="none" stroke="#241d2a" stroke-width="6" stroke-linecap="round"/>
+  </defs>
+
+  <ellipse id="shadow" cx="218" cy="375" rx="112" ry="6" fill="#efe2d6" opacity=".7"/>
+
+  <g id="figure">
+
+    <!-- LEGS + FEET -->
+    <g id="legs">
+      <rect x="160" y="310" width="50" height="56" rx="16" fill="#f9c454"/>
+      <rect x="226" y="310" width="50" height="56" rx="16" fill="#f9c454"/>
+      <rect id="foot-left" x="152" y="356" width="62" height="18" rx="9" fill="#f0ab45"/>
+      <rect id="foot-right" x="222" y="356" width="62" height="18" rx="9" fill="#f0ab45"/>
+    </g>
+
+    <!-- BODY: torso, head, then the book held in front -->
+    <g id="body">
+      <g id="torso">
+        <path d="M152,206 L284,206 C306,212 314,236 312,272 C310,310 296,334 218,336 C140,334 126,310 124,272 C122,236 130,212 152,206 Z" fill="#f9c454"/>
+        <path d="M126,292 C134,322 156,334 218,336 C280,334 302,322 310,292 C300,316 270,326 218,326 C166,326 136,316 126,292 Z" fill="#f0ab45"/>
+      </g>
+
+      <!-- HEAD -->
+      <g id="head">
+        <g id="ear-left">
+          <circle cx="144" cy="80" r="39" fill="#f9c454"/>
+          <circle cx="146" cy="85" r="21" fill="#f0ab45"/>
+        </g>
+        <g id="ear-right">
+          <circle cx="292" cy="80" r="39" fill="#f9c454"/>
+          <circle cx="290" cy="85" r="21" fill="#f0ab45"/>
+        </g>
+        <path id="skull" d="M218,68 C276,68 316,86 328,130 C338,170 326,204 292,212 L144,212 C110,204 98,170 108,130 C120,86 160,68 218,68 Z" fill="#f9c454"/>
+
+        <!-- muzzle: small and simple -->
+        <ellipse id="muzzle" cx="218" cy="170" rx="28" ry="21" fill="#f8e0b6"/>
+
+        <g class="blush">
+          <ellipse cx="160" cy="170" rx="12.6" ry="5" fill="#f59a8a"/>
+          <ellipse cx="276" cy="170" rx="12.6" ry="5" fill="#f59a8a"/>
+        </g>
+
+        <g id="eyes">
+          <g class="eye-set eyes-open">
+            <use href="#mj-eye-open" x="177" y="140"/>
+            <use href="#mj-eye-open" x="259" y="140"/>
+          </g>
+          <g class="eye-set eyes-wide">
+            <use href="#mj-eye-wide" x="177" y="139"/>
+            <use href="#mj-eye-wide" x="259" y="139"/>
+          </g>
+          <g class="eye-set eyes-closed">
+            <use href="#mj-eye-closed" x="177" y="142"/>
+            <use href="#mj-eye-closed" x="259" y="142"/>
+          </g>
+          <g class="eye-set eyes-wink-left">
+            <use href="#mj-eye-closed" x="177" y="142"/>
+            <use href="#mj-eye-open" x="259" y="140"/>
+          </g>
+          <g class="eye-set eyes-wink-right">
+            <use href="#mj-eye-open" x="177" y="140"/>
+            <use href="#mj-eye-closed" x="259" y="142"/>
+          </g>
+          <g class="eye-set eyes-sad">
+            <use href="#mj-eye-sad" x="177" y="141"/>
+            <use href="#mj-eye-sad" x="259" y="141"/>
+            <path d="M163,121 L189,115" stroke="#e59b3e" stroke-width="5" stroke-linecap="round"/>
+            <path d="M273,121 L247,115" stroke="#e59b3e" stroke-width="5" stroke-linecap="round"/>
+          </g>
+        </g>
+
+        <g id="mouth">
+          <path class="mouth-set mouth-smile" d="M207,176 Q218,186 229,176" fill="none" stroke="#3a2530" stroke-width="3.5" stroke-linecap="round"/>
+          <path class="mouth-set mouth-small" d="M209,175 Q218,178 227,175 Q225,187 218,187 Q211,187 209,175 Z" fill="#241d2a"/>
+          <g class="mouth-set mouth-open">
+            <path d="M205,174 Q218,179 231,174 Q231,193 218,195 Q205,193 205,174 Z" fill="#241d2a"/>
+            <path d="M210,189 Q218,182 226,189 Q223,195 218,195 Q213,195 210,189 Z" fill="#ef6b6b"/>
+          </g>
+          <g class="mouth-set mouth-tongue">
+            <path d="M205,174 Q218,179 231,174 Q231,191 218,193 Q205,191 205,174 Z" fill="#241d2a"/>
+            <path d="M211,184 L225,184 L225,195 Q225,203 218,203 Q211,203 211,195 Z" fill="#ef6b6b"/>
+            <path d="M218,187 L218,197" stroke="#d65454" stroke-width="2" stroke-linecap="round"/>
+          </g>
+          <ellipse class="mouth-set mouth-o" cx="218" cy="182" rx="6.5" ry="7.5" fill="#241d2a"/>
+          <path class="mouth-set mouth-frown" d="M207,184 Q218,175 229,184" fill="none" stroke="#3a2530" stroke-width="3.5" stroke-linecap="round"/>
+        </g>
+
+        <path id="nose" d="M207,155 L229,155 Q232,155 230,158 L220,169 Q218,171 216,169 L206,158 Q204,155 207,155 Z" fill="#241d2a"/>
+      </g>
+
+      <!-- BOOK + ARMS: held in front -->
+      <g id="hold">
+        <g class="book-seat">
+          <g id="book">
+            <rect x="168" y="222" width="100" height="12" rx="2" fill="#fbf3e2"/>
+            <rect x="167" y="230" width="102" height="86" rx="4" fill="#79c393"/>
+            <rect x="167" y="230" width="24" height="86" rx="4" fill="#5fae7e"/>
+            <path d="M180,220 L196,220 L196,248 L188,241 L180,248 Z" fill="#ef5a44"/>
+          </g>
+        </g>
+        <g id="arm-left">
+          <ellipse cx="151" cy="254" rx="19" ry="34" transform="rotate(-22 151 254)" fill="#f0ab45"/>
+          <ellipse cx="146" cy="252" rx="19" ry="34" transform="rotate(-22 146 252)" fill="#f9c454"/>
+          <circle cx="168" cy="276" r="19" fill="#fbd06c"/>
+          <path d="M150,282 Q168,298 186,282 Q182,295 168,295 Q154,295 150,282 Z" fill="#f0ab45"/>
+        </g>
+        <g id="arm-right">
+          <ellipse cx="285" cy="254" rx="19" ry="34" transform="rotate(22 285 254)" fill="#f0ab45"/>
+          <ellipse cx="290" cy="252" rx="19" ry="34" transform="rotate(22 290 252)" fill="#f9c454"/>
+          <circle cx="268" cy="276" r="19" fill="#fbd06c"/>
+          <path d="M250,282 Q268,298 286,282 Q282,295 268,295 Q254,295 250,282 Z" fill="#f0ab45"/>
+        </g>
+      </g>
+    </g>
+  </g>
+
+  <!-- EFFECTS: the shared drawings from design/STYLE.md, beside the head on the viewer's right -->
+  <g transform="translate(334 28)">
+    <g class="fx fx-notes" id="notes">
+      <g class="note n1"><path d="M6,26 L6,0 L28,4 L28,16" fill="none" stroke="#ef6b6b" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><ellipse cx="0" cy="28" rx="7" ry="5.5" fill="#ef6b6b"/></g>
+      <g class="note n2"><path d="M32,60 L32,36 L46,42" fill="none" stroke="#4a8fe0" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><ellipse cx="26" cy="62" rx="7" ry="5.5" fill="#4a8fe0"/></g>
+    </g>
+    <g class="fx fx-sparkles">
+      <path d="M14,0 Q16,12 28,14 Q16,16 14,28 Q12,16 0,14 Q12,12 14,0 Z" fill="#f6c445"/>
+      <path d="M40,30 Q41,37 48,38 Q41,39 40,46 Q39,39 32,38 Q39,37 40,30 Z" fill="#f6c445"/>
+    </g>
+    <g class="fx fx-heart"><path d="M14,26 C4,18 0,12 0,7 C0,2 4,0 7,0 C10,0 12,2 14,5 C16,2 18,0 21,0 C24,0 28,2 28,7 C28,12 24,18 14,26 Z" fill="#ef6b6b"/></g>
+    <g class="fx fx-question"><path d="M4,10 Q4,0 14,0 Q24,0 24,9 Q24,15 16,18 Q14,19 14,24" fill="none" stroke="#5bbf94" stroke-width="5" stroke-linecap="round"/><circle cx="14" cy="33" r="3.2" fill="#5bbf94"/></g>
+  </g>
+</svg>

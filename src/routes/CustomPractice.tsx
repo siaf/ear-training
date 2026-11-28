@@ -23,6 +23,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { useBreakpoint } from '../lib/useBreakpoint';
+import Mascot from '../components/Mascot';
 import { Bean, Blob, Brand, ColorPill } from '../components/primitives';
 import { audioEngine, MODES, SEVENTH_CHORDS, TRIADS, INTERVALS } from '../audioEngine';
 import {
@@ -396,11 +397,12 @@ function SuggestionPanel({
         marginTop: 26,
       }}
     >
-      <img
-        src={`${import.meta.env.BASE_URL}brand/mascots/pulse/curious.png`}
-        alt=""
-        aria-hidden
-        style={{ position: 'absolute', right: -6, top: -4, width: mobile ? 58 : 76, pointerEvents: 'none', filter: 'drop-shadow(0 4px 8px rgba(42,29,58,0.15))' }}
+      <Mascot
+        name="pulse"
+        face="curious"
+        view="bust"
+        size={mobile ? 58 : 76}
+        style={{ position: 'absolute', right: -6, top: -4, pointerEvents: 'none', filter: 'drop-shadow(0 4px 8px rgba(42,29,58,0.15))' }}
       />
       <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--sky-ink)' }}>
         {fromMistakes ? 'you keep mixing these up' : 'start with one of these'}

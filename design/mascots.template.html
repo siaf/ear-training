@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mascot audition</title>
+<style>
+  :root { --bg:#fbf6ef; --ink:#241d2a; --ink2:#6b6270; --line:#eadfd2; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.5 -apple-system, system-ui, sans-serif; }
+  main { max-width:1100px; margin:0 auto; padding:28px 20px 60px; }
+  h1 { font-size:22px; margin:0 0 4px; }
+  p.sub { color:var(--ink2); margin:0 0 18px; }
+  .tabs { display:flex; gap:8px; margin-bottom:18px; flex-wrap:wrap; }
+  .tabs button { font-size:15px; padding:8px 16px; }
+  .role { color:var(--ink2); font-size:14px; margin:-6px 0 18px; min-height:21px; }
+  .stage-wrap { display:grid; grid-template-columns: 1fr 300px; gap:24px; align-items:start; }
+  @media (max-width:820px){ .stage-wrap{ grid-template-columns:1fr; } }
+  .stage { background:#fff; border:1px solid var(--line); border-radius:20px; aspect-ratio:1; display:flex; align-items:center; justify-content:center; overflow:hidden; position:relative; }
+  .stage svg { width:92%; height:92%; overflow:visible; }
+  .stage .ref { position:absolute; inset:0; margin:auto; width:92%; height:92%; opacity:0; pointer-events:none; object-fit:contain; }
+  .panel h2 { font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink2); margin:18px 0 8px; }
+  .panel h2:first-child { margin-top:0; }
+  .btns { display:flex; flex-wrap:wrap; gap:6px; }
+  button { font:inherit; font-size:14px; border:1px solid var(--line); background:#fff; color:var(--ink); padding:7px 12px; border-radius:999px; cursor:pointer; }
+  button:hover { border-color:#d6c6b4; }
+  button.on { background:var(--ink); color:#fff; border-color:var(--ink); }
+  label { font-size:14px; color:var(--ink2); display:flex; align-items:center; gap:8px; }
+  .refs { margin-top:34px; }
+  .refs h2 { font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink2); margin:0 0 10px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:12px; }
+  .cell { background:#fff; border:1px solid var(--line); border-radius:14px; padding:8px; text-align:center; font-size:13px; color:var(--ink2); }
+  .cell svg, .cell img { width:100%; aspect-ratio:1; display:block; }
+  .pair { display:grid; grid-template-columns:1fr 1fr; gap:4px; }
+  .note { font-size:13px; color:var(--ink2); margin-top:14px; }
+
+  /*MASCOT_CSS*/
+</style>
+</head>
+<body>
+<main>
+  <h1>Mascots, as animatable SVGs</h1>
+  <p class="sub">One drawing per mascot for both looks: the full body, and the bust with the six expressions. Audition only; nothing here is in the app.</p>
+
+  <div class="tabs" id="tabs"></div>
+  <div class="role" id="role"></div>
+
+  <div class="stage-wrap">
+    <div class="stage" id="stage"><div id="holder" style="display:contents"></div><img class="ref" id="ref" alt=""></div>
+
+    <div class="panel">
+      <h2>View</h2>
+      <div class="btns" id="views">
+        <button data-view="full" class="on">Full body</button>
+        <button data-view="bust">Bust</button>
+      </div>
+      <h2>Face</h2>
+      <div class="btns" id="faces"></div>
+      <h2>Animate</h2>
+      <div class="btns" id="acts"></div>
+      <label style="margin-top:10px"><input type="checkbox" id="idle" checked> Idle (breathing, blinks, ear flicks)</label>
+      <h2>Compare with the original</h2>
+      <label><input type="range" id="overlay" min="0" max="100" value="0" style="flex:1"> overlay</label>
+      <p class="note">Drag to lay the original picture over the SVG. The overlay lines up in full-body view with the portrait face; the expression pictures are framed differently.</p>
+    </div>
+  </div>
+
+  <section class="refs">
+    <h2>Side by side: original (left) and SVG (right)</h2>
+    <div class="grid" id="pairs"></div>
+  </section>
+</main>
+
+<script>
+const MASCOTS = /*MASCOTS*/{};
+const holder = document.getElementById('holder');
+const ref = document.getElementById('ref');
+let M, key, svg, face, view = 'full', busy = false, timers = [];
+
+const $ = id => document.getElementById(id);
+function applyFace(el, name, opts = {}) {
+  const f = M.faces[name];
+  el.setAttribute('data-eyes', f.eyes);
+  el.setAttribute('data-mouth', f.mouth);
+  el.setAttribute('data-blush', f.blush || 'off');
+  const fx = opts.fx || f.fx || (f.notes === 'on' ? 'notes' : 'none');
+  el.setAttribute('data-fx', fx);
+  el.setAttribute('data-notes', fx === 'notes' ? 'on' : 'off');
+  for (const [k, v] of Object.entries(f.extra || {})) el.setAttribute('data-' + k, v);
+}
+function setFace(name) {
+  face = name; applyFace(svg, name);
+  document.querySelectorAll('#faces button').forEach(b => b.classList.toggle('on', b.dataset.face === name));
+  const r = M.faces[name].ref;
+  ref.src = r ? `reference/${key}/${r}` : '';
+  ref.style.visibility = r ? 'visible' : 'hidden';
+}
+function setView(v) {
+  view = v; svg.setAttribute('viewBox', M.viewBox[v]); svg.setAttribute('data-view', v);
+  document.querySelectorAll('#views button').forEach(b => b.classList.toggle('on', b.dataset.view === v));
+}
+function once(cls, ms) {
+  svg.classList.remove(cls); void svg.getBoundingClientRect(); svg.classList.add(cls);
+  timers.push(setTimeout(() => svg.classList.remove(cls), ms));
+}
+function act(name) {
+  if (busy) return; busy = true;
+  const a = M.acts[name], before = face;
+  applyFace(svg, a.face, { fx: a.fx });
+  once('anim-' + a.anim, a.ms);
+  timers.push(setTimeout(() => { busy = false; applyFace(svg, before); }, a.ms + 150));
+}
+
+function load(k) {
+  timers.forEach(clearTimeout); timers = []; busy = false;
+  key = k; M = MASCOTS[k];
+  holder.innerHTML = M.svg; svg = holder.querySelector('svg');
+  svg.classList.toggle('idle', $('idle').checked);
+  document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.m === k));
+  $('role').textContent = `${M.name} the ${M.animal}: ${M.role}`;
+  $('faces').innerHTML = ''; $('acts').innerHTML = ''; $('pairs').innerHTML = '';
+  for (const [fk, f] of Object.entries(M.faces)) {
+    const b = document.createElement('button'); b.textContent = f.label || fk[0].toUpperCase() + fk.slice(1);
+    b.dataset.face = fk; b.onclick = () => setFace(fk); $('faces').append(b);
+  }
+  for (const [ak, a] of Object.entries(M.acts)) {
+    const b = document.createElement('button'); b.textContent = a.label;
+    b.onclick = () => act(ak); $('acts').append(b);
+  }
+  for (const [fk, f] of Object.entries(M.faces)) {
+    if (!f.ref) continue;
+    const cell = document.createElement('div'); cell.className = 'cell';
+    const clone = svg.cloneNode(true); clone.classList.remove('idle');
+    const cv = f.ref.startsWith('portrait') ? 'full' : 'bust';
+    clone.setAttribute('viewBox', M.viewBox[cv]); clone.setAttribute('data-view', cv);
+    applyFace(clone, fk);
+    cell.innerHTML = `<div class="pair"><img src="reference/${k}/${f.ref}" alt=""></div>${f.label || fk}`;
+    cell.querySelector('.pair').append(clone); $('pairs').append(cell);
+  }
+  setView(view); setFace(Object.keys(M.faces)[0]);
+  history.replaceState(null, '', '#' + k);
+}
+
+(function idleLoop() {
+  timers; setTimeout(() => {
+    if ($('idle').checked && !busy && svg) {
+      if ((M.blinkEyes || []).includes(svg.getAttribute('data-eyes'))) {
+        once('blink', 170);
+        if (Math.random() < .25) setTimeout(() => once('blink', 170), 260);
+      }
+      if (Math.random() < .3) once(Math.random() < .5 ? 'flick-l' : 'flick-r', 460);
+    }
+    idleLoop();
+  }, 1800 + Math.random() * 2600);
+})();
+
+for (const k of Object.keys(MASCOTS)) {
+  const b = document.createElement('button'); b.textContent = MASCOTS[k].name; b.dataset.m = k;
+  b.onclick = () => load(k); $('tabs').append(b);
+}
+$('idle').onchange = e => svg.classList.toggle('idle', e.target.checked);
+document.querySelectorAll('#views button').forEach(b => b.onclick = () => setView(b.dataset.view));
+$('overlay').oninput = e => ref.style.opacity = e.target.value / 100;
+const start = location.hash.slice(1);
+load(MASCOTS[start] ? start : Object.keys(MASCOTS)[0]);
+</script>
+</body>
+</html>

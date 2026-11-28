@@ -1,0 +1,33 @@
+{
+  "name": "Major",
+  "animal": "bear",
+  "role": "Butter · progress. Friendly, grounded, supportive: the one who remembers.",
+  "viewBox": { "full": "0 0 431 431", "bust": "54 -18 329 329" },
+  "blinkEyes": ["open", "wide"],
+  "faces": {
+    "neutral":      { "eyes": "open",       "mouth": "smile",  "ref": "portrait.original.png", "label": "Neutral (portrait)" },
+    "happy":        { "eyes": "closed",     "mouth": "tongue", "blush": "on", "ref": "happy.png" },
+    "excited":      { "eyes": "open",       "mouth": "open",   "blush": "on", "fx": "sparkles", "ref": "excited.png" },
+    "laugh":        { "eyes": "wink-left",  "mouth": "tongue", "blush": "on", "ref": "laugh.png" },
+    "curious":      { "eyes": "open",       "mouth": "small",  "fx": "question", "ref": "curious.png" },
+    "listening":    { "eyes": "closed",     "mouth": "smile",  "fx": "notes", "ref": "listening.png" },
+    "content":      { "eyes": "wink-right", "mouth": "smile",  "ref": "content.png" },
+    "sad":          { "eyes": "sad",        "mouth": "frown" },
+    "surprised":    { "eyes": "wide",       "mouth": "o" },
+    "sing":         { "eyes": "closed",     "mouth": "o",      "blush": "on", "fx": "notes" },
+    "keeping-time": { "eyes": "closed",     "mouth": "small",  "fx": "notes", "label": "Keeping time" }
+  },
+  "acts": {
+    "correct":    { "label": "Correct! (grounded hop)",      "face": "happy",        "anim": "steadyhop", "ms": 800 },
+    "wrong":      { "label": "Wrong (kind tilt)",            "face": "sad",          "anim": "reassure",  "ms": 1400 },
+    "welcome":    { "label": "Welcome back (wave)",          "face": "happy",        "anim": "greet",     "ms": 1700 },
+    "proud":      { "label": "Proud (book up)",              "face": "content",      "anim": "present",   "ms": 1800 },
+    "track":      { "label": "Keeping track (tap the book)", "face": "content",      "anim": "tap",       "ms": 1400 },
+    "laugh":      { "label": "Laugh",                        "face": "laugh",        "anim": "chuckle",   "ms": 1100 },
+    "drum":       { "label": "Drum the beat on the book (100 bpm)", "face": "keeping-time", "anim": "drum", "ms": 2400 },
+    "sing":       { "label": "Sing",                         "face": "sing",         "anim": "sing",       "ms": 2400 },
+    "pitch-up":   { "label": "Pitch up (higher)",            "face": "sing",         "anim": "pitch-up",   "ms": 1000 },
+    "pitch-down": { "label": "Pitch down (lower)",           "face": "sing",         "anim": "pitch-down", "ms": 1000 },
+    "listen":     { "label": "Listen (sway)",                "face": "listening",    "anim": "listen",     "ms": 3600 }
+  }
+}

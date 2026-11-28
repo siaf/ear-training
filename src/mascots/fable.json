@@ -1,0 +1,33 @@
+{
+  "name": "Fable",
+  "animal": "fox",
+  "role": "Coral · guide. Warm, guiding, slightly clever.",
+  "viewBox": { "full": "0 0 430 430", "bust": "33 -20 391 391" },
+  "blinkEyes": ["open", "wide"],
+  "faces": {
+    "neutral":      { "eyes": "open",       "mouth": "smile",  "ref": "portrait.original.png", "label": "Neutral (portrait)" },
+    "happy":        { "eyes": "closed",     "mouth": "tongue", "blush": "on", "ref": "happy.png" },
+    "excited":      { "eyes": "open",       "mouth": "open",   "blush": "on", "fx": "sparkles", "ref": "excited.png" },
+    "laugh":        { "eyes": "wink-left",  "mouth": "tongue", "blush": "on", "ref": "laugh.png" },
+    "curious":      { "eyes": "open",       "mouth": "small",  "fx": "question", "ref": "curious.png" },
+    "listening":    { "eyes": "closed",     "mouth": "smile",  "fx": "notes", "ref": "listening.png" },
+    "content":      { "eyes": "wink-right", "mouth": "smile",  "ref": "content.png" },
+    "sad":          { "eyes": "sad",        "mouth": "frown",  "label": "Sad (new)" },
+    "surprised":    { "eyes": "wide",       "mouth": "o",      "label": "Surprised (new)" },
+    "sing":         { "eyes": "closed",     "mouth": "o",      "blush": "on", "fx": "notes", "label": "Sing (new)" },
+    "keeping-time": { "eyes": "closed",     "mouth": "small",  "fx": "notes", "label": "Keeping time (new)" }
+  },
+  "acts": {
+    "correct":    { "label": "Correct! (hop)",          "face": "happy",        "anim": "hop",        "ms": 900 },
+    "wrong":      { "label": "Wrong (ears droop)",      "face": "sad",          "anim": "droop",      "ms": 1300 },
+    "listen":     { "label": "Listen (sway)",           "face": "listening",    "anim": "listen",     "ms": 3600 },
+    "wave":       { "label": "Wave hello",              "face": "content",      "anim": "wave",       "ms": 1600 },
+    "curious":    { "label": "Curious (head tilt)",     "face": "curious",      "anim": "tilt",       "ms": 1900 },
+    "laugh":      { "label": "Laugh",                   "face": "laugh",        "anim": "chuckle",    "ms": 1100 },
+    "conduct":    { "label": "Conduct (4/4, 100 bpm)",  "face": "keeping-time", "anim": "conduct",    "ms": 2600 },
+    "beat":       { "label": "Keep time (100 bpm)",     "face": "keeping-time", "anim": "beat",       "ms": 2400 },
+    "sing":       { "label": "Sing",                    "face": "sing",         "anim": "sing",       "ms": 2400 },
+    "pitch-up":   { "label": "Pitch up (higher)",       "face": "surprised",    "anim": "pitch-up",   "ms": 1000 },
+    "pitch-down": { "label": "Pitch down (lower)",      "face": "neutral",      "anim": "pitch-down", "ms": 1000 }
+  }
+}

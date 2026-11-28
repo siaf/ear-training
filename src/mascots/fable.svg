@@ -1,0 +1,242 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 430 430" class="mascot fable" data-eyes="open" data-mouth="smile" data-fx="none">
+  <!--
+    Fable the fox: a rig for animation. Follows design/STYLE.md.
+    Every moving part is its own group; its pivot is set in the <style> below.
+    Faces: data-eyes (open wide closed wink-left wink-right sad), data-mouth
+    (smile small open tongue o frown), data-blush, data-fx (notes sparkles heart question none),
+    data-view (full / bust). Coordinates match design/reference/fable/portrait.original.png.
+    Palette, at most three tones per area:
+      orange  #f68a24 base, #e86a1a shadow
+      cream   #f8e0b6 base, #fbe9c9 light
+      coral   #e85c48 base, #d9503f shadow, #f56c55 light (scarf)
+      ink     #2b2a37 base, #353444 light (ear tips, shoes, nose); eyes #241d2a
+  -->
+  <style>
+    .fable * { transform-box: view-box; }
+    /* pivots, in view-box coordinates; the shared animations rotate and scale around these */
+    .fable #figure, .fable #body, .fable #shadow { transform-origin: 230px 384px; }
+    .fable #head       { transform-origin: 228px 236px; }
+    .fable #ear-left   { transform-origin: 165px 150px; }
+    .fable #ear-right  { transform-origin: 291px 150px; }
+    .fable #tail       { transform-origin: 168px 330px; }
+    .fable #arm-left   { transform-origin: 154px 270px; }
+    .fable #arm-right  { transform-origin: 302px 268px; }
+    .fable #neckwear   { transform-origin: 284px 232px; }
+    .fable #eyes       { transform-origin: 228px 168px; }
+    .fable #mouth      { transform-origin: 228px 204px; }
+    .fable #foot-left  { transform-origin: 226px 384px; } /* inner heel: the outer toes lift */
+    .fable #foot-right { transform-origin: 234px 384px; }
+
+    /* face switches */
+    .fable .eye-set, .fable .mouth-set, .fable .fx { display: none; }
+    .fable[data-eyes="open"]       .eyes-open,
+    .fable[data-eyes="wide"]       .eyes-wide,
+    .fable[data-eyes="closed"]     .eyes-closed,
+    .fable[data-eyes="wink-left"]  .eyes-wink-left,
+    .fable[data-eyes="wink-right"] .eyes-wink-right,
+    .fable[data-eyes="sad"]        .eyes-sad,
+    .fable[data-mouth="smile"]     .mouth-smile,
+    .fable[data-mouth="small"]     .mouth-small,
+    .fable[data-mouth="open"]      .mouth-open,
+    .fable[data-mouth="tongue"]    .mouth-tongue,
+    .fable[data-mouth="o"]         .mouth-o,
+    .fable[data-mouth="frown"]     .mouth-frown,
+    .fable[data-fx="notes"]        .fx-notes,
+    .fable[data-fx="sparkles"]     .fx-sparkles,
+    .fable[data-fx="heart"]        .fx-heart,
+    .fable[data-fx="question"]     .fx-question { display: inline; }
+    .fable .blush { opacity: 0; transition: opacity .3s; }
+    .fable[data-blush="on"] .blush { opacity: .55; }
+
+    /* bust: head, shoulders and scarf; no arms, legs, tail or shadow */
+    .fable .bust-only { display: none; }
+    .fable[data-view="bust"] .bust-only { display: inline; }
+    .fable[data-view="bust"] #legs, .fable[data-view="bust"] #torso, .fable[data-view="bust"] .torso-shade,
+    .fable[data-view="bust"] #belly, .fable[data-view="bust"] #arm-left, .fable[data-view="bust"] #arm-right,
+    .fable[data-view="bust"] #shadow, .fable[data-view="bust"] #tail, .fable[data-view="bust"] #scarf { display: none; }
+
+    /* idle: the scarf end drifts (the shared idle targets the old id) */
+    .mascot.fable.idle #neckwear { animation: scarfIdle 3.2s ease-in-out infinite; }
+
+    /* conduct: Fable holds a baton, and the arm's "up" stays clear of the head */
+    .fable .baton { display: none; }
+    .mascot.fable.anim-conduct .baton { display: inline; }
+    .mascot.fable.anim-conduct #arm-right { animation: fableConduct 2.6s ease-in-out 1; }
+    @keyframes fableConduct {
+      0%{transform:rotate(0)} 7%{transform:rotate(-125deg)}
+      15%{transform:rotate(-45deg)} 25%{transform:rotate(-70deg)}
+      38%{transform:rotate(-15deg)} 48%{transform:rotate(-50deg)}
+      61%{transform:rotate(-100deg)} 72%{transform:rotate(-105deg)}
+      84%{transform:rotate(-128deg)} 92%{transform:rotate(-105deg)} 100%{transform:rotate(0)}
+    }
+  </style>
+
+  <defs>
+    <!-- one eye, centred on 0,0: radius 6% of the head's width (274) -->
+    <circle id="eye-open" r="16.5" fill="#241d2a"/>
+    <circle id="eye-wide" r="19" fill="#241d2a"/>
+    <path id="eye-closed" d="M-14,4 Q0,-14 14,4" fill="none" stroke="#241d2a" stroke-width="6" stroke-linecap="round"/>
+    <path id="eye-sad" d="M-13,-2 Q0,9 13,-2" fill="none" stroke="#241d2a" stroke-width="6" stroke-linecap="round"/>
+  </defs>
+
+  <!-- ground shadow -->
+  <ellipse id="shadow" cx="230" cy="384" rx="92" ry="5" fill="#e9ddd3" opacity=".7"/>
+
+  <g id="figure">
+
+    <!-- TAIL: pivots where it meets the body -->
+    <g id="tail">
+      <path d="M68,254 L166,284 L172,372 C128,374 92,358 80,333 Z" fill="#e86a1a"/>
+      <path d="M68,254 L137,275 L82,334 Z" fill="#f8e0b6"/>
+      <path d="M68,254 L137,275 L104,300 Z" fill="#fbe9c9"/>
+    </g>
+
+    <!-- LEGS + FEET -->
+    <g id="legs">
+      <g id="leg-left">
+        <rect x="160" y="320" width="66" height="44" fill="#f68a24"/>
+        <path d="M160,320 L197,320 L196,364 L160,364 Z" fill="#e86a1a"/>
+        <g id="foot-left"><rect x="157" y="360" width="69" height="24" rx="2" fill="#2b2a37"/></g>
+      </g>
+      <g id="leg-right">
+        <rect x="234" y="320" width="66" height="44" fill="#f68a24"/>
+        <g id="foot-right">
+          <rect x="234" y="360" width="69" height="24" rx="2" fill="#2b2a37"/>
+          <rect x="234" y="360" width="22" height="24" fill="#353444"/>
+        </g>
+      </g>
+    </g>
+
+    <!-- BODY: squashes and stretches from the feet -->
+    <g id="body">
+      <path id="torso" d="M163,258 L298,258 L301,342 L160,342 Z" fill="#f68a24"/>
+      <path class="torso-shade" d="M163,258 L200,258 L196,342 L160,342 Z" fill="#e86a1a"/>
+      <path id="belly" d="M227,282 C262,282 285,290 286,306 C287,324 272,338 248,339 L227,339 Z" fill="#f8e0b6"/>
+
+      <!-- arm on the viewer's right sits behind the scarf; it holds the baton when conducting -->
+      <g id="arm-right">
+        <path class="baton" d="M318,322 L330,368" stroke="#2b2a37" stroke-width="4" stroke-linecap="round"/>
+        <circle class="baton" cx="330.5" cy="369" r="3" fill="#fbe9c9"/>
+        <path d="M296,262 C310,262 326,282 331,304 C334,318 326,327 316,326 C306,325 300,312 297,298 Z" fill="#e86a1a"/>
+      </g>
+
+      <!-- SCARF: the hanging end (#neckwear) sways on its own -->
+      <g id="scarf">
+        <path id="neckwear" d="M260,232 L306,229 L313,300 L292,296 L246,272 Z" fill="#f56c55"/>
+        <path d="M146,228 L230,229 L226,268 L150,262 Z" fill="#d9503f"/>
+        <path d="M184,228 L262,229 L258,276 L226,268 L184,264 Z" fill="#e85c48"/>
+      </g>
+
+      <!-- arm on the viewer's left is in front -->
+      <g id="arm-left">
+        <path d="M150,264 C166,262 180,276 178,298 C177,318 166,332 153,331 C141,330 136,316 139,298 C141,282 142,266 150,264 Z" fill="#f68a24"/>
+        <path d="M172,284 C178,300 176,318 166,328 C162,331 157,332 153,331 C164,322 170,304 172,284 Z" fill="#e86a1a"/>
+      </g>
+    </g>
+
+    <!-- BUST VIEW ONLY: shoulders, and the scarf as a wrapped band -->
+    <g id="bust-chest" class="bust-only">
+      <path d="M84,400 C88,322 124,276 176,262 L280,262 C332,276 368,322 372,400 Z" fill="#f68a24"/>
+      <path d="M84,400 C88,322 124,276 176,262 L192,262 C156,292 140,340 138,400 Z" fill="#e86a1a"/>
+      <path d="M228,286 C266,290 296,312 300,350 C302,376 296,392 290,400 L228,400 Z" fill="#f8e0b6"/>
+    </g>
+    <g id="bust-scarf" class="bust-only">
+      <path d="M148,226 L308,226 L306,280 Q228,290 151,283 Z" fill="#e85c48"/>
+      <path d="M148,226 L214,226 L214,288 Q178,287 151,283 Z" fill="#d9503f"/>
+    </g>
+
+    <!-- HEAD: tilts and nods from the neck -->
+    <g id="head">
+      <g id="ear-left">
+        <path d="M122,48 L208,99 L190,165 L113,165 Z" fill="#e86a1a"/>
+        <path d="M122,48 L208,99 L160,150 Z" fill="#f68a24"/>
+        <path d="M122,48 L173,78 L117,104 Z" fill="#2b2a37"/>
+      </g>
+      <g id="ear-right">
+        <path d="M334,48 L248,99 L266,165 L343,165 Z" fill="#e86a1a"/>
+        <path d="M334,48 L248,99 L296,150 Z" fill="#f68a24"/>
+        <path d="M334,48 L283,78 L339,104 Z" fill="#2b2a37"/>
+      </g>
+
+      <!-- skull: dome down to the cheek points -->
+      <path id="skull" d="M91,186 L115,152 C130,112 176,93 228,93 C280,93 326,112 341,152 L365,186 L250,203 L206,203 Z" fill="#f68a24"/>
+      <!-- muzzle -->
+      <path id="muzzle" d="M91,186 L206,199 L228,195 L250,199 L365,186 L294,231 L162,231 Z" fill="#f8e0b6"/>
+
+      <g id="blush" class="blush">
+        <ellipse cx="160" cy="198" rx="15" ry="6" fill="#f59a8a"/>
+        <ellipse cx="296" cy="198" rx="15" ry="6" fill="#f59a8a"/>
+      </g>
+
+      <!-- EYES -->
+      <g id="eyes">
+        <g class="eye-set eyes-open">
+          <use href="#eye-open" x="176" y="168"/>
+          <use href="#eye-open" x="281" y="168"/>
+        </g>
+        <g class="eye-set eyes-wide">
+          <use href="#eye-wide" x="176" y="166"/>
+          <use href="#eye-wide" x="281" y="166"/>
+        </g>
+        <g class="eye-set eyes-closed">
+          <use href="#eye-closed" x="176" y="170"/>
+          <use href="#eye-closed" x="281" y="170"/>
+        </g>
+        <g class="eye-set eyes-wink-left">
+          <use href="#eye-closed" x="176" y="170"/>
+          <use href="#eye-open" x="281" y="168"/>
+        </g>
+        <g class="eye-set eyes-wink-right">
+          <use href="#eye-open" x="176" y="168"/>
+          <use href="#eye-closed" x="281" y="170"/>
+        </g>
+        <g class="eye-set eyes-sad">
+          <use href="#eye-sad" x="176" y="168"/>
+          <use href="#eye-sad" x="281" y="168"/>
+          <path d="M160,148 L190,141" stroke="#d65a14" stroke-width="5" stroke-linecap="round"/>
+          <path d="M297,148 L267,141" stroke="#d65a14" stroke-width="5" stroke-linecap="round"/>
+        </g>
+      </g>
+
+      <!-- MOUTHS: #mouth pivots at the mouth's top centre, so singing opens it downward -->
+      <g id="mouth">
+        <path class="mouth-set mouth-smile" d="M214,204 Q228,214 242,204" fill="none" stroke="#3a2530" stroke-width="3.5" stroke-linecap="round"/>
+        <g class="mouth-set mouth-small">
+          <path d="M218,204 Q228,208 238,204 Q237,216 228,217 Q219,216 218,204 Z" fill="#241d2a"/>
+          <path d="M222,214 Q228,210 234,214 Q231,217 228,217 Q225,217 222,214 Z" fill="#ef6b6b"/>
+        </g>
+        <g class="mouth-set mouth-open">
+          <path d="M213,205 Q228,211 243,205 Q243,226 228,228 Q213,226 213,205 Z" fill="#241d2a"/>
+          <path d="M219,222 Q228,214 237,222 Q234,228 228,228 Q222,228 219,222 Z" fill="#ef6b6b"/>
+        </g>
+        <g class="mouth-set mouth-tongue">
+          <path d="M211,204 Q228,211 245,204 Q245,224 228,226 Q211,224 211,204 Z" fill="#241d2a"/>
+          <path d="M219,216 L237,216 L237,228 Q237,238 228,238 Q219,238 219,228 Z" fill="#ef6b6b"/>
+          <path d="M228,219 L228,231" stroke="#d65454" stroke-width="2" stroke-linecap="round"/>
+        </g>
+        <g class="mouth-set mouth-o">
+          <ellipse cx="228" cy="213" rx="7" ry="8.5" fill="#241d2a"/>
+          <ellipse cx="228" cy="217.5" rx="4.5" ry="3" fill="#ef6b6b"/>
+        </g>
+        <path class="mouth-set mouth-frown" d="M216,213 Q228,203 240,213" fill="none" stroke="#3a2530" stroke-width="3.5" stroke-linecap="round"/>
+      </g>
+
+      <!-- nose sits on top of the mouth's top edge -->
+      <path id="nose" d="M210,181 L246,181 L228,201 Z" fill="#2b2a37" stroke="#2b2a37" stroke-width="3" stroke-linejoin="round"/>
+    </g>
+
+    <!-- EFFECTS (shared drawings from STYLE.md), beside the head on the viewer's right, level with the ear tips -->
+    <g id="fx" transform="translate(352,40)">
+      <g class="fx fx-notes" id="notes">
+        <g class="note n1"><path d="M6,26 L6,0 L28,4 L28,16" fill="none" stroke="#ef6b6b" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><ellipse cx="0" cy="28" rx="7" ry="5.5" fill="#ef6b6b"/></g>
+        <g class="note n2"><path d="M32,60 L32,36 L46,42" fill="none" stroke="#4a8fe0" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><ellipse cx="26" cy="62" rx="7" ry="5.5" fill="#4a8fe0"/></g>
+      </g>
+      <g class="fx fx-sparkles">
+        <path d="M14,0 Q16,12 28,14 Q16,16 14,28 Q12,16 0,14 Q12,12 14,0 Z" fill="#f6c445"/>
+        <path d="M40,30 Q41,37 48,38 Q41,39 40,46 Q39,39 32,38 Q39,37 40,30 Z" fill="#f6c445"/>
+      </g>
+      <g class="fx fx-heart"><path d="M14,26 C4,18 0,12 0,7 C0,2 4,0 7,0 C10,0 12,2 14,5 C16,2 18,0 21,0 C24,0 28,2 28,7 C28,12 24,18 14,26 Z" fill="#ef6b6b"/></g>
+      <g class="fx fx-question"><path d="M4,10 Q4,0 14,0 Q24,0 24,9 Q24,15 16,18 Q14,19 14,24" fill="none" stroke="#5bbf94" stroke-width="5" stroke-linecap="round"/><circle cx="14" cy="33" r="3.2" fill="#5bbf94"/></g>
+    </g>
+  </g>
+</svg>

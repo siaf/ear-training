@@ -20,6 +20,7 @@
     "build:tool:fretboard": "esbuild site/tools/guitar-fretboard-notes/_src/main.jsx --bundle --loader:.jsx=jsx --tsconfig-raw='{\"compilerOptions\":{\"jsx\":\"react\"}}' --target=es2017 --minify --legal-comments=none --outfile=site/tools/guitar-fretboard-notes/guitar-fretboard-notes.js",
     "build:tool:fretintervals": "esbuild site/tools/guitar-fretboard-intervals/_src/main.jsx --bundle --loader:.jsx=jsx --tsconfig-raw='{\"compilerOptions\":{\"jsx\":\"react\"}}' --target=es2017 --minify --legal-comments=none --outfile=site/tools/guitar-fretboard-intervals/guitar-fretboard-intervals.js",
     "build:tools": "npm run build:tool:cof && npm run build:tool:vrt && npm run build:tool:intervals && npm run build:tool:notes && npm run build:tool:piano && npm run build:tool:fretboard && npm run build:tool:fretintervals",
+    "build:mascots": "node scripts/build-mascot-pngs.mjs",
     "cap:sync": "npm run build:mobile && cap sync",
     "ios": "npm run build:mobile && cap sync ios && cap open ios",
     "android": "npm run build:mobile && cap sync android && cap open android",

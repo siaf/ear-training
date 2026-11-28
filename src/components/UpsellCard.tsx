@@ -6,6 +6,8 @@
 // Pulled out of Path.tsx so the same card can render in the desktop right rail AND
 // above-the-path on mobile without a duplicate JSX block.
 
+import Mascot from './Mascot';
+
 export type UpsellMode = 'none' | 'create_account' | 'go_pro';
 
 export interface UpsellCardProps {
@@ -36,16 +38,15 @@ export default function UpsellCard({ mode, mobile, onClick }: UpsellCardProps) {
         width: '100%',
       }}
     >
-      <img
-        src={`${import.meta.env.BASE_URL}brand/mascots/fable/excited.png`}
-        alt=""
-        aria-hidden
+      <Mascot
+        name="fable"
+        face="excited"
+        view="bust"
+        size={mobile ? 64 : 80}
         style={{
           position: 'absolute',
           right: -6,
           bottom: -6,
-          width: mobile ? 64 : 80,
-          height: 'auto',
           pointerEvents: 'none',
           filter: 'drop-shadow(0 4px 8px rgba(42,29,58,0.15))',
         }}

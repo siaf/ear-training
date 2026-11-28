@@ -1,0 +1,162 @@
+{
+  "name": "Pulse",
+  "animal": "rabbit",
+  "role": "Sky · rhythm. Light, rhythmic, energetic; upbeat, never hyperactive. Eyes closed because they're listening to the beat.",
+  "viewBox": {
+    "full": "0 0 441 441",
+    "bust": "47 27 351 351"
+  },
+  "blinkEyes": [
+    "open",
+    "wide"
+  ],
+  "faces": {
+    "neutral": {
+      "eyes": "closed",
+      "mouth": "smile",
+      "ref": "portrait.original.png",
+      "label": "Neutral (portrait)"
+    },
+    "happy": {
+      "eyes": "closed",
+      "mouth": "tongue",
+      "blush": "on",
+      "ref": "happy.png"
+    },
+    "excited": {
+      "eyes": "open",
+      "mouth": "open",
+      "blush": "on",
+      "fx": "sparkles",
+      "ref": "excited.png"
+    },
+    "laugh": {
+      "eyes": "wink-left",
+      "mouth": "tongue",
+      "blush": "on",
+      "ref": "laugh.png"
+    },
+    "curious": {
+      "eyes": "open",
+      "mouth": "small",
+      "fx": "question",
+      "ref": "curious.png"
+    },
+    "listening": {
+      "eyes": "closed",
+      "mouth": "smile",
+      "fx": "notes",
+      "ref": "listening.png"
+    },
+    "content": {
+      "eyes": "wink-right",
+      "mouth": "smile",
+      "ref": "content.png"
+    },
+    "sad": {
+      "eyes": "sad",
+      "mouth": "frown",
+      "label": "Sad"
+    },
+    "surprised": {
+      "eyes": "wide",
+      "mouth": "o",
+      "label": "Surprised"
+    },
+    "sing": {
+      "eyes": "closed",
+      "mouth": "o",
+      "blush": "on",
+      "fx": "notes",
+      "label": "Sing"
+    },
+    "keeping-time": {
+      "eyes": "closed",
+      "mouth": "small",
+      "fx": "notes",
+      "label": "Keeping time"
+    }
+  },
+  "acts": {
+    "correct": {
+      "label": "Correct! (bunny hop)",
+      "face": "happy",
+      "anim": "pulse-hop",
+      "ms": 1000
+    },
+    "wrong": {
+      "label": "Wrong (ears droop)",
+      "face": "sad",
+      "anim": "pulse-droop",
+      "ms": 1500
+    },
+    "beat": {
+      "label": "Keep time (100 bpm)",
+      "face": "keeping-time",
+      "anim": "beat",
+      "ms": 2400
+    },
+    "metronome": {
+      "label": "Metronome sway (100 bpm)",
+      "face": "keeping-time",
+      "anim": "metronome",
+      "ms": 2400
+    },
+    "drum": {
+      "label": "Drum the beat (100 bpm)",
+      "face": "excited",
+      "anim": "pulse-drum",
+      "ms": 2600,
+      "fx": "notes"
+    },
+    "sing": {
+      "label": "Sing",
+      "face": "sing",
+      "anim": "sing",
+      "ms": 2400
+    },
+    "pitch-up": {
+      "label": "Pitch goes up",
+      "face": "surprised",
+      "anim": "pitch-up",
+      "ms": 1000
+    },
+    "pitch-down": {
+      "label": "Pitch goes down",
+      "face": "curious",
+      "anim": "pitch-down",
+      "ms": 1000,
+      "fx": "none"
+    },
+    "listen": {
+      "label": "Listen (sway, notes)",
+      "face": "listening",
+      "anim": "listen",
+      "ms": 3600
+    },
+    "wave": {
+      "label": "Wave / daily reminder",
+      "face": "content",
+      "anim": "wave",
+      "ms": 1600
+    },
+    "curious": {
+      "label": "Curious (one ear up)",
+      "face": "curious",
+      "anim": "pulse-curious",
+      "ms": 1900
+    },
+    "streak": {
+      "label": "Streak! (two hops)",
+      "face": "excited",
+      "anim": "pulse-cheer",
+      "ms": 1400
+    },
+    "laugh": {
+      "label": "Laugh",
+      "face": "laugh",
+      "anim": "chuckle",
+      "ms": 1100
+    }
+  }
+}

@@ -41,6 +41,7 @@ python3 -m http.server 5181 --directory site # marketing site and tools
 | `npm run build` | The app under `/ear-training/`, as `npm run dev` serves it. Not for app.fifths.io. |
 | `npm run build:mobile` | The app for Capacitor. `npm run cap:sync` then copies it into the native projects. |
 | `npm run build:tools` | Every free tool's bundle, from `_src/` into a `.js` file next to its page. The bundles are committed. |
+| `npm run build:mascots` | The mascot PNGs in `public/brand/mascots/` (share pictures, lesson preview pictures, the brand page) from the drawings in `src/mascots/`. Run it after changing a mascot, then `npm run build:lessons` before the next site deploy so the preview pictures follow. Needs Playwright's Chromium. |
 | `npm run build:lessons` | A public page per ear-training lesson (`site/lessons/<slug>/`, with its preview picture), the `/lessons/` index and `site/llms.txt`, from the curriculum. Needs Playwright's Chromium for the pictures. |
 | `npm run build:blog` | Blog pages and `site/sitemap.xml` (including the lesson pages), from `content/blog/`. |
 | `npm run predeploy:site` | Brand files, lesson pages, blog and all tools. Run before every site deploy. |
@@ -81,6 +82,7 @@ Run all three before deploying. Nothing runs them for you: there's no CI for tes
 | `share.spec.ts` | Sharing a medal, "your week" on the stats screen and the 7-day streak prompt: the picture, X, Reddit as a text post, and Escape |
 | `paths.spec.ts` | The course switcher, and Read Music and Guitar lessons finished by reading the staff or neck the learner sees, including chord and scale shapes |
 | `courses.spec.ts` | All six courses in the switcher; Rhythm counting and tapping (in time, steadily late, and out of time); a Theory and a History lesson finished by reading; Bass on a four-string neck; the path screen's side cards following the chosen course; unreleased courses locked as "coming soon" for learners but open to the owner's account |
+| `mascots.spec.ts` | The animated mascots: a lesson intro's mascot at its size, greeting and playing a move when tapped; the path screen's small mascots; and keeping still for reduced motion |
 
 Useful forms: `npx playwright test e2e/audio.spec.ts --project=webkit`, `npx playwright test -g "paywall"`, `npx playwright show-trace test-results/<folder>/trace.zip`.
 
@@ -110,6 +112,10 @@ Saved progress is stored by lesson id: the completed list (in the browser and in
 - **Lessons outside ear training are visual** (types `reading` and `fretboard`): something to look at (or hear), then an answer. `buildVisualQuestion` in `src/notation/questions.ts` builds them all and hands Rhythm, Theory and History kinds to `src/rhythm/questions.ts`, `src/theory/questions.ts` and `src/history/questions.ts`. The staff, neck and question area are in `src/components/notation/`; rhythm notation and the tap pad in `src/components/rhythm/`. A lesson's items say what's tested (`treble:F#4`, `s0f3`, `b0f3` on the bass, `pmin_e:b7`, `rh_q-e-e-h`, `rn_5`, `fact_opera_birth`); each module lists its formats at the top. `src/notation/questions.test.ts` builds every item of every visual lesson, and each module has its own tests that read the drawing back and check it matches the answer.
 - **Rhythm tap questions never play the rhythm first** (that would give the answer away), and `gradeTapsSteady` in `src/lib/rhythmGrader.ts` forgives one steady delay (touch screens, Bluetooth) but not uneven timing. Every rhythm in a lesson's `rhythmPool` must fill its bar exactly; `src/rhythm/model.test.ts` checks.
 - **History facts** are in `src/history/content.ts`, right answer first. Keep to well-established facts, and soften anything sources disagree on. The listening passages (`src/history/styles.ts`) are generated to show one hallmark each and play on the learner's instrument; the lessons say so.
+
+## Mascots
+
+Fable, Noir, Major and Pulse are animated drawings: `src/mascots/<key>.svg` (every moving part in its own group), `<key>.json` (faces, actions, framing) and the shared animations in `mascot.css`, drawn by `src/components/Mascot.tsx` (`<Mascot name face view act />`, or `ref.play('beat')`). `design/STYLE.md` is the style guide, so they stay one cast: read it before changing or adding a face, action or mascot. `python3 design/build.py` builds an audition page (`design/mascots.html`) to try every face and action, beside the original pictures in `design/reference/`. Canvas pictures can't use the live drawing, so `npm run build:mascots` renders the PNGs from the same files. `src/mascots/mascots.test.ts` checks every face and action exists.
 
 ## Free and Pro copy
 

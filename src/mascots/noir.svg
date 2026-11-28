@@ -1,0 +1,256 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 430 430" class="mascot noir" data-eyes="open" data-mouth="smile" data-fx="none">
+  <!--
+    Noir the cat: a rig for animation, drawn to design/STYLE.md.
+    Every moving part is its own group; pivots are set below in view-box coordinates.
+    Faces: data-eyes (open | wide | closed | wink-left | wink-right | sad) and
+    data-mouth (smile | small | open | tongue | o | frown) on the root <svg>;
+    data-blush="on" shows the blush, data-fx (none | notes | sparkles | heart | question) the shared effects.
+    data-view="bust" shows just the head, bow tie and shoulders.
+    Coordinates match design/reference/noir/portrait.original.png (430x430).
+    Ink eyes would vanish on black fur, so Noir's open eyes carry a thin cream ring and
+    Noir's eye and mouth lines are drawn light.
+  -->
+  <style>
+    .noir * { transform-box: view-box; }
+    /* pivots */
+    .noir #figure, .noir #body, .noir #shadow { transform-origin: 215px 383px; }
+    .noir #head      { transform-origin: 215px 232px; }
+    .noir #ear-left  { transform-origin: 142px 104px; }
+    .noir #ear-right { transform-origin: 288px 104px; }
+    .noir #tail      { transform-origin: 292px 336px; }
+    .noir #arm-left  { transform-origin: 132px 272px; }
+    .noir #arm-right { transform-origin: 298px 272px; }
+    .noir #foot-left { transform-origin: 205px 383px; }
+    .noir #foot-right{ transform-origin: 225px 383px; }
+    .noir #eyes      { transform-origin: 215px 161px; }
+    .noir #mouth     { transform-origin: 216px 189px; }
+    .noir #neckwear  { transform-origin: 215px 243px; }
+
+    .noir .eye-set, .noir .mouth-set, .noir .fx { display: none; }
+    .noir[data-eyes="open"]       .eyes-open,
+    .noir[data-eyes="wide"]       .eyes-wide,
+    .noir[data-eyes="closed"]     .eyes-closed,
+    .noir[data-eyes="wink-left"]  .eyes-wink-left,
+    .noir[data-eyes="wink-right"] .eyes-wink-right,
+    .noir[data-eyes="sad"]        .eyes-sad,
+    .noir[data-mouth="smile"]     .mouth-smile,
+    .noir[data-mouth="small"]     .mouth-small,
+    .noir[data-mouth="open"]      .mouth-open,
+    .noir[data-mouth="tongue"]    .mouth-tongue,
+    .noir[data-mouth="o"]         .mouth-o,
+    .noir[data-mouth="frown"]     .mouth-frown,
+    .noir[data-fx="notes"]        .fx-notes,
+    .noir[data-fx="sparkles"]     .fx-sparkles,
+    .noir[data-fx="heart"]        .fx-heart,
+    .noir[data-fx="question"]     .fx-question { display: inline; }
+    .noir .blush { opacity: 0; transition: opacity .3s; }
+    .noir[data-blush="on"] .blush { opacity: .55; }
+
+    /* Bust view: head, bow tie and shoulders */
+    .noir[data-view="bust"] #legs, .noir[data-view="bust"] #torso, .noir[data-view="bust"] #arm-left,
+    .noir[data-view="bust"] #arm-right, .noir[data-view="bust"] #tail, .noir[data-view="bust"] #shadow { display: none; }
+    .noir .bust-only { display: none; }
+    .noir[data-view="bust"] .bust-only { display: inline; }
+
+    /* idle tail for a cat: a lazy curl rather than a wag (before the acts, so they override it) */
+    .mascot.noir.idle #tail { animation: noirTailIdle 4s ease-in-out infinite; }
+    @keyframes noirTailIdle { 0%,100%{transform:rotate(0)} 50%{transform:rotate(-7deg)} }
+
+    /* Noir's own animations: quiet ones. Noir notices; Noir doesn't cheer. */
+    /* slow blink: a cat's "I trust you" */
+    .mascot.noir.anim-slowblink #eyes { animation: noirSlowBlink 2.2s ease-in-out 1; }
+    .mascot.noir.anim-slowblink #head { animation: noirSlowNod 2.2s ease-in-out 1; }
+    @keyframes noirSlowBlink { 0%,100%{transform:scaleY(1)} 30%,62%{transform:scaleY(.07)} }
+    @keyframes noirSlowNod { 0%,100%{transform:none} 30%,62%{transform:translateY(3px) rotate(2deg)} }
+
+    /* sigh: ears fold out, head lowers, tail drops; no shaking */
+    .mascot.noir.anim-sigh #head      { animation: noirSighHead 1.5s ease-in-out 1; }
+    .mascot.noir.anim-sigh #ear-left  { animation: noirEarOutL 1.5s ease-in-out 1; }
+    .mascot.noir.anim-sigh #ear-right { animation: noirEarOutR 1.5s ease-in-out 1; }
+    .mascot.noir.anim-sigh #body      { animation: noirSighBody 1.5s ease-in-out 1; }
+    .mascot.noir.anim-sigh #tail      { animation: noirTailDown 1.5s ease-in-out 1; }
+    @keyframes noirSighHead { 0%,100%{transform:none} 25%,75%{transform:translateY(5px) rotate(-2deg)} }
+    @keyframes noirEarOutL { 0%,100%{transform:rotate(0)} 25%,75%{transform:rotate(-22deg)} }
+    @keyframes noirEarOutR { 0%,100%{transform:rotate(0)} 25%,75%{transform:rotate(22deg)} }
+    @keyframes noirSighBody { 0%,100%{transform:none} 25%,75%{transform:scale(1.015,.975)} }
+    @keyframes noirTailDown { 0%,100%{transform:rotate(0)} 25%,75%{transform:rotate(18deg)} }
+
+    /* attend: body still, ears swivel toward the sound one at a time, slow tail flick */
+    .mascot.noir.anim-attend #ear-left  { animation: noirSwivelL 3.4s ease-in-out 1; }
+    .mascot.noir.anim-attend #ear-right { animation: noirSwivelR 3.4s ease-in-out 1; }
+    .mascot.noir.anim-attend #head      { animation: noirAttendHead 3.4s ease-in-out 1; }
+    .mascot.noir.anim-attend #tail      { animation: noirTailFlick 1.7s ease-in-out 2; }
+    .mascot.noir.anim-attend .note      { animation: float 1.7s ease-out 2; }
+    .mascot.noir.anim-attend .n2        { animation-delay: .5s; }
+    @keyframes noirSwivelL { 0%,100%{transform:rotate(0)} 12%,38%{transform:rotate(-14deg)} 50%,62%{transform:rotate(4deg)} 76%,88%{transform:rotate(-8deg)} }
+    @keyframes noirSwivelR { 0%,100%{transform:rotate(0)} 12%,38%{transform:rotate(-4deg)} 50%,62%{transform:rotate(14deg)} 76%,88%{transform:rotate(8deg)} }
+    @keyframes noirAttendHead { 0%,100%{transform:none} 12%,38%{transform:rotate(-3deg)} 50%,62%{transform:rotate(3deg)} }
+    @keyframes noirTailFlick { 0%,100%{transform:rotate(0)} 45%{transform:rotate(-12deg)} 60%{transform:rotate(-8deg)} }
+
+    /* calm keep-time (100 bpm, one bar): a small nod on each beat, the tail ticks; no foot tap, no bounce */
+    .mascot.noir.anim-noir-beat #head      { animation: noirBeatNod .6s ease-in-out 4; }
+    .mascot.noir.anim-noir-beat #tail      { animation: noirBeatTail 1.2s ease-in-out 2; }
+    .mascot.noir.anim-noir-beat #ear-left  { animation: noirBeatEarL .6s ease-in-out 4; animation-delay: .06s; }
+    .mascot.noir.anim-noir-beat #ear-right { animation: noirBeatEarR .6s ease-in-out 4; animation-delay: .06s; }
+    .mascot.noir.anim-noir-beat .note      { animation: float 1.2s ease-out 2; }
+    .mascot.noir.anim-noir-beat .n2        { animation-delay: .6s; }
+    @keyframes noirBeatNod { 0%,100%{transform:none} 20%{transform:translateY(4px) rotate(0)} 55%{transform:none} }
+    @keyframes noirBeatTail { 0%,100%{transform:rotate(0)} 25%{transform:rotate(-9deg)} 75%{transform:rotate(3deg)} }
+    @keyframes noirBeatEarL { 0%,100%{transform:rotate(0)} 22%{transform:rotate(-3deg)} }
+    @keyframes noirBeatEarR { 0%,100%{transform:rotate(0)} 22%{transform:rotate(3deg)} }
+
+    /* ear to the sound (one bar): head and the right ear turn toward a sound on the viewer's right and hold */
+    .mascot.noir.anim-noir-ear #head      { animation: noirTurnHead 2.4s cubic-bezier(.3,1.2,.5,1) 1; }
+    .mascot.noir.anim-noir-ear #ear-right { animation: noirTurnEar 2.4s cubic-bezier(.3,1.2,.5,1) 1; }
+    .mascot.noir.anim-noir-ear #ear-left  { animation: noirTurnEarL 2.4s ease-in-out 1; }
+    .mascot.noir.anim-noir-ear #tail      { animation: noirTailFlick 2.4s ease-in-out 1; }
+    .mascot.noir.anim-noir-ear .note      { animation: float 1.2s ease-out 2; }
+    .mascot.noir.anim-noir-ear .n2        { animation-delay: .6s; }
+    @keyframes noirTurnHead { 0%,100%{transform:none} 15%,85%{transform:rotate(7deg) translate(4px,1px)} }
+    @keyframes noirTurnEar  { 0%,100%{transform:rotate(0)} 12%{transform:rotate(20deg)} 22%,85%{transform:rotate(15deg)} }
+    @keyframes noirTurnEarL { 0%,100%{transform:rotate(0)} 20%,85%{transform:rotate(6deg)} }
+  </style>
+
+  <defs>
+    <!-- one eye, centred on 0,0: an ink dot (6% of the head's width) in a thin cream ring -->
+    <g id="noir-eye-open">
+      <circle r="20.5" fill="#fbe9c9"/>
+      <circle r="15" fill="#241d2a"/>
+    </g>
+    <g id="noir-eye-wide">
+      <circle r="23.5" fill="#fbe9c9"/>
+      <circle r="17.25" fill="#241d2a"/>
+    </g>
+    <path id="noir-eye-closed" d="M-13,4 Q0,-12 13,4" fill="none" stroke="#fbe9c9" stroke-width="6" stroke-linecap="round"/>
+    <path id="noir-eye-sad" d="M-13,-2 Q0,9 13,-2" fill="none" stroke="#fbe9c9" stroke-width="6" stroke-linecap="round"/>
+  </defs>
+
+  <ellipse id="shadow" cx="215" cy="383" rx="108" ry="4.5" fill="#d2dedc" opacity=".8"/>
+
+  <g id="figure">
+
+    <!-- TAIL: behind everything, curls up on the viewer's right -->
+    <g id="tail">
+      <path d="M282,338 C318,340 344,320 348,290 C351,268 344,250 336,240" fill="none" stroke="#272938" stroke-width="17" stroke-linecap="round"/>
+    </g>
+
+    <!-- LEGS, with separate feet so a toe can tap -->
+    <g id="legs">
+      <path id="leg-left" d="M146,318 L205,318 L205,366 L143,366 Z" fill="#2f3141"/>
+      <path id="leg-right" d="M225,318 L284,318 L287,366 L225,366 Z" fill="#2f3141"/>
+      <path d="M146,318 L205,318 L205,345 L146,345 Z" fill="#272938"/>
+      <path d="M225,318 L284,318 L285,345 L225,345 Z" fill="#272938"/>
+      <g id="foot-left">
+        <path d="M142,362 L205,362 L205,374 Q205,383 196,383 L150,383 Q141,383 142,374 Z" fill="#2f3141"/>
+      </g>
+      <g id="foot-right">
+        <path d="M225,362 L287,362 L288,374 Q289,383 280,383 L234,383 Q225,383 225,374 Z" fill="#2f3141"/>
+      </g>
+    </g>
+
+    <!-- BODY -->
+    <g id="body">
+      <path id="torso" d="M140,232 C126,250 121,278 121,304 C121,334 146,346 215,346 C284,346 309,334 309,304 C309,278 304,250 290,232 Z" fill="#2f3141"/>
+      <!-- shoulders for the bust view -->
+      <path class="bust-only" d="M140,232 C122,254 116,284 116,312 Q215,328 314,312 C314,284 308,254 290,232 Z" fill="#2f3141"/>
+      <g id="arm-left">
+        <path d="M134,262 C120,262 112,280 112,300 C112,316 120,324 130,324 C142,324 146,314 146,300 L146,276 Z" fill="#363849"/>
+        <path d="M146,282 L146,300 C146,312 142,320 134,323" fill="none" stroke="#272938" stroke-width="2.5"/>
+      </g>
+      <g id="arm-right">
+        <path d="M296,262 C310,262 318,280 318,300 C318,316 310,324 300,324 C288,324 284,314 284,300 L284,276 Z" fill="#363849"/>
+        <path d="M284,282 L284,300 C284,312 288,320 296,323" fill="none" stroke="#272938" stroke-width="2.5"/>
+      </g>
+    </g>
+
+    <!-- HEAD -->
+    <g id="head">
+      <g id="ear-left">
+        <path d="M116,48 Q109,49 109,58 L110,150 L190,92 Q122,48 116,48 Z" fill="#2f3141" stroke="#2f3141" stroke-width="6" stroke-linejoin="round"/>
+        <path d="M129,71 L163,92 L132,111 Z" fill="#fc7d64" stroke="#fc7d64" stroke-width="3" stroke-linejoin="round"/>
+      </g>
+      <g id="ear-right">
+        <path d="M314,48 Q321,49 321,58 L320,150 L240,92 Q308,48 314,48 Z" fill="#2f3141" stroke="#2f3141" stroke-width="6" stroke-linejoin="round"/>
+        <path d="M301,71 L267,92 L298,111 Z" fill="#fc7d64" stroke="#fc7d64" stroke-width="3" stroke-linejoin="round"/>
+      </g>
+      <path id="skull" d="M215,81 C270,81 306,86 320,104 C331,122 334,150 333,174 C332,206 298,228 215,228 C132,228 98,206 97,174 C96,150 99,122 110,104 C124,86 160,81 215,81 Z" fill="#2f3141"/>
+
+      <g class="blush">
+        <ellipse cx="146" cy="191" rx="13" ry="5.2" fill="#f59a8a"/>
+        <ellipse cx="284" cy="191" rx="13" ry="5.2" fill="#f59a8a"/>
+      </g>
+
+      <g id="eyes">
+        <g class="eye-set eyes-open">
+          <use href="#noir-eye-open" x="165" y="161"/>
+          <use href="#noir-eye-open" x="265" y="161"/>
+        </g>
+        <g class="eye-set eyes-wide">
+          <use href="#noir-eye-wide" x="165" y="161"/>
+          <use href="#noir-eye-wide" x="265" y="161"/>
+        </g>
+        <g class="eye-set eyes-closed">
+          <use href="#noir-eye-closed" x="165" y="163"/>
+          <use href="#noir-eye-closed" x="265" y="163"/>
+        </g>
+        <g class="eye-set eyes-wink-left">
+          <use href="#noir-eye-closed" x="165" y="163"/>
+          <use href="#noir-eye-open" x="265" y="161"/>
+        </g>
+        <g class="eye-set eyes-wink-right">
+          <use href="#noir-eye-open" x="165" y="161"/>
+          <use href="#noir-eye-closed" x="265" y="163"/>
+        </g>
+        <g class="eye-set eyes-sad">
+          <use href="#noir-eye-sad" x="165" y="163"/>
+          <use href="#noir-eye-sad" x="265" y="163"/>
+          <path d="M147,143 L181,133" stroke="#5a5d72" stroke-width="5" stroke-linecap="round"/>
+          <path d="M283,143 L249,133" stroke="#5a5d72" stroke-width="5" stroke-linecap="round"/>
+        </g>
+      </g>
+
+      <!-- MOUTHS: on black fur the line is a warm light tone, and open mouths get a rim so they read -->
+      <g id="mouth">
+        <path class="mouth-set mouth-smile" d="M203,190 Q216,201 229,190" fill="none" stroke="#e08a76" stroke-width="3.5" stroke-linecap="round"/>
+        <path class="mouth-set mouth-small" d="M205,189 Q210.5,196 216,190 Q221.5,196 227,189" fill="none" stroke="#e08a76" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <g class="mouth-set mouth-open">
+          <path d="M204,189 Q216,193 228,189 Q228,206 216,207 Q204,206 204,189 Z" fill="#1c1d29" stroke="#e08a76" stroke-width="2.5" stroke-linejoin="round"/>
+          <path d="M209,202 Q216,197 223,202 Q221,206 216,206 Q211,206 209,202 Z" fill="#ef6b6b"/>
+        </g>
+        <g class="mouth-set mouth-tongue">
+          <path d="M205,189 Q216,193 227,189 Q227,201 216,202 Q205,201 205,189 Z" fill="#1c1d29" stroke="#e08a76" stroke-width="2.5" stroke-linejoin="round"/>
+          <path d="M210,197 L222,197 L222,206 Q222,213 216,213 Q210,213 210,206 Z" fill="#ef6b6b"/>
+          <path d="M216,199 L216,208" stroke="#d65454" stroke-width="2" stroke-linecap="round"/>
+        </g>
+        <ellipse class="mouth-set mouth-o" cx="216" cy="197" rx="6" ry="7" fill="#1c1d29" stroke="#e08a76" stroke-width="2.5"/>
+        <path class="mouth-set mouth-frown" d="M205,198 Q216,188 227,198" fill="none" stroke="#e08a76" stroke-width="3.5" stroke-linecap="round"/>
+      </g>
+
+      <path id="nose" d="M201,169 L231,169 L216,185 Z" fill="#fcbb54" stroke="#fcbb54" stroke-width="4" stroke-linejoin="round"/>
+    </g>
+
+    <!-- COLLAR stays put; the BOW TIE (neckwear) wiggles. In front of the chin, level when the head tilts -->
+    <path id="collar" d="M140,233 Q215,245 290,233 L290,241 Q215,253 140,241 Z" fill="#559e7f"/>
+    <g id="neckwear">
+      <path d="M204,233 L176,221 Q166,218 165,229 L165,254 Q166,265 177,262 L204,252 Z" fill="#9ad8bb"/>
+      <path d="M226,233 L254,221 Q264,218 265,229 L265,254 Q264,265 253,262 L226,252 Z" fill="#9ad8bb"/>
+      <path d="M204,248 L177,262 Q170,264 167,258 L204,243 Z" fill="#7cc0a2"/>
+      <path d="M226,248 L253,262 Q260,264 263,258 L226,243 Z" fill="#7cc0a2"/>
+      <rect x="200" y="229" width="30" height="28" rx="9" fill="#9ad8bb" stroke="#559e7f" stroke-width="3"/>
+    </g>
+
+    <!-- SHARED EFFECTS (design/STYLE.md), beside the head on the viewer's right, level with the ear tips -->
+    <g transform="translate(338,52)">
+      <g class="fx fx-notes" id="notes">
+        <g class="note n1"><path d="M6,26 L6,0 L28,4 L28,16" fill="none" stroke="#ef6b6b" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><ellipse cx="0" cy="28" rx="7" ry="5.5" fill="#ef6b6b"/></g>
+        <g class="note n2"><path d="M32,60 L32,36 L46,42" fill="none" stroke="#4a8fe0" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><ellipse cx="26" cy="62" rx="7" ry="5.5" fill="#4a8fe0"/></g>
+      </g>
+      <g class="fx fx-sparkles">
+        <path d="M14,0 Q16,12 28,14 Q16,16 14,28 Q12,16 0,14 Q12,12 14,0 Z" fill="#f6c445"/>
+        <path d="M40,30 Q41,37 48,38 Q41,39 40,46 Q39,39 32,38 Q39,37 40,30 Z" fill="#f6c445"/>
+      </g>
+      <g class="fx fx-heart"><path d="M14,26 C4,18 0,12 0,7 C0,2 4,0 7,0 C10,0 12,2 14,5 C16,2 18,0 21,0 C24,0 28,2 28,7 C28,12 24,18 14,26 Z" fill="#ef6b6b"/></g>
+      <g class="fx fx-question"><path d="M4,10 Q4,0 14,0 Q24,0 24,9 Q24,15 16,18 Q14,19 14,24" fill="none" stroke="#5bbf94" stroke-width="5" stroke-linecap="round"/><circle cx="14" cy="33" r="3.2" fill="#5bbf94"/></g>
+    </g>
+  </g>
+</svg>

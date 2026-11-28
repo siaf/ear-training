@@ -1,0 +1,180 @@
+/*
+  Shared mascot animations. Each mascot (src/mascots/<key>.svg) names its parts with the
+  same ids and sets their pivots in its own <style>; see design/STYLE.md.
+  Used by the app (src/components/Mascot.tsx) and the audition page (design/build.py).
+*/
+/*
+  SHARED ANIMATIONS. Every mascot SVG names its parts with the same ids
+  (#figure #body #head #ear-left #ear-right #tail #arm-left #arm-right #eyes #shadow, .note)
+  and sets each part's transform-origin in its own <style>. A part a mascot lacks just stays still.
+  A mascot can add its own animations in its SVG <style>, keyed on .anim-<name>.
+*/
+.mascot * { transform-box: view-box; }
+.mascot .note { transform-box: fill-box; transform-origin: center; }
+
+/* idle */
+.mascot.idle #body  { animation: breathe 3.2s ease-in-out infinite; }
+.mascot.idle #head  { animation: headIdle 3.2s ease-in-out infinite; }
+.mascot.idle #tail  { animation: tailIdle 2.6s ease-in-out infinite; }
+.mascot.idle #scarf-end { animation: scarfIdle 3.2s ease-in-out infinite; }
+@keyframes breathe  { 0%,100%{transform:scale(1,1)} 50%{transform:scale(1.008,1.018)} }
+@keyframes headIdle { 0%,100%{transform:translateY(0) rotate(0)} 50%{transform:translateY(-2.5px) rotate(-1deg)} }
+@keyframes tailIdle { 0%,100%{transform:rotate(0)} 50%{transform:rotate(-6deg)} }
+@keyframes scarfIdle{ 0%,100%{transform:rotate(0)} 50%{transform:rotate(-2.5deg)} }
+
+.mascot.blink #eyes { animation: blink .16s ease-in-out; }
+@keyframes blink { 0%,100%{transform:scaleY(1)} 50%{transform:scaleY(.08)} }
+.mascot.flick-l #ear-left  { animation: flickL .45s ease-out; }
+.mascot.flick-r #ear-right { animation: flickR .45s ease-out; }
+@keyframes flickL { 0%,100%{transform:rotate(0)} 25%{transform:rotate(-12deg)} 55%{transform:rotate(5deg)} }
+@keyframes flickR { 0%,100%{transform:rotate(0)} 25%{transform:rotate(12deg)} 55%{transform:rotate(-5deg)} }
+
+/* hop: a jump with squash and stretch, arms up */
+.mascot.anim-hop #figure { animation: hop .9s cubic-bezier(.3,.7,.4,1) 1; }
+.mascot.anim-hop #shadow { animation: shadowHop .9s cubic-bezier(.3,.7,.4,1) 1; }
+.mascot.anim-hop #arm-left  { animation: armsUpL .9s ease-out 1; }
+.mascot.anim-hop #arm-right { animation: armsUpR .9s ease-out 1; }
+.mascot.anim-hop #tail { animation: wagFast .9s ease-in-out 1; }
+.mascot.anim-hop #ear-left  { animation: earsUpL .9s ease-out 1; }
+.mascot.anim-hop #ear-right { animation: earsUpR .9s ease-out 1; }
+@keyframes hop {
+  0% { transform: none; } 16% { transform: scale(1.1,.88); } 40% { transform: translateY(-58px) scale(.93,1.08); }
+  56% { transform: translateY(-64px) scale(1,1); } 76% { transform: translateY(0) scale(1.12,.86); }
+  88% { transform: scale(.97,1.03); } 100% { transform: none; }
+}
+@keyframes shadowHop { 0%,16%,76%,100%{transform:scale(1);opacity:.7} 50%{transform:scale(.6);opacity:.35} }
+@keyframes armsUpL { 0%,100%{transform:rotate(0)} 30%,65%{transform:rotate(130deg)} }
+@keyframes armsUpR { 0%,100%{transform:rotate(0)} 30%,65%{transform:rotate(-130deg)} }
+@keyframes earsUpL { 0%,100%{transform:rotate(0)} 40%{transform:rotate(8deg)} 76%{transform:rotate(-10deg)} }
+@keyframes earsUpR { 0%,100%{transform:rotate(0)} 40%{transform:rotate(-8deg)} 76%{transform:rotate(10deg)} }
+@keyframes wagFast { 0%,100%{transform:rotate(0)} 20%{transform:rotate(-16deg)} 40%{transform:rotate(10deg)} 60%{transform:rotate(-16deg)} 80%{transform:rotate(8deg)} }
+
+/* nod: a small, quiet yes */
+.mascot.anim-nod #head { animation: nod .9s ease-in-out 1; }
+.mascot.anim-nod #ear-left  { animation: perkL .45s ease-in-out 2; }
+.mascot.anim-nod #ear-right { animation: perkR .45s ease-in-out 2; }
+@keyframes nod { 0%,100%{transform:none} 25%{transform:translateY(5px) rotate(0)} 50%{transform:none} 72%{transform:translateY(4px)} }
+
+/* droop: ears down, a small head shake */
+.mascot.anim-droop #head      { animation: shake 1.1s ease-in-out 1; }
+.mascot.anim-droop #ear-left  { animation: droopL 1.1s ease-in-out 1; }
+.mascot.anim-droop #ear-right { animation: droopR 1.1s ease-in-out 1; }
+.mascot.anim-droop #body      { animation: slump 1.1s ease-in-out 1; }
+.mascot.anim-droop #tail      { animation: tailDown 1.1s ease-in-out 1; }
+@keyframes shake { 0%,100%{transform:none} 15%{transform:translateY(4px) rotate(-5deg)} 30%{transform:translateY(4px) rotate(5deg)} 45%{transform:translateY(4px) rotate(-4deg)} 60%{transform:translateY(4px) rotate(3deg)} 80%{transform:translateY(4px)} }
+@keyframes droopL { 0%,100%{transform:rotate(0)} 20%,80%{transform:rotate(-16deg)} }
+@keyframes droopR { 0%,100%{transform:rotate(0)} 20%,80%{transform:rotate(16deg)} }
+@keyframes slump { 0%,100%{transform:none} 20%,80%{transform:scale(1.02,.97)} }
+@keyframes tailDown { 0%,100%{transform:rotate(0)} 20%,80%{transform:rotate(14deg)} }
+
+/* listen: sway to a beat, notes float */
+.mascot.anim-listen #head      { animation: sway 1.2s ease-in-out 3; }
+.mascot.anim-listen #ear-left  { animation: perkL .6s ease-in-out 6; }
+.mascot.anim-listen #ear-right { animation: perkR .6s ease-in-out 6; animation-delay:.3s; }
+.mascot.anim-listen #tail      { animation: tailBeat .6s ease-in-out 6; }
+.mascot.anim-listen #body      { animation: bopBody .6s ease-in-out 6; }
+.mascot.anim-listen .note      { animation: float 1.8s ease-out 2; }
+.mascot.anim-listen .n2        { animation-delay: .4s; }
+@keyframes sway { 0%,100%{transform:rotate(0)} 25%{transform:rotate(-7deg) translateY(-2px)} 75%{transform:rotate(7deg) translateY(-2px)} }
+@keyframes perkL { 0%,100%{transform:rotate(0)} 50%{transform:rotate(-9deg)} }
+@keyframes perkR { 0%,100%{transform:rotate(0)} 50%{transform:rotate(9deg)} }
+@keyframes tailBeat { 0%,100%{transform:rotate(0)} 50%{transform:rotate(-10deg)} }
+@keyframes bopBody { 0%,100%{transform:scale(1,1)} 50%{transform:scale(1.015,.975)} }
+@keyframes float { 0%{transform:translate(0,10px) scale(.6);opacity:0} 25%{opacity:1} 100%{transform:translate(10px,-34px) scale(1.05);opacity:0} }
+
+/* wave: the viewer's-right arm waves */
+.mascot.anim-wave #arm-right { animation: wave 1.6s ease-in-out 1; }
+.mascot.anim-wave #head      { animation: tiltHello 1.6s ease-in-out 1; }
+.mascot.anim-wave #tail      { animation: wagFast 1.6s ease-in-out 1; }
+@keyframes wave { 0%,100%{transform:rotate(0)} 18%{transform:rotate(-128deg)} 32%{transform:rotate(-100deg)} 46%{transform:rotate(-130deg)} 60%{transform:rotate(-100deg)} 74%{transform:rotate(-125deg)} }
+@keyframes tiltHello { 0%,100%{transform:none} 20%,75%{transform:rotate(5deg) translateY(-2px)} }
+
+/* tilt: curious head tilt, one ear up */
+.mascot.anim-tilt #head      { animation: tilt 1.8s cubic-bezier(.3,1.4,.5,1) 1; }
+.mascot.anim-tilt #ear-right { animation: earUp 1.8s ease-out 1; }
+@keyframes tilt { 0%,100%{transform:none} 18%,80%{transform:rotate(-11deg) translate(-3px,-3px)} }
+@keyframes earUp { 0%,100%{transform:rotate(0)} 20%{transform:rotate(-14deg)} 30%,80%{transform:rotate(-8deg)} }
+
+/* bounce: three quick bounces */
+.mascot.anim-bounce #figure { animation: bounce .34s ease-in-out 3; }
+.mascot.anim-bounce #tail   { animation: wagFast 1s ease-in-out 1; }
+.mascot.anim-bounce #arm-left  { animation: pumpL .34s ease-in-out 3; }
+.mascot.anim-bounce #arm-right { animation: pumpR .34s ease-in-out 3; }
+@keyframes bounce { 0%,100%{transform:scale(1.04,.95)} 50%{transform:translateY(-18px) scale(.97,1.04)} }
+@keyframes pumpL { 0%,100%{transform:rotate(0)} 50%{transform:rotate(40deg)} }
+@keyframes pumpR { 0%,100%{transform:rotate(0)} 50%{transform:rotate(-40deg)} }
+
+/* chuckle: shoulders shake */
+.mascot.anim-chuckle #head { animation: chuckle .18s ease-in-out 6; }
+.mascot.anim-chuckle #body { animation: chuckleBody .18s ease-in-out 6; }
+.mascot.anim-chuckle #tail { animation: wagFast 1.1s ease-in-out 1; }
+@keyframes chuckle { 0%,100%{transform:rotate(2deg)} 50%{transform:translateY(-4px) rotate(3deg)} }
+@keyframes chuckleBody { 0%,100%{transform:scale(1,1)} 50%{transform:scale(1.01,1.02)} }
+
+
+/* ───────── MUSIC (100 bpm: a beat is .6s, a 4/4 bar 2.4s) ───────── */
+/* beat: keep time */
+.mascot.anim-beat #head      { animation: beatHead .6s ease-in-out 4; }
+.mascot.anim-beat #body      { animation: beatBody .6s ease-in-out 4; }
+.mascot.anim-beat #foot-right{ animation: beatTap .6s ease-in-out 4; }
+.mascot.anim-beat #ear-left  { animation: beatEarL .6s ease-in-out 4; animation-delay: .06s; }
+.mascot.anim-beat #ear-right { animation: beatEarR .6s ease-in-out 4; animation-delay: .06s; }
+.mascot.anim-beat #tail      { animation: tailBeat .6s ease-in-out 4; }
+.mascot.anim-beat #neckwear  { animation: beatWiggle .6s ease-in-out 4; }
+.mascot.anim-beat .note      { animation: float 1.2s ease-out 2; }
+.mascot.anim-beat .n2        { animation-delay: .6s; }
+@keyframes beatHead { 0%,100%{transform:none} 18%{transform:translateY(7px)} 50%{transform:translateY(-1px)} }
+@keyframes beatBody { 0%,100%{transform:scale(1,1)} 18%{transform:scale(1.015,.975)} }
+@keyframes beatTap  { 0%,12%,85%,100%{transform:rotate(0)} 55%{transform:rotate(-14deg)} }
+@keyframes beatEarL { 0%,100%{transform:rotate(0)} 22%{transform:rotate(-6deg)} }
+@keyframes beatEarR { 0%,100%{transform:rotate(0)} 22%{transform:rotate(6deg)} }
+@keyframes beatWiggle { 0%,100%{transform:none} 20%{transform:rotate(-6deg)} 60%{transform:rotate(4deg)} }
+
+/* sing: mouth opens on each half beat, head lifts */
+.mascot.anim-sing #mouth { animation: singMouth .3s ease-in-out 8; }
+.mascot.anim-sing #head  { animation: singHead 1.2s ease-in-out 2; }
+.mascot.anim-sing #body  { animation: bopBody .6s ease-in-out 4; }
+.mascot.anim-sing #ear-left  { animation: perkL 1.2s ease-in-out 2; }
+.mascot.anim-sing #ear-right { animation: perkR 1.2s ease-in-out 2; animation-delay:.6s; }
+.mascot.anim-sing .note  { animation: float 1.2s ease-out 2; }
+.mascot.anim-sing .n2    { animation-delay: .6s; }
+@keyframes singMouth { 0%,100%{transform:scale(.8,.55)} 50%{transform:scale(1.1,1.25)} }
+@keyframes singHead { 0%,100%{transform:translateY(-3px) rotate(-4deg)} 50%{transform:translateY(-6px) rotate(4deg)} }
+
+/* conduct: the right arm beats 4/4 (down, in, out, up) */
+.mascot.anim-conduct #arm-right { animation: conductArm 2.6s ease-in-out 1; }
+.mascot.anim-conduct #head      { animation: beatHead .6s ease-in-out 4; animation-delay: .2s; }
+.mascot.anim-conduct #body      { animation: beatBody .6s ease-in-out 4; animation-delay: .2s; }
+@keyframes conductArm {
+  0%{transform:rotate(0)} 7%{transform:rotate(-150deg)}
+  15%{transform:rotate(-55deg)} 25%{transform:rotate(-80deg)}
+  38%{transform:rotate(-20deg)} 48%{transform:rotate(-55deg)}
+  61%{transform:rotate(-110deg)} 72%{transform:rotate(-115deg)}
+  84%{transform:rotate(-155deg)} 92%{transform:rotate(-120deg)} 100%{transform:rotate(0)}
+}
+
+/* pitch-up / pitch-down: higher or lower */
+.mascot.anim-pitch-up #figure    { animation: pitchUpFig 1s cubic-bezier(.3,1.3,.5,1) 1; }
+.mascot.anim-pitch-up #head      { animation: pitchUpHead 1s cubic-bezier(.3,1.3,.5,1) 1; }
+.mascot.anim-pitch-up #ear-left  { animation: earsUpL 1s ease-out 1; }
+.mascot.anim-pitch-up #ear-right { animation: earsUpR 1s ease-out 1; }
+.mascot.anim-pitch-up #shadow    { animation: shadowHop 1s ease-out 1; }
+@keyframes pitchUpFig { 0%,100%{transform:none} 30%,75%{transform:translateY(-14px) scale(.97,1.06)} }
+@keyframes pitchUpHead { 0%,100%{transform:none} 30%,75%{transform:translateY(-6px) rotate(-3deg)} }
+.mascot.anim-pitch-down #figure    { animation: pitchDownFig 1s cubic-bezier(.3,1.3,.5,1) 1; }
+.mascot.anim-pitch-down #head      { animation: pitchDownHead 1s cubic-bezier(.3,1.3,.5,1) 1; }
+.mascot.anim-pitch-down #ear-left  { animation: droopL 1s ease-in-out 1; }
+.mascot.anim-pitch-down #ear-right { animation: droopR 1s ease-in-out 1; }
+@keyframes pitchDownFig { 0%,100%{transform:none} 30%,75%{transform:scale(1.05,.93)} }
+@keyframes pitchDownHead { 0%,100%{transform:none} 30%,75%{transform:translateY(8px) rotate(2deg)} }
+
+/* metronome: sway from the feet, a tick per beat */
+.mascot.anim-metronome #figure { animation: metronome 1.2s ease-in-out 2; }
+.mascot.anim-metronome #head   { animation: metroHead 1.2s ease-in-out 2; }
+.mascot.anim-metronome .note   { animation: float 1.2s ease-out 2; }
+@keyframes metronome { 0%,50%,100%{transform:rotate(0)} 25%{transform:rotate(-6deg)} 75%{transform:rotate(6deg)} }
+@keyframes metroHead { 0%,50%,100%{transform:rotate(0)} 25%{transform:rotate(3deg)} 75%{transform:rotate(-3deg)} }
+
+@media (prefers-reduced-motion: reduce) {
+  .mascot * { animation-duration: .01s !important; animation-iteration-count: 1 !important; }
+}
