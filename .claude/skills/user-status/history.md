@@ -34,3 +34,24 @@ One entry per check, newest last. Aggregates only: no names, emails or account i
 - Sentry: quiet. New FIFTHS-WEB-1X (Supabase sync "Load failed" on /paywall, 2 events) lines up with both would-be buyers returning to the plans page on iPhone. FIFTHS-WEB-1W (iPhone audio device) once on the 19th.
 - Deployed after this check (2026-11-25 ~21:15 UTC, tags deploy/app|site/2026-11-25-b9ccbc0): PostHog through `/ingest` on our own domains, plus a server-side `account_confirmed` event. Once live, PostHog's visitor and event counts will rise because blocked browsers start counting: that's measurement, not growth. Compare like with like (Supabase for sign-ups and lessons). Also built: Stable or Unstable split in two and played over the home chord, Harmonic 4ths & 5ths split (new Fifths and Octaves first), wrong answers now play the difference, try-it buttons at the top of the singing and interval comparison posts, and outbound link clicks (`outbound_link_clicked`). Check those lessons' quit rates and accuracy next week.
 - Also deployed 2026-11-25 ~21:58 UTC (deploy/app|site/2026-11-25-c03d771): Pro is $9.99/month with no discount (was $4.99 via the LAUNCH code, now inactive in RevenueCat), the paywall shows the renewal and terms line, RevenueCat's terms checkbox is off, and Apple Pay and Google Pay show in checkout (verified on the owner's iPhone). Checkout is branded (cream panel, coral button, Pro description). Next checks: did anyone pay $9.99, and how many checkout opens. Review the price test around 2026-12-23. PostHog has annotations at both deploys.
+
+## 2026-11-27 ~05:20 UTC (window last 24 h, 26–27 Nov)
+
+- Sign-ups (Supabase): 6 accounts, 5 confirmed (one never clicked its link). 57 accounts in total.
+- Signed-in learners: 4 synced 36 lessons (avg accuracy 76%); 3 of them did 9–14 lessons each on their first day. The 5th confirmed account (Mac Safari) synced none.
+- Returning learners: none in Supabase or PostHog (nobody who signed up before the window came back in it).
+- Traffic (PostHog): 74 people on fifths.io (Google 20, DuckDuckGo 7, Bing 3, direct 37), 18 in the app. 12 started a lesson, 8 finished one; 43 lessons completed.
+- Plans and purchases: 3 people saw the plans, nobody opened checkout, no purchases.
+- Worst quits: Higher or Lower (7 quits, 4 people, 5 of 11 finished), Find Home / resting tone (4/3), Stable or Unstable (2/2), Harmonic 4ths & 5ths (2/2, the old lesson). Consonance 12 of 13 finished, Match the Pitch 7 of 9 with no quits.
+- Sentry: two new auth issues, both one Mac learner at 04:19–04:23 UTC on release c03d771: FIFTHS-WEB-1Y "Email link is invalid or has expired" (9 events) and FIFTHS-WEB-1Z "email rate limit exceeded". Supabase logs: sign-in worked twice in Safari (sync ran, empty profile pushed), but the tab where they'd done 2 lessons stayed signed out; they reopened the used links ~10 times from Safari and Chrome on an iPad, and a link-preview bot fetched them too. Most likely a Safari private window (each private tab has its own storage, so the signed-in tab and the lesson tab never share). supabase-js 2.104 keeps a session on a reused link, so it isn't the app signing people out. Disposable-looking inbox.
+
+## 2026-11-28 ~15:15 UTC (window since 2026-11-27 05:20 UTC, ~34 h)
+
+- Sign-ups (Supabase): 6 accounts, 5 confirmed. 63 accounts in total. One person made two (an unconfirmed one, then one with another address a minute later).
+- Signed-in learners: 5 synced 36 lessons (avg accuracy 75%); the newest did 22 lessons within its first ~20 minutes.
+- Returning learners: none again (third check in a row).
+- Traffic (PostHog): 105 people on fifths.io (Google 49, direct 39, DuckDuckGo 8, Bing 4, Brave 2, Meta AI 1, Gemini 1), 32 in the app, 17 arrived straight into a lesson. 25 started a lesson, 15 finished one; 50 lessons completed.
+- Plans and purchases: nobody saw the plans, no checkouts, no purchases.
+- Worst quits: Higher or Lower (4 quits, 3 people, 7 of 11 finished), old Harmonic 4ths & 5ths (0 of 6 finished, 2 quits). Consonance 22 of 23 finished; Match the Pitch 10 of 19 finished with 1 quit.
+- Sentry: FIFTHS-WEB-22 new: Google sign-in fails at once on iOS 15 Safari ("auth health unreachable", 8 tries by one learner in Indonesia). `assertAuthReachable` uses `AbortSignal.timeout`, which Safari before 16 lacks, so the check always throws there. That learner then used email, signed in in another browser context (likely the mail app's in-app browser), stayed signed out in Safari, and reopened the used link 3 times (FIFTHS-WEB-1Y, now 12 events, 2 people): the same pattern as 27 Nov, which the held sign-in-code change addresses. FIFTHS-WEB-20/21: React insertBefore NotFoundError on /practice in the Google app on iOS 16 with a Ukrainian locale, most likely page translation. Noise.
+- App deploys still on hold (sign-in emails not yet carrying a code).
