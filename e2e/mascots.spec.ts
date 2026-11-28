@@ -41,3 +41,10 @@ test('mascots keep still for people who ask for reduced motion', async ({ page }
   await page.waitForTimeout(1500);
   await expect(mascot).not.toHaveClass(/anim-/);
 });
+
+test('stats has Major, who keeps track, even before the first session', async ({ page }) => {
+  await openApp(page, '/stats');
+  const major = page.locator('[data-mascot="major"] svg');
+  await expect(major).toBeVisible();
+  await expect(major).toHaveClass(/anim-/, { timeout: 3000 });
+});

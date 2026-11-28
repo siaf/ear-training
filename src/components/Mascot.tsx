@@ -9,7 +9,7 @@
 // can move its parts. Motion stops for people who ask for reduced motion.
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useLayoutEffect, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
-import { MASCOTS, resolveAct } from '../mascots';
+import { MASCOTS, TAP_MOVES, resolveAct } from '../mascots';
 import type { MascotFace, MascotView } from '../mascots';
 import type { Mascot as MascotName } from '../types';
 import '../mascots/mascot.css';
@@ -34,7 +34,8 @@ interface Props {
   label?: string;
   className?: string;
   style?: CSSProperties;
-  onClick?: () => void;
+  /** A tap plays the mascot's moves in turn (TAP_MOVES). */
+  playOnTap?: boolean;
 }
 
 const reducedMotion = () =>
@@ -50,7 +51,7 @@ function applyFace(svg: SVGSVGElement, def: (typeof MASCOTS)[MascotName], face: 
 }
 
 const Mascot = forwardRef<MascotHandle, Props>(function Mascot(
-  { name, face = 'neutral', view = 'full', idle = true, act, actDelayMs = 0, size = '100%', label, className, style, onClick },
+  { name, face = 'neutral', view = 'full', idle = true, act, actDelayMs = 0, size = '100%', label, className, style, playOnTap = false },
   ref,
 ) {
   const host = useRef<HTMLDivElement>(null);
@@ -59,6 +60,7 @@ const Mascot = forwardRef<MascotHandle, Props>(function Mascot(
   const timers = useRef<number[]>([]);
   // Idle motion pauses while the mascot is off screen: the path shows one per section.
   const [onScreen, setOnScreen] = useState(true);
+  const taps = useRef(0);
   const faceRef = useRef(face);
   faceRef.current = face;
   const def = MASCOTS[name];
@@ -166,16 +168,21 @@ const Mascot = forwardRef<MascotHandle, Props>(function Mascot(
     return () => clearTimeout(t);
   }, [def, flash, living]);
 
+  const onTap = () => {
+    const moves = TAP_MOVES[name];
+    if (play(moves[taps.current % moves.length])) taps.current += 1;
+  };
+
   return (
     <div
       ref={host}
       className={className}
-      onClick={onClick}
+      onClick={playOnTap ? onTap : undefined}
       role={label ? 'img' : undefined}
       aria-label={label}
       aria-hidden={label ? undefined : true}
       data-mascot={name}
-      style={{ width: size, height: size, ...style }}
+      style={{ width: size, height: size, cursor: playOnTap ? 'pointer' : undefined, ...style }}
     />
   );
 });

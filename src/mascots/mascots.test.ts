@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { MASCOTS, resolveAct } from '.';
+import { GREETING, MASCOTS, TAP_MOVES, resolveAct, resultsReaction } from '.';
 import type { Mascot } from '../types';
 
 const sharedCss = readFileSync(resolve(__dirname, 'mascot.css'), 'utf8');
@@ -35,11 +35,23 @@ describe.each(Object.keys(MASCOTS) as Mascot[])('%s', (key) => {
     }
   });
 
-  it('can keep time', () => {
+  it('can keep time, greet, and play every tap move', () => {
     expect(resolveAct(key, 'beat')).toBeTruthy();
+    expect(resolveAct(key, GREETING[key]), GREETING[key]).toBeTruthy();
+    for (const m of TAP_MOVES[key]) expect(resolveAct(key, m), m).toBeTruthy();
   });
 
   it('frames both views', () => {
     for (const v of ['full', 'bust'] as const) expect(def.viewBox[v].split(' ')).toHaveLength(4);
   });
+});
+
+it("Major has every results reaction, and none of them is sad", () => {
+  for (const acc of [100, 80, 60, 20]) {
+    const r = resultsReaction(acc);
+    expect(resolveAct('major', r.act), r.act).toBeTruthy();
+    expect(MASCOTS.major.faces[r.face]).toBeTruthy();
+    expect(r.face).not.toBe('sad');
+    expect(resolveAct('major', r.act)!.face).not.toBe('sad');
+  }
 });

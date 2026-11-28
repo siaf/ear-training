@@ -59,3 +59,23 @@ export function resolveAct(mascot: Mascot, act: string): ActDef | null {
 export function faceForExpression(e: MascotExpression | undefined): MascotFace {
   return !e || e === 'portrait' ? 'neutral' : e;
 }
+
+/** How each mascot says hello as a screen opens, in character. */
+export const GREETING: Record<Mascot, string> = {
+  fable: 'wave', noir: 'slowblink', major: 'welcome', pulse: 'beat',
+};
+
+/** What a tap on a mascot plays, one move after another: mostly its music moves. */
+export const TAP_MOVES: Record<Mascot, string[]> = {
+  fable: ['conduct', 'sing', 'beat', 'correct'],
+  noir: ['beat', 'ear', 'pitch-up', 'slowblink'],
+  major: ['drum', 'sing', 'proud', 'correct'],
+  pulse: ['beat', 'drum', 'metronome', 'streak'],
+};
+
+/** Major's reaction to a finished session: proud of a good score, never sad about a low one. */
+export function resultsReaction(accuracy: number): { face: MascotFace; act: string } {
+  if (accuracy >= 90) return { face: 'happy', act: 'correct' };
+  if (accuracy >= 75) return { face: 'content', act: 'proud' };
+  return { face: 'neutral', act: 'track' };
+}

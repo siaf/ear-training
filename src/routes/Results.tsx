@@ -6,6 +6,8 @@ import { CurriculumLevel, SessionStats } from '../types';
 import { getDisplayName } from '../curriculum';
 import DesktopSidebar, { SidebarTab } from '../components/DesktopSidebar';
 import WeekShareCard from '../components/WeekShareCard';
+import Mascot from '../components/Mascot';
+import { resultsReaction } from '../mascots';
 
 interface Props {
   level: CurriculumLevel;
@@ -99,6 +101,8 @@ export default function Results({
   const shortfall = Math.max(0, level.unlockRequirement - stats.accuracy);
   // Reading and fretboard lessons are about seeing, not hearing.
   const visual = level.type === 'reading' || level.type === 'fretboard';
+  // Major does summaries (brand kit): a hop for a great score, the book held up for a good one.
+  const reaction = resultsReaction(stats.accuracy);
   void weakestInterval;
   void weakestDegree;
 
@@ -138,31 +142,45 @@ export default function Results({
           </div>
         )}
         <div style={{ padding: mobile ? '0 22px 20px' : '32px 44px 40px', maxWidth: 1100, margin: '0 auto', width: '100%', boxSizing: 'border-box' }}>
-        <ColorPill tone={canUnlock ? 'mint' : 'lav'} style={{ marginBottom: 14 }}>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-            <Check size={13} strokeWidth={3} /> {canUnlock ? 'level unlocked' : 'session complete'}
-          </span>
-        </ColorPill>
-        <h1
-          style={{
-            fontFamily: 'var(--disp)',
-            fontSize: mobile ? 30 : 54,
-            fontWeight: 600,
-            letterSpacing: -0.02,
-            lineHeight: 1.02,
-            margin: '0 0 14px',
-          }}
-        >
-          {stats.accuracy >= 90
-            ? visual ? 'Sharp eyes.' : 'Sharp ear.'
-            : stats.accuracy >= 75
-            ? visual ? 'Nice reading.' : 'Nice ear.'
-            : stats.accuracy >= 50
-            ? 'Coming together.'
-            : 'Good effort.'}{' '}
-          <span style={{ fontStyle: 'italic', color: 'var(--coral-ink)' }}>{sessionLabel ?? level.name}</span>
-          {stats.accuracy >= 75 ? ' is starting to click.' : '.'}
-        </h1>
+        <div style={{ display: 'flex', alignItems: 'flex-end', gap: mobile ? 8 : 24 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+          <ColorPill tone={canUnlock ? 'mint' : 'lav'} style={{ marginBottom: 14 }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+              <Check size={13} strokeWidth={3} /> {canUnlock ? 'level unlocked' : 'session complete'}
+            </span>
+          </ColorPill>
+          <h1
+            style={{
+              fontFamily: 'var(--disp)',
+              fontSize: mobile ? 30 : 54,
+              fontWeight: 600,
+              letterSpacing: -0.02,
+              lineHeight: 1.02,
+              margin: '0 0 14px',
+            }}
+          >
+            {stats.accuracy >= 90
+              ? visual ? 'Sharp eyes.' : 'Sharp ear.'
+              : stats.accuracy >= 75
+              ? visual ? 'Nice reading.' : 'Nice ear.'
+              : stats.accuracy >= 50
+              ? 'Coming together.'
+              : 'Good effort.'}{' '}
+            <span style={{ fontStyle: 'italic', color: 'var(--coral-ink)' }}>{sessionLabel ?? level.name}</span>
+            {stats.accuracy >= 75 ? ' is starting to click.' : '.'}
+          </h1>
+          </div>
+          <Mascot
+            name="major"
+            face={reaction.face}
+            act={reaction.act}
+            actDelayMs={400}
+            size={mobile ? 92 : 168}
+            label="Major the bear"
+            playOnTap
+            style={{ flexShrink: 0, marginBottom: mobile ? 10 : 8 }}
+          />
+        </div>
 
         {streakMilestone && <WeekShareCard mobile={mobile} milestone={streakMilestone} onDismiss={onDismissMilestone} />}
 

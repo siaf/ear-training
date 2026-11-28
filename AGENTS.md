@@ -82,7 +82,7 @@ Run all three before deploying. Nothing runs them for you: there's no CI for tes
 | `share.spec.ts` | Sharing a medal, "your week" on the stats screen and the 7-day streak prompt: the picture, X, Reddit as a text post, and Escape |
 | `paths.spec.ts` | The course switcher, and Read Music and Guitar lessons finished by reading the staff or neck the learner sees, including chord and scale shapes |
 | `courses.spec.ts` | All six courses in the switcher; Rhythm counting and tapping (in time, steadily late, and out of time); a Theory and a History lesson finished by reading; Bass on a four-string neck; the path screen's side cards following the chosen course; unreleased courses locked as "coming soon" for learners but open to the owner's account |
-| `mascots.spec.ts` | The animated mascots: a lesson intro's mascot at its size, greeting and playing a move when tapped; the path screen's small mascots; and keeping still for reduced motion |
+| `mascots.spec.ts` | The animated mascots: a lesson intro's mascot at its size, greeting and playing a move when tapped; the path screen's small mascots; Major on stats; and keeping still for reduced motion |
 
 Useful forms: `npx playwright test e2e/audio.spec.ts --project=webkit`, `npx playwright test -g "paywall"`, `npx playwright show-trace test-results/<folder>/trace.zip`.
 

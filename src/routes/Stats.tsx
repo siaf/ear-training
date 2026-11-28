@@ -5,6 +5,7 @@ import { useBreakpoint } from '../lib/useBreakpoint';
 import { Bean, Blob, Brand, ColorPill } from '../components/primitives';
 import DesktopSidebar, { SidebarTab } from '../components/DesktopSidebar';
 import WeekShareCard from '../components/WeekShareCard';
+import Mascot from '../components/Mascot';
 import {
   DailyStat,
   MasteryCell,
@@ -647,6 +648,16 @@ function EmptyState({
         <Blob size={240} color="var(--butter)" style={{ position: 'absolute', top: 40, left: 40, opacity: 0.4 }} />
         <Blob size={280} color="var(--mint)" style={{ position: 'absolute', bottom: 40, right: 40, opacity: 0.4 }} />
         <div style={{ textAlign: 'center', maxWidth: 520, position: 'relative', zIndex: 2 }}>
+          <Mascot
+            name="major"
+            face={postReset ? 'happy' : 'curious'}
+            act="welcome"
+            actDelayMs={500}
+            size={mobile ? 120 : 150}
+            label="Major the bear"
+            playOnTap
+            style={{ margin: '0 auto 10px' }}
+          />
           <ColorPill tone={postReset ? 'mint' : 'coral'} style={{ marginBottom: 14 }}>
             {postReset ? 'fresh start' : 'stats · soon'}
           </ColorPill>
@@ -776,20 +787,26 @@ export default function Stats({
           boxSizing: 'border-box',
         }}
       >
-        <ColorPill tone="lav" style={{ marginBottom: 14 }}>
-          your heartbeat
-        </ColorPill>
-        <h1
-          style={{
-            fontFamily: 'var(--disp)',
-            fontSize: mobile ? 28 : 44,
-            fontWeight: 600,
-            letterSpacing: -0.02,
-            margin: '0 0 20px',
-          }}
-        >
-          Stats — <span style={{ fontStyle: 'italic', color: 'var(--coral-ink)' }}>{isPro ? 'all time' : '7-day window'}</span>
-        </h1>
+        <div style={{ display: 'flex', alignItems: 'flex-end', gap: mobile ? 8 : 24, marginBottom: 20 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <ColorPill tone="lav" style={{ marginBottom: 14 }}>
+              your heartbeat
+            </ColorPill>
+            <h1
+              style={{
+                fontFamily: 'var(--disp)',
+                fontSize: mobile ? 28 : 44,
+                fontWeight: 600,
+                letterSpacing: -0.02,
+                margin: 0,
+              }}
+            >
+              Stats — <span style={{ fontStyle: 'italic', color: 'var(--coral-ink)' }}>{isPro ? 'all time' : '7-day window'}</span>
+            </h1>
+          </div>
+          {/* Major keeps track (brand kit): taps the book, "I've been keeping track". */}
+          <Mascot name="major" act="track" actDelayMs={500} size={mobile ? 84 : 132} label="Major the bear" playOnTap style={{ flexShrink: 0 }} />
+        </div>
 
         <WeekShareCard mobile={mobile} />
 

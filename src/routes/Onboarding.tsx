@@ -1,6 +1,5 @@
-import { useRef } from 'react';
 import { useBreakpoint } from '../lib/useBreakpoint';
-import Mascot, { type MascotHandle } from '../components/Mascot';
+import Mascot from '../components/Mascot';
 import { Bean, Brand } from '../components/primitives';
 import { phCapture } from '../lib/posthog';
 import type { Mascot as MascotName } from '../types';
@@ -27,8 +26,6 @@ interface Props {
 }
 
 const MASCOT: MascotName = 'fable';
-// A tap on Fable plays one of their music moves in turn.
-const TAP_MOVES = ['conduct', 'sing', 'beat', 'correct'];
 const TONE = { bg: 'var(--coral-soft)', ink: 'var(--coral-ink)', accent: 'var(--coral)' };
 
 const CHOICES: Array<{ value: OnboardingChoice; label: string; desc: string; levelId: string }> = [
@@ -40,8 +37,6 @@ const CHOICES: Array<{ value: OnboardingChoice; label: string; desc: string; lev
 export default function Onboarding({ onDone, onSkip }: Props) {
   const mobile = useBreakpoint() !== 'desktop';
   const mascotSize = mobile ? 120 : 160;
-  const mascotRef = useRef<MascotHandle>(null);
-  const taps = useRef(0);
 
   const pick = (choice: OnboardingChoice) => {
     const startLevelId = CHOICES.find((c) => c.value === choice)!.levelId;
@@ -100,16 +95,12 @@ export default function Onboarding({ onDone, onSkip }: Props) {
           }}
         >
           <Mascot
-            ref={mascotRef}
             name={MASCOT}
             act="wave"
             actDelayMs={600}
             size="92%"
             label={MASCOT}
-            onClick={() => {
-              if (mascotRef.current?.play(TAP_MOVES[taps.current % TAP_MOVES.length])) taps.current += 1;
-            }}
-            style={{ cursor: 'pointer' }}
+            playOnTap
           />
         </div>
 
